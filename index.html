@@ -1,41 +1,48 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Animationen für den Biologieunterricht</title>
 <style>
-:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1b3026;background:#f8faf7}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background-image:radial-gradient(#c8d7c9 1.2px,transparent 1.2px);background-size:22px 22px}
-header,main,footer{max-width:1100px;margin:auto;padding-left:24px;padding-right:24px}
-header{padding-top:68px;padding-bottom:36px} .eyebrow{font-size:.82rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase;color:#37764b}
-h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.12;letter-spacing:-.045em;margin:12px 0} .intro{max-width:640px;color:#53685a;font-size:1.12rem;line-height:1.65}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;padding-bottom:60px}
-.card{background:white;border:1px solid #dae5d9;border-radius:20px;overflow:hidden;box-shadow:0 12px 35px #234b2610;display:flex;flex-direction:column}
-.visual{height:265px;background:#eef5ed;display:grid;place-items:center;overflow:hidden}
-.visual img{display:block;width:100%;height:100%;object-fit:contain}
-.placeholder{font-size:5rem}
-.content{padding:25px;display:flex;flex:1;flex-direction:column}
-.kicker{color:#4e8660;font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-h2{font-size:1.45rem;margin:9px 0}p{color:#5b6c61;line-height:1.6;margin:0 0 24px}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:auto}
-a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 17px;border-radius:11px;text-decoration:none;font-weight:700;border:1px solid #317a48;background:#317a48;color:white}
-a.btn.secondary{background:white;color:#317a48}a.btn:hover{filter:brightness(.93)}
-footer{padding-bottom:35px;color:#6b7c70;font-size:.86rem}
-@media(max-width:700px){header{padding-top:40px}.grid{grid-template-columns:1fr}.visual{height:230px}}
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#24313a;background:#f8faf8}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background-color:#f8faf8;background-image:radial-gradient(circle,#c9d8cd 1.25px,transparent 1.25px);background-size:22px 22px}
+.container{max-width:1000px;margin:0 auto;padding:62px 24px 90px}
+h1{font-size:clamp(2rem,4.5vw,3.1rem);letter-spacing:-.045em;margin:0 0 10px;line-height:1.15}
+.intro{color:#60746b;font-size:1.08rem;margin:0 0 42px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:22px}
+.card{background:white;border:1px solid #dce7df;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(33,72,48,.08)}
+.image-link{display:block;background:#eaf4eb;padding:18px;text-align:center}
+.image-link img{width:100%;height:230px;object-fit:contain;display:block}
+.content{padding:24px}.tag{font-size:.75rem;color:#337651;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+h2{font-size:1.35rem;letter-spacing:-.02em;margin:10px 0}.description{color:#61736a;line-height:1.55;margin:0 0 22px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 15px;border-radius:10px;font-size:.9rem;font-weight:650;text-decoration:none;transition:background .15s}
+.primary{background:#25764e;color:#fff}.primary:hover{background:#195b3b}.secondary{color:#256446;background:#eaf3eb;border:1px solid #d4e6d8}.secondary:hover{background:#dcebdd}
+.notice{margin-top:48px;padding:18px 22px;border:1px solid #dce7df;border-radius:14px;background:rgba(255,255,255,.88);color:#566c60;font-size:.92rem;line-height:1.65}.notice strong{color:#304b3a}
+@media(max-width:500px){.container{padding:40px 18px}.actions .btn{flex:1 1 100%}}
 </style>
 </head>
 <body>
-<header><div class="eyebrow">Interaktive Lernmaterialien</div><h1>Animationen für den Biologieunterricht</h1><p class="intro">Biologische Vorgänge entdecken, Versuche durchführen und Zusammenhänge verstehen – direkt im Browser.</p></header>
-<main class="grid">
+<main class="container">
+<h1>Animationen für den Biologieunterricht</h1>
+<p class="intro">Interaktive Modelle zum Entdecken, Experimentieren und Verstehen.</p>
+<div class="grid">
 <article class="card">
-<div class="visual"><img src="wassertransport-vorschau.png" alt="Baum mit Wurzeln, Wasserleitbahnen und Sonne – Wassertransport in Pflanzen"></div>
-<div class="content"><span class="kicker">Pflanzenbiologie</span><h2>Wassertransport in Pflanzen</h2><p>Erkunde, wie Wasser von den Wurzeln durch die Pflanze bis zu den Blättern transportiert wird.</p>
-<div class="actions"><a class="btn" href="Animation%20Wassertransport.html">Animation starten</a><a class="btn secondary" href="Animation%20Wassertransport.html" download>↓ Herunterladen</a></div></div>
-</article>
+<a class="image-link" href="animationen/wassertransport/" aria-label="Wassertransport im Baum öffnen"><img src="wassertransport-vorschau.png" alt="Illustration einer Pflanze mit Wurzeln, Wassertransport und vergrößerten Zellstrukturen"></a>
+<div class="content"><span class="tag">Pflanzenphysiologie</span><h2>Wassertransport im Baum</h2>
+<p class="description">Erforsche Wurzeldruck, Verdunstungssog, Kohäsion und Adhäsion in fünf interaktiven Stationen.</p>
+<div class="actions"><a class="btn primary" href="animationen/wassertransport/">Animation öffnen ↗</a><a class="btn secondary" href="animationen/wassertransport/index.html" download="Wassertransport-im-Baum.html">↓ HTML herunterladen</a></div>
+</div></article>
+
 <article class="card">
-<div class="visual"><img src="fotosynthese-vorschau.png" alt="Versuchsaufbau zur Fotosynthese mit Lampe, Wasserpest, Trichter und umgedrehtem Reagenzglas zum Auffangen von Sauerstoff"></div>
-<div class="content"><span class="kicker">Fotosynthese · Experiment</span><h2>Fotosynthese-Labor</h2><p>Untersuche, wie Licht, Kohlenstoffdioxid, Temperatur und Lichtfarbe die Fotosynthese beeinflussen. Mit Messprotokoll und Tag-Nacht-Simulation.</p>
-<div class="actions"><a class="btn" href="fotosynthese-labor.html">Labor starten</a><a class="btn secondary" href="fotosynthese-labor.html" download>↓ Herunterladen</a></div></div>
-</article>
-</main><footer>Interaktive Materialien für den Biologieunterricht</footer>
-</body></html>
+<a class="image-link" href="animationen/fotosynthese-labor.html" aria-label="Fotosynthese-Labor öffnen"><img src="fotosynthese-vorschau.png" alt="Illustration eines Wasserpest-Versuchs mit Lampe und Sauerstoffbläschen"></a>
+<div class="content"><span class="tag">Fotosynthese</span><h2>Fotosynthese-Labor</h2>
+<p class="description">Experimentiere mit Licht, CO₂, Temperatur und Lichtfarbe. Zähle Sauerstoffbläschen und untersuche den Tag-Nacht-Wechsel.</p>
+<div class="actions"><a class="btn primary" href="animationen/fotosynthese-labor.html">Animation öffnen ↗</a><a class="btn secondary" href="animationen/fotosynthese-labor.html" download="Fotosynthese-Labor.html">↓ HTML herunterladen</a></div>
+</div></article>
+</div>
+<footer class="notice"><strong>Hinweis zur Nutzung:</strong> Diese Animationen wurden mithilfe künstlicher Intelligenz (KI) erstellt. Trotz sorgfältiger Erstellung können fachliche Fehler oder Ungenauigkeiten enthalten sein. Bitte prüfe jede Animation vor dem Einsatz im Unterricht eigenverantwortlich auf fachliche Richtigkeit und pädagogische Eignung.</footer>
+</main>
+</body>
+</html>
