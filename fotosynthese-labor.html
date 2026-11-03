@@ -1,0 +1,1439 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fotosynthese">
+<title>Fotosynthese-Labor</title>
+<style>
+:root{
+  --bg:#eef3ec;--panel:#ffffff;--panel2:#f4f8f2;--text:#1c2a1f;--muted:#5b6a5e;--line:#d5dfd1;
+  --accent:#2f8a3e;--accent2:#1f6e2d;--accentSoft:#e2f2e3;--warn:#b8650f;--warnSoft:#fdf0df;--danger:#c0392b;--dangerSoft:#fbe5e2;
+  --shadow:0 6px 20px rgba(30,60,30,.08);
+  --room1:#dfe8f0;--room2:#f2f6f9;--bench:#c09162;--bench2:#9d7148;--glass:rgba(120,150,170,.75);--chartGrid:#e4eae2;
+  --resp:#d06a12;--respSoft:#fcebd9;--night:#4b4fc4;--nightSoft:#e7e8fa;--o2:#2f7fe0;
+}
+:root[data-theme="dark"]{
+  --bg:#0e1611;--panel:#16211a;--panel2:#1c2921;--text:#e5eee5;--muted:#9db0a1;--line:#2a3a2f;
+  --accent:#5cc46d;--accent2:#86dc93;--accentSoft:#1d3424;--warn:#f0a04b;--warnSoft:#3a2a16;--danger:#ff7a6b;--dangerSoft:#3d1f1b;
+  --shadow:0 6px 20px rgba(0,0,0,.35);
+  --room1:#0b121b;--room2:#16202c;--bench:#5a4330;--bench2:#432f1d;--glass:rgba(170,200,220,.5);--chartGrid:#25342a;
+  --resp:#f59e4b;--respSoft:#3a2814;--night:#a9acff;--nightSoft:#212346;--o2:#6fb0ff;
+}
+*{box-sizing:border-box}
+html{font-size:calc(15px * var(--fs,1));background:var(--bg)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:1rem/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%;touch-action:manipulation;transition:background .3s,color .3s}
+button,select{font:inherit;color:inherit}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:12px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:26px;height:26px}
+h1{font-size:1.333rem;margin:0;line-height:1.15}
+.sub{margin:0;color:var(--muted);font-size:0.8667rem}
+.head-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow)}
+.btn:hover{border-color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+select.btn{padding-right:10px}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{min-height:38px;border:0;background:transparent;border-radius:9px;padding:0 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.15);color:var(--accent2);font-weight:600}
+.seg button:disabled{opacity:.5}
+/* Layout (Handy zuerst) */
+main{display:flex;flex-direction:column;gap:10px;padding:0 10px 12px;width:100%;max-width:1260px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px 16px}
+.stage{position:sticky;top:0;z-index:6;padding:0;overflow:hidden}
+.stage canvas{display:block;width:100%;aspect-ratio:640/440;height:auto}
+.controls{padding:0;display:flex;flex-direction:column}
+.ctrlScroll{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.ctrlFoot{position:sticky;bottom:0;z-index:4;background:var(--panel);padding:10px 14px 10px;border-top:1px solid var(--line);border-radius:0 0 18px 18px;display:grid;gap:4px}
+.panel{padding:0;display:flex;flex-direction:column;overflow:hidden}
+.tabs{display:flex;gap:2px;padding:6px 10px 0;border-bottom:1px solid var(--line);overflow-x:auto;flex:none;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{border:0;background:transparent;padding:0 14px;min-height:42px;border-radius:10px 10px 0 0;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--accent2);border-bottom-color:var(--accent);background:var(--panel2)}
+.tabs button span{font-weight:400;color:var(--muted);margin-left:4px}
+.tabPane{padding:10px 14px 12px}
+.tabPane[hidden]{display:none!important}
+.tabPane[data-pane="diagramm"]{display:flex;flex-direction:column;gap:6px}
+.chartWrap{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.chartBox{position:relative;height:calc(250px * var(--fs,1));min-width:0}
+.chartBox canvas{position:absolute;inset:0;width:100%;height:100%}
+.withBal .dayBal{align-self:start}
+.withBal .dbRow{grid-template-columns:7.4em 1fr 3.4em}
+.withBal .dayBal{font-size:.8rem;gap:4px;padding:8px 10px}
+.withBal .dbNote{display:none}
+.dbRow .v{white-space:nowrap}
+.cycleHud{position:absolute;left:10px;right:10px;bottom:8px;display:flex;align-items:center;gap:10px;background:var(--panel);background:color-mix(in srgb,var(--panel) 90%,transparent);border:1px solid var(--line);border-radius:14px;padding:4px 10px 4px 4px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.cycleHud input{flex:1;min-width:80px;height:36px}
+.cycleHud .o2gauge{margin:0;flex:0 1 210px;grid-template-columns:auto 1fr auto;font-size:.8rem}
+.iconbtn{width:40px;height:40px;flex:none;border-radius:11px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-size:1.05rem;display:grid;place-items:center}
+.iconbtn:hover{border-color:var(--accent)}
+h2{font-size:1rem;margin:0 0 6px}
+.row-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+/* HUD */
+.hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none}
+.hud > *{pointer-events:auto}
+.pill{background:var(--panel);background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:0.8667rem;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.pill.fast{background:var(--warn);color:#fff;border-color:transparent;font-weight:600}
+.pill label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.meter{min-width:12rem;background:var(--panel);background:color-mix(in srgb,var(--panel) 92%,transparent);border:2px solid var(--accent);border-radius:14px;padding:8px 12px;text-align:center;display:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.meter.show{display:block}
+.meter .num{font-size:2rem;font-weight:700;line-height:1;color:var(--accent2);font-variant-numeric:tabular-nums}
+.meter small{display:block;color:var(--muted);font-size:0.8rem;margin-top:2px}
+.bar{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;width:0;background:var(--accent)}
+/* Auftrag */
+details.task{background:var(--accentSoft);border-radius:14px;padding:10px 12px}
+details.task summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between}
+details.task summary::-webkit-details-marker{display:none}
+details.task summary::after{content:"▾";color:var(--muted)}
+details.task:not([open]) summary::after{content:"▸"}
+.taskBody h3{font-size:1rem;margin:8px 0 4px}
+.taskBody p{margin:6px 0}
+.taskBody ol{margin:6px 0;padding-left:20px}
+.taskBody li{margin:2px 0}
+.tag{display:inline-block;font-size:0.7333rem;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--panel);color:var(--accent2);border:1px solid var(--line)}
+/* Regler */
+.ctrl{display:flex;flex-direction:column;gap:2px}
+.ctrl .lab{display:flex;justify-content:space-between;align-items:baseline}
+.ctrl .lab b{font-weight:600}
+.ctrl output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent2);min-width:60px;text-align:right}
+.ctrl .hint{font-size:0.8rem;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;margin:0;cursor:pointer}
+input[type=range]:focus{outline:none}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--line) var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--panel);border:3px solid var(--accent);margin-top:-10px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px var(--accentSoft)}
+input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:8px;border-radius:99px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--panel);border:3px solid var(--accent)}
+input[type=range]:disabled{opacity:.45;cursor:not-allowed}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.2)}
+#colorSeg{display:grid;grid-template-columns:repeat(4,1fr)}
+#xSeg button{gap:0}
+#colorSeg button{justify-content:center}
+/* Faktoren */
+.factors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.factor{display:grid;grid-template-columns:1fr auto;grid-template-areas:"l v" "b b";align-items:center;gap:3px 6px;font-size:0.8667rem}
+.factor > span:first-child{grid-area:l}.factor .fbar{grid-area:b}.factor > span:last-child{grid-area:v}
+.factor .fbar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.factor .fbar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .25s}
+.factor.lim .fbar i{background:var(--warn)}
+.factor.lim span:first-child{color:var(--warn);font-weight:700}
+.factor span:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.feedback{border-radius:12px;padding:10px 12px;background:var(--panel2);border-left:4px solid var(--accent);font-size:0.9333rem}
+.feedback.warn{border-left-color:var(--warn);background:var(--warnSoft)}
+.feedback.danger{border-left-color:var(--danger);background:var(--dangerSoft)}
+.feedback.night{border-left-color:var(--night);background:var(--nightSoft)}
+/* Tageszeit */
+#phaseSeg{display:grid;grid-template-columns:repeat(3,1fr)}
+#phaseSeg button{justify-content:center}
+#phaseSeg button[data-phase="nacht"][aria-pressed="true"]{color:var(--night)}
+#cycleBox[hidden],.o2gauge[hidden]{display:none!important}
+.cycleRow{display:flex;align-items:center;gap:10px;margin-top:4px}
+.cycleRow .btn{flex:none;box-shadow:none;font-size:1.1rem}
+.cycleRow input{flex:1;min-width:0}
+/* Stoffwechsel */
+.procs{display:grid;gap:7px;max-width:640px}
+.proc,.o2gauge{display:grid;grid-template-columns:6.5em 1fr 6.6em;align-items:center;gap:8px;font-size:0.8667rem}
+.proc .fbar,.o2gauge .fbar{height:12px;background:var(--line);border-radius:99px;overflow:hidden}
+.proc .fbar i,.o2gauge .fbar i{display:block;height:100%;border-radius:99px;transition:width .25s}
+.proc.fs .fbar i{background:var(--accent)}
+.proc.za .fbar i{background:var(--resp)}
+.proc.fs span:first-child{color:var(--accent2);font-weight:700}
+.proc.za span:first-child{color:var(--resp);font-weight:700}
+.proc small,.o2gauge small{color:var(--muted);text-align:right;font-size:.78rem}
+.o2gauge{margin-top:8px}
+.o2gauge .fbar i{background:var(--o2)}
+.balance{margin-top:8px;border-radius:12px;padding:8px 12px;font-size:0.9rem;background:var(--panel2)}
+.balance.pos{background:var(--accentSoft)}
+.balance.neg{background:var(--respSoft)}
+.measure:disabled{opacity:.55;cursor:not-allowed}
+.legendPill{display:inline-flex;align-items:center;gap:6px}
+.legendPill svg{flex:none}
+.measure{min-height:52px;width:100%;border:0;border-radius:14px;background:var(--accent);color:#fff;font-size:1.133rem;font-weight:700;cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;gap:8px}
+:root[data-theme="dark"] .measure{color:#0e1611}
+.measure.stop{background:var(--danger)}
+.mhint{font-size:0.75rem;color:var(--muted);text-align:center}
+/* Diagramm */
+.chartFoot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:0.8rem;color:var(--muted);align-items:center}
+.check{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.8667rem;color:var(--text)}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+#modelLbl[hidden],.dayBal[hidden]{display:none!important}
+.dayBal{display:grid;gap:6px;font-size:.88rem;background:var(--panel2);border-radius:12px;padding:10px 12px}
+.dbRow{display:grid;grid-template-columns:10.5em 1fr 3.4em;gap:8px;align-items:center}
+.dbBar{height:14px;background:var(--line);border-radius:99px;overflow:hidden}
+.dbBar i{display:block;height:100%;border-radius:99px}
+.dbRow .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.dbNote{color:var(--muted);margin-top:2px}
+@media (max-width:600px){.dbRow{grid-template-columns:8.2em 1fr 3em}}
+/* Gleichung */
+.eqBox{background:var(--panel2);border-radius:14px;padding:12px;margin-top:8px;display:grid;gap:10px}
+.eqRow{--act:.5;border-radius:12px;padding:8px 6px;transition:opacity .3s}
+.eqRow.off{opacity:.42}
+.eqLbl{display:flex;justify-content:center;align-items:baseline;gap:8px;font-weight:700;margin-bottom:6px;font-size:.95rem}
+.eqLbl small{font-weight:400;color:var(--muted);font-size:.8rem}
+.fsRow .eqLbl{color:var(--accent2)}
+.zaRow .eqLbl{color:var(--resp)}
+.zaRow .eq .p{border-color:var(--resp)}
+.zaRow .eq .o2r{border-color:var(--resp);font-weight:700}
+.eq[hidden]{display:none!important}
+.eq{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:1.133rem;justify-content:center}
+.eq .r,.eq .p{padding:4px 10px;border-radius:10px;background:var(--panel);border:1px solid var(--line)}
+.eq .p{opacity:calc(.35 + .65*var(--act));border-color:var(--accent);transition:opacity .3s}
+.eq .o2{box-shadow:0 0 calc(18px*var(--act)) color-mix(in srgb,var(--accent) 60%,transparent);font-weight:700}
+.arrow{display:inline-flex;flex-direction:column;align-items:center;line-height:1;padding:0 4px}
+.arrow b{font-size:1.467rem}
+.arrow small{font-size:0.7333rem;color:var(--muted);white-space:nowrap}
+.eqNote{font-size:0.8667rem;color:var(--muted);margin:10px 0 0}
+/* Tabelle */
+.tableWrap{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:12px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:0.9333rem;font-variant-numeric:tabular-nums}
+th,td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line)}
+th{position:sticky;top:0;background:var(--panel2);font-size:0.8rem;color:var(--muted);font-weight:600}
+td b{color:var(--accent2);font-size:1rem}
+tr.empty td{color:var(--muted);text-align:center;padding:20px}
+tr.new td{animation:flash 1.4s}
+@keyframes flash{from{background:var(--accentSoft)}to{background:transparent}}
+.del{border:0;background:transparent;color:var(--muted);cursor:pointer;width:34px;height:34px;border-radius:8px}
+.del:hover{background:var(--dangerSoft);color:var(--danger)}
+.tableBtns{display:flex;gap:8px}
+.tableBtns .btn{min-height:38px;font-size:0.8667rem;box-shadow:none}
+/* Toast & Dialog */
+#toast{position:fixed;left:50%;bottom:24px;max-width:calc(100% - 32px);text-align:center;transform:translate(-50%,120px);background:var(--text);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:600;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none;z-index:20;box-shadow:var(--shadow)}
+#toast.show{transform:translate(-50%,0);opacity:1}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);max-width:640px;width:calc(100% - 32px);padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{font-size:1.2rem}
+dialog h3{font-size:1rem;margin:14px 0 4px}
+dialog p,dialog li{font-size:0.9333rem}
+dialog ul{padding-left:20px;margin:4px 0}
+#fontUp{font-size:1.15em;font-weight:700}
+#fontDown{font-size:.92em;font-weight:700}
+.seg button small{font-size:.8em;margin-left:1px}
+.btn.icon{justify-content:center;min-width:44px}
+@media (max-width:1400px){.lbl{display:none}.btn.icon{padding:0}}
+.ico2{display:none}
+@media (max-width:700px){.lbl2{display:none}.ico2{display:inline}}
+/* App-Layout: alles auf einen Bildschirm (Tablet, Laptop, Handy quer) */
+@media (min-width:760px), (orientation:landscape) and (min-width:640px){
+  html,body{height:100%}
+  body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+  header{flex:none;padding:8px 14px}
+  main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(290px,29vw,350px);grid-template-rows:minmax(0,1.65fr) minmax(0,1fr);gap:12px;padding:0 14px 14px}
+  .stage{position:relative;top:auto;grid-column:1;grid-row:1;min-height:0}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto}
+  .panel{grid-column:1;grid-row:2;min-height:0}
+  .controls{grid-column:2;grid-row:1 / span 2;min-height:0}
+  .ctrlScroll{flex:1;min-height:0;overflow:auto;gap:9px;padding:10px 14px}
+  .ctrlFoot{position:static}
+  .ctrl .hint{display:none}
+  .seg button{min-height:36px}
+  input[type=range]{height:36px}
+  .tabPane{flex:1;min-height:0;overflow:auto}
+  .tableWrap{max-height:none}
+  .chartWrap{flex:1;min-height:140px;grid-template-rows:minmax(0,1fr)}
+  .chartWrap.withBal{grid-template-columns:minmax(0,1fr) minmax(220px,.5fr)}
+  .chartBox{height:auto;min-height:140px}
+  .withBal .dayBal{max-height:100%;overflow:auto}
+  .chartFoot{font-size:.75rem}
+}
+@media (min-width:760px) and (max-width:1100px) and (orientation:portrait){
+  main{grid-template-rows:minmax(0,1.35fr) minmax(0,1fr)}
+}
+@media (orientation:landscape) and (max-height:520px){
+  header{padding:5px 10px;flex-wrap:nowrap}
+  .brand > div{display:none}
+  .logo{width:32px;height:32px}
+  .head-actions{flex-wrap:nowrap;width:100%;justify-content:space-between;gap:4px}
+  #taskSel{flex:1 1 auto;min-width:0;max-width:45%}
+  .btn{min-height:38px}
+  main{gap:8px;padding:0 8px 8px}
+  .card{border-radius:12px}
+  .pill{font-size:.72rem;padding:2px 8px}
+  .hud{top:5px;left:5px;right:5px}
+  .hud > div{gap:4px!important}
+  .tabs button{min-height:34px;padding:0 10px}
+  .ctrlScroll{padding:8px 10px;gap:7px}
+  .ctrlFoot{padding:6px 10px}
+  .measure{min-height:42px;font-size:1rem}
+  .mhint{display:none}
+}
+@media (max-width:620px){
+  .stage canvas{aspect-ratio:640/440}
+
+  header{padding:10px 12px;gap:8px}
+  .sub{display:none}
+  .logo{width:36px;height:36px}
+  h1{font-size:1.15rem}
+  .head-actions{width:100%;gap:4px;justify-content:space-between}
+  #taskSel{flex:1 1 100%;min-width:0}
+  .seg button{padding:0 6px;min-width:38px;justify-content:center}
+  .head-actions .seg{padding:2px;gap:2px}
+  .head-actions .btn.icon{min-width:42px;width:42px}
+  .card{border-radius:14px}
+  .hud{top:6px;left:6px;right:6px}
+  .pill{font-size:.72rem;padding:2px 8px}
+  .hud > div{gap:4px!important}
+  .meter{min-width:0;padding:5px 9px}
+  .meter .num{font-size:1.5rem}
+  .cycleHud{left:6px;right:6px;bottom:6px;gap:6px}
+  .cycleHud .o2gauge span{display:none}
+  .cycleHud .o2gauge{flex-basis:90px}
+  #xSeg{width:100%;display:grid;grid-template-columns:repeat(5,1fr)}
+  #xSeg button{justify-content:center;padding:0 4px}
+  #colorSeg button{padding:0 4px;gap:4px}
+  .tabs button{padding:0 10px}
+  .eq{font-size:.95rem}
+  th,td{padding:6px 5px}
+  table{font-size:.85rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V11"/><path d="M12 13c-4 0-7-3-7-8 5 0 7 3 7 8z"/><path d="M12 11c0-4 2.5-7 7-7 0 4.5-2.5 7-7 7z"/></svg></div>
+    <div><h1>Fotosynthese-Labor</h1><p class="sub">Wasserpest-Versuch · Sauerstoffbläschen zählen</p></div>
+  </div>
+  <div class="head-actions">
+    <select class="btn" id="taskSel" aria-label="Versuchsauftrag wählen">
+      <option value="frei">Freies Experimentieren</option>
+      <option value="licht">Versuch 1: Licht</option>
+      <option value="co2">Versuch 2: CO₂</option>
+      <option value="temp">Versuch 3: Temperatur</option>
+      <option value="farbe">Versuch 4: Lichtfarbe</option>
+      <option value="tagnacht">Versuch 5: Tag und Nacht</option>
+    </select>
+    <div class="seg" role="group" aria-label="Schriftgröße">
+      <button id="fontDown" title="Schrift kleiner" aria-label="Schrift kleiner">A<small>−</small></button>
+      <button id="fontUp" title="Schrift größer" aria-label="Schrift größer" class="big">A<small>+</small></button>
+    </div>
+    <button class="btn icon" id="fsBtn" title="Vollbild" aria-label="Vollbild">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g id="fsIn"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></g><g id="fsOut" style="display:none"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></g></svg><span class="lbl" id="fsLbl"> Vollbild</span></button>
+    <button class="btn icon" id="themeBtn" title="Dunkelmodus umschalten" aria-label="Dunkelmodus umschalten" aria-pressed="false">☾<span class="lbl"> Darstellung</span></button>
+    <button class="btn icon" id="resetBtn" title="Bedingungen zurücksetzen" aria-label="Bedingungen zurücksetzen">↺<span class="lbl"> Zurücksetzen</span></button>
+    <button class="btn icon" id="infoBtn" title="Hinweise" aria-label="Hinweise">ⓘ<span class="lbl"> Hinweise</span></button>
+  </div>
+</header>
+
+<main>
+  <section class="card stage" aria-label="Versuchsaufbau">
+    <canvas id="stage" role="img" aria-label="Becherglas mit Wasserpest, Lampe und Thermometer. Aus dem Spross steigen Sauerstoffbläschen auf."></canvas>
+    <div class="hud">
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start">
+        <span class="pill" id="speedPill">☀︎ Tag</span>
+        <span class="pill"><label><input type="checkbox" id="labelsChk" checked> Beschriftung</label></span>
+        <span class="pill legendPill" aria-label="Legende: O2 als zwei rote Kugeln, CO2 als rote Kugeln mit dunkler Mitte">
+          <svg width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="#e0483a"/><circle cx="11" cy="5" r="4" fill="#e0483a"/></svg>O₂
+          <svg width="24" height="10" viewBox="0 0 24 10" aria-hidden="true"><circle cx="4.5" cy="5" r="3.6" fill="#e0483a"/><circle cx="19.5" cy="5" r="3.6" fill="#e0483a"/><circle cx="12" cy="5" r="4.4" fill="#3d4650"/></svg>CO₂</span>
+      </div>
+      <div class="meter" id="meter" aria-live="polite">
+        <div class="num" id="hudCount">0</div>
+        <small>gezählte Bläschen · <span id="hudTime">0 s von 60 s</span></small>
+        <div class="bar"><i id="hudBar"></i></div>
+      </div>
+    </div>
+    <div class="cycleHud" id="cycleBox" hidden>
+      <button class="iconbtn" id="playBtn" aria-label="Tagesverlauf abspielen">▶</button>
+      <input type="range" id="clock" min="0" max="24" step="0.25" aria-label="Uhrzeit">
+      <div class="o2gauge" id="o2Gauge" hidden title="Sauerstoffgehalt im Wasser"><span>O₂ im Wasser</span><div class="fbar"><i id="o2Bar"></i></div><small id="o2Val"></small></div>
+    </div>
+  </section>
+
+  <aside class="card controls" aria-label="Versuchsbedingungen">
+    <div class="ctrlScroll">
+    <div class="ctrl">
+      <div class="lab"><b>Tageszeit</b><output id="phaseOut"></output></div>
+      <div class="seg" id="phaseSeg" role="group" aria-label="Tageszeit">
+        <button data-phase="tag">☀︎ Tag</button>
+        <button data-phase="nacht">☾ Nacht</button>
+        <button data-phase="zyklus">⟳ 24 Stunden</button>
+      </div>
+    </div>
+    <div class="ctrl">
+      <div class="lab"><b id="lightLab">Lichtstärke</b><output id="lightOut"></output></div>
+      <input type="range" id="light" min="0" max="100" step="5" aria-label="Lichtstärke">
+      <span class="hint" id="lightHint">Der Raum ist verdunkelt, Licht kommt nur von der Lampe. Je näher die Lampe, desto heller.</span>
+    </div>
+    <div class="ctrl">
+      <div class="lab"><b>Lichtfarbe</b><output id="colorOut"></output></div>
+      <div class="seg" id="colorSeg" role="group" aria-label="Lichtfarbe">
+        <button data-color="weiss"><span class="dot" style="background:#fff3cc"></span>Weiß</button>
+        <button data-color="rot"><span class="dot" style="background:#ff5a46"></span>Rot</button>
+        <button data-color="blau"><span class="dot" style="background:#5a96ff"></span>Blau</button>
+        <button data-color="gruen"><span class="dot" style="background:#5adc78"></span>Grün</button>
+      </div>
+    </div>
+    <div class="ctrl">
+      <div class="lab"><b>CO₂-Angebot</b><output id="co2Out"></output></div>
+      <input type="range" id="co2" min="0" max="100" step="5" aria-label="CO2-Angebot">
+      <span class="hint">Natron (NaHCO₃) im Wasser gibt CO₂ ab.</span>
+    </div>
+    <div class="ctrl">
+      <div class="lab"><b>Wassertemperatur</b><output id="tempOut"></output></div>
+      <input type="range" id="temp" min="0" max="50" step="1" aria-label="Wassertemperatur">
+      <span class="hint">Wasserbad: Eis kühlt, Heizplatte wärmt.</span>
+    </div>
+
+      <div>
+        <h2>Begrenzende Faktoren</h2>
+        <div class="factors" id="factors">
+          <div class="factor" data-f="L"><span>Licht</span><div class="fbar"><i></i></div><span></span></div>
+          <div class="factor" data-f="C"><span>CO₂</span><div class="fbar"><i></i></div><span></span></div>
+          <div class="factor" data-f="T"><span>Temp.</span><div class="fbar"><i></i></div><span></span></div>
+        </div>
+      </div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+    </div>
+    <div class="ctrlFoot">
+      <button class="measure" id="measureBtn">▶ Bläschen zählen (1 Minute)</button>
+      <div class="mhint">Zeitraffer: 1 Minute dauert 15 Sekunden. Messwerte sind simuliert.</div>
+    </div>
+  </aside>
+
+  <section class="card panel" aria-label="Auftrag und Auswertung">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="auftrag">Auftrag</button>
+      <button role="tab" data-tab="diagramm">Diagramm</button>
+      <button role="tab" data-tab="gleichung">Stoffwechsel</button>
+      <button role="tab" data-tab="protokoll">Protokoll<span id="protoCount"></span></button>
+    </div>
+    <div class="tabPane" data-pane="auftrag" role="tabpanel"><div class="taskBody" id="taskBody"></div></div>
+    <div class="tabPane" data-pane="diagramm" role="tabpanel" hidden>
+      <div class="row-head">
+      <div class="seg" id="xSeg" role="group" aria-label="x-Achse">
+        <button data-x="light">Licht</button>
+        <button data-x="co2">CO₂</button>
+        <button data-x="temp">Temp<span class="lbl2">eratur</span></button>
+        <button data-x="color">Farbe</button>
+        <button data-x="day">24 h</button>
+      </div>
+      <label class="check" id="modelLbl"><input type="checkbox" id="modelChk"> Modellkurve</label>
+      </div>
+      <div class="chartWrap" id="chartWrap">
+        <div class="chartBox" id="chartBox"><canvas id="chart" aria-label="Diagramm der Messwerte"></canvas></div>
+        <div class="dayBal" id="dayBal" hidden aria-live="polite"></div>
+      </div>
+      <div class="chartFoot"><span id="chartNote"></span></div>
+    </div>
+    <div class="tabPane" data-pane="gleichung" role="tabpanel" hidden>
+      <div class="row-head">
+        <h2>Stoffwechsel der Pflanze – jetzt</h2>
+        <div class="seg" id="eqSeg" role="group" aria-label="Gleichung">
+          <button data-eq="wort">Wörter</button>
+          <button data-eq="formel">Formel</button>
+        </div>
+      </div>
+      <div class="procs">
+        <div class="proc fs"><span>Fotosynthese</span><div class="fbar"><i id="fsBar"></i></div><small>bildet O₂</small></div>
+        <div class="proc za"><span>Zellatmung</span><div class="fbar"><i id="zaBar"></i></div><small>verbraucht O₂</small></div>
+      </div>
+      <div class="balance" id="balance" aria-live="polite"></div>
+      <div class="eqBox" id="eqBox">
+        <div class="eqRow fsRow" id="fsRow">
+          <div class="eqLbl">☀︎ Fotosynthese <small>nur bei Licht</small></div>
+          <div class="eq" data-eq="wort">
+            <span class="r">Kohlenstoffdioxid</span>+<span class="r">Wasser</span>
+            <span class="arrow"><b>→</b><small>Licht · Chlorophyll</small></span>
+            <span class="p">Glucose</span>+<span class="p o2">Sauerstoff</span>
+          </div>
+          <div class="eq" data-eq="formel" hidden>
+            <span class="r">6 CO₂</span>+<span class="r">6 H₂O</span>
+            <span class="arrow"><b>→</b><small>Lichtenergie</small></span>
+            <span class="p">C₆H₁₂O₆</span>+<span class="p o2">6 O₂</span>
+          </div>
+        </div>
+        <div class="eqRow zaRow" id="zaRow">
+          <div class="eqLbl">⟳ Zellatmung <small>Tag und Nacht</small></div>
+          <div class="eq" data-eq="wort">
+            <span class="r">Glucose</span>+<span class="r o2r">Sauerstoff</span>
+            <span class="arrow"><b>→</b><small>in den Zellen</small></span>
+            <span class="p">Kohlenstoffdioxid</span>+<span class="p">Wasser</span>+<span class="p">Energie</span>
+          </div>
+          <div class="eq" data-eq="formel" hidden>
+            <span class="r">C₆H₁₂O₆</span>+<span class="r o2r">6 O₂</span>
+            <span class="arrow"><b>→</b><small>in den Zellen</small></span>
+            <span class="p">6 CO₂</span>+<span class="p">6 H₂O</span>+<span class="p">Energie</span>
+          </div>
+        </div>
+        <p class="eqNote">Die beiden Vorgänge sind Gegenspieler: Die Fotosynthese baut mit Lichtenergie Glucose auf, die Zellatmung baut sie wieder ab und gewinnt daraus Energie für die Zellen. Tagsüber überwiegt die Fotosynthese – die Pflanze gibt Sauerstoff ab. Nachts läuft nur die Zellatmung – die Pflanze nimmt Sauerstoff auf und gibt Kohlenstoffdioxid ab.</p>
+      </div>
+    </div>
+    <div class="tabPane" data-pane="protokoll" role="tabpanel" hidden>
+      <div class="row-head">
+        <h2>Messprotokoll</h2>
+        <div class="tableBtns">
+          <button class="btn" id="csvBtn">⤓ CSV</button>
+          <button class="btn" id="clearBtn">Leeren</button>
+        </div>
+      </div>
+      <div class="tableWrap">
+        <table>
+          <thead><tr><th>Nr.</th><th>Licht</th><th>Farbe</th><th>CO₂</th><th>Temp.</th><th>Bläschen/min</th><th></th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" role="status"></div>
+
+<dialog id="infoDlg">
+  <h2>Hinweise zum Fotosynthese-Labor</h2>
+  <h3>Der Versuch</h3>
+  <p>Ein Spross der Wasserpest (<i>Elodea</i>) steht in Wasser. Bei Licht betreibt die Pflanze Fotosynthese und bildet Sauerstoff, der als Bläschen aus der Schnittstelle aufsteigt. Die Anzahl der Bläschen pro Minute ist ein Maß dafür, wie stark die Fotosynthese gerade ist.</p>
+  <h3>Bedienung</h3>
+  <ul>
+    <li>Stelle Lichtstärke, Lichtfarbe, CO₂ und Temperatur ein.</li>
+    <li>„Bläschen zählen“ zählt eine Minute lang (im Zeitraffer). Das Ergebnis landet im Messprotokoll und im Diagramm.</li>
+    <li>Während einer Messung sind die Regler gesperrt – wie im echten Versuch darf man die Bedingungen nicht mittendrin ändern.</li>
+    <li>Über das Menü oben lassen sich angeleitete Versuche auswählen.</li>
+  </ul>
+  <h3>Zum Modell</h3>
+  <p>Die Werte sind <b>keine echten Messwerte</b>. Das Modell folgt dem Prinzip des begrenzenden Faktors: Der Faktor, der am knappsten ist, bestimmt die Geschwindigkeit der Fotosynthese. Die Temperatur wirkt über die Enzyme (Optimum etwa 30–35 °C, ab 45 °C Zerstörung). Wiederholte Messungen schwanken zufällig – wie im echten Experiment. Mehrfach messen und Mittelwerte bilden lohnt sich also.</p>
+  <h3>Tag und Nacht</h3>
+  <ul>
+    <li><b>☀︎ Tag:</b> Die Lampe leuchtet, die Pflanze betreibt Fotosynthese <i>und</i> Zellatmung. Weil die Fotosynthese überwiegt, gibt sie Sauerstoff ab.</li>
+    <li><b>☾ Nacht:</b> Kein Licht, also keine Fotosynthese. Nur die Zellatmung läuft: Die Pflanze nimmt Sauerstoff aus dem Wasser auf und gibt Kohlenstoffdioxid ab.</li>
+    <li><b>⟳ 24 Stunden:</b> Ein ganzer Tag im Zeitraffer mit Sonnenlicht. Das Diagramm „24 h“ zeigt beide Vorgänge und die Bilanz.</li>
+  </ul>
+  <p>Die Gasteilchen sind im Kugelmodell dargestellt: <b>O₂</b> als zwei rote Kugeln, <b>CO₂</b> als zwei rote Kugeln mit dunkler Mitte (Kohlenstoff). Sie zeigen den Netto-Gasaustausch der Pflanze.</p>
+  <p style="text-align:right;margin-top:16px"><button class="btn" id="closeInfo">Schließen</button></p>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+
+/* ---------- Modell ---------- */
+const COLORS = {
+  weiss: { name: 'Weiß', eff: 1.0,  rgb: [255, 240, 200] },
+  rot:   { name: 'Rot',  eff: 0.92, rgb: [255, 90, 70] },
+  blau:  { name: 'Blau', eff: 0.85, rgb: [90, 150, 255] },
+  gruen: { name: 'Grün', eff: 0.30, rgb: [90, 220, 120] }
+};
+const COLOR_KEYS = ['weiss', 'rot', 'blau', 'gruen'];
+const PMAX = 60, MEAS_SECONDS = 60, SPEED = 4;
+const DEFAULTS = { light: 60, color: 'weiss', co2: 50, temp: 22, phase: 'tag' };
+const SUNRISE = 6, SUNSET = 20, CLOCK_SPEED = 0.5; // Stunden pro Sekunde
+function daylight(h) { return (h > SUNRISE && h < SUNSET) ? Math.sin(Math.PI * (h - SUNRISE) / (SUNSET - SUNRISE)) : 0; }
+
+function fTemp(T) {
+  if (T <= 0) return 0;
+  if (T < 30) return Math.pow(T / 30, 1.4);
+  if (T <= 35) return 1;
+  if (T < 45) return 1 - (T - 35) / 10;
+  return 0;
+}
+function model(s) {
+  const fL = 1 - Math.exp(-(s.light * COLORS[s.color].eff) / 28);
+  const fC = 1 - Math.exp(-s.co2 / 22);
+  const fT = fTemp(s.temp);
+  const gross = PMAX * Math.min(fL, fC) * fT;
+  const resp = s.temp >= 45 ? 1 : 8 * clamp(s.temp / 30, 0.15, 1);
+  return { fL, fC, fT, gross, resp, bal: gross - resp, net: Math.max(0, gross - resp) };
+}
+function poisson(l) {
+  if (l <= 0) return 0;
+  const L = Math.exp(-l); let k = 0, p = 1;
+  do { k++; p *= Math.random(); } while (p > L);
+  return k - 1;
+}
+
+/* ---------- Aufträge ---------- */
+const TASKS = {
+  frei: {
+    title: 'Freies Experimentieren',
+    intro: 'Verändere die Bedingungen und beobachte die Sauerstoffbläschen. Mit „Bläschen zählen“ misst du eine Minute lang. Tipp: Verändere immer nur <b>einen</b> Faktor auf einmal!'
+  },
+  licht: {
+    title: 'Versuch 1: Hängt die Fotosynthese vom Licht ab?',
+    preset: { light: 0, color: 'weiss', co2: 80, temp: 25, phase: 'tag' }, x: 'light',
+    hyp: 'Je mehr Licht, desto …',
+    steps: ['Lass CO₂ (80 %) und Temperatur (25 °C) unverändert.', 'Miss bei 0, 10, 20, 40, 60, 80 und 100 % Licht.', 'Betrachte die Punkte im Diagramm.'],
+    evalq: 'Beschreibe den Verlauf der Kurve. Warum steigt die Bläschenzahl bei viel Licht kaum noch an? Warum entstehen bei sehr wenig Licht keine Bläschen, obwohl die Pflanze Licht bekommt?'
+  },
+  co2: {
+    title: 'Versuch 2: Braucht die Pflanze CO₂?',
+    preset: { light: 90, color: 'weiss', co2: 0, temp: 25, phase: 'tag' }, x: 'co2',
+    hyp: 'Wenn mehr Natron im Wasser ist, dann …',
+    steps: ['Lass Licht (90 %) und Temperatur (25 °C) unverändert.', 'Miss bei 0, 10, 20, 40, 60 und 100 % CO₂.', 'Wiederhole die Messreihe mit nur 20 % Licht.'],
+    evalq: 'Vergleiche beide Messreihen. Warum hilft zusätzliches CO₂ bei wenig Licht kaum? Nutze den Begriff „begrenzender Faktor“.'
+  },
+  temp: {
+    title: 'Versuch 3: Welche Temperatur ist ideal?',
+    preset: { light: 90, color: 'weiss', co2: 80, temp: 5, phase: 'tag' }, x: 'temp',
+    hyp: 'Je wärmer das Wasser, desto …',
+    steps: ['Lass Licht (90 %) und CO₂ (80 %) unverändert.', 'Miss bei 5, 15, 25, 30, 35, 40 und 45 °C.'],
+    evalq: 'Bei welcher Temperatur ist die Fotosynthese am stärksten? Erkläre, warum sie bei hohen Temperaturen plötzlich stark abnimmt (Stichwort: Enzyme).'
+  },
+  farbe: {
+    title: 'Versuch 4: Welches Licht nutzt die Pflanze?',
+    preset: { light: 60, color: 'weiss', co2: 80, temp: 25, phase: 'tag' }, x: 'color',
+    hyp: 'Die Pflanze nutzt … Licht am besten, weil …',
+    steps: ['Lass Lichtstärke (60 %), CO₂ und Temperatur unverändert.', 'Miss nacheinander bei weißem, rotem, blauem und grünem Licht.', 'Miss jede Farbe zweimal.'],
+    evalq: 'Welche Lichtfarbe nutzt die Pflanze am schlechtesten? Begründe mit der Farbe der Blätter und dem Chlorophyll.'
+  },
+  tagnacht: {
+    title: 'Versuch 5: Was macht die Pflanze nachts?',
+    preset: { light: 80, color: 'weiss', co2: 60, temp: 25, phase: 'zyklus' }, x: 'day',
+    hyp: 'Nachts steigen keine Bläschen auf, weil …',
+    steps: ['Starte den Tagesverlauf mit ▶ und beobachte Bläschen und Gasteilchen (Kugelmodell).', 'Achte auf die Anzeige „Stoffwechsel der Pflanze“ und auf das Diagramm.', 'Wechsle zu ☾ Nacht und zähle eine Minute lang Bläschen. Wechsle dann zu ☀︎ Tag und zähle noch einmal.'],
+    evalq: 'Welcher Vorgang läuft rund um die Uhr, welcher nur bei Licht? Wann gibt die Pflanze Sauerstoff ab, wann nimmt sie ihn auf? Erkläre mit beiden Reaktionsgleichungen, warum nachts kein Sauerstoff entsteht.'
+  }
+};
+
+/* ---------- Zustand & Speicher ---------- */
+const state = { ...DEFAULTS, task: 'frei', xAxis: 'light', showModel: false, labels: true, clock: 4, playing: false, o2: 50,
+  eq: 'wort', fsIdx: 2, measuring: false, mElapsed: 0, mCount: 0, data: [] };
+const STORE = 'fotosynthese-labor-v2';
+const FS_STEPS = [0.85, 0.925, 1, 1.1, 1.2, 1.32, 1.45];
+const fsf = () => FS_STEPS[state.fsIdx];
+function dayFactor() { return state.phase === 'tag' ? 1 : state.phase === 'nacht' ? 0 : daylight(state.clock); }
+function env() { return { ...state, light: state.light * dayFactor(), color: state.phase === 'zyklus' ? 'weiss' : state.color }; }
+function fmtClock(h) { const hh = Math.floor(h) % 24, mm = Math.floor((h % 1) * 4) * 15; return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0'); }
+function load() {
+  try {
+    const o = JSON.parse(localStorage.getItem(STORE) || 'null');
+    if (!o) return;
+    if (Array.isArray(o.data)) state.data = o.data.filter(d => d && COLORS[d.color]);
+    if (['wort', 'formel'].includes(o.eq)) state.eq = o.eq;
+    if (Number.isInteger(o.fsIdx) && o.fsIdx >= 0 && o.fsIdx < FS_STEPS.length) state.fsIdx = o.fsIdx;
+  } catch (e) {}
+}
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify({ data: state.data, eq: state.eq, fsIdx: state.fsIdx })); } catch (e) {}
+}
+
+/* ---------- Theme ---------- */
+const C = {};
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  ['room1','room2','bench','bench2','glass','text','muted','accent','accent2','line','chartGrid','panel','warn','danger','resp','night']
+    .forEach(k => C[k] = cs.getPropertyValue('--' + k).trim());
+  C.dark = document.documentElement.dataset.theme === 'dark';
+}
+function applyTheme() {
+  let theme = 'light';
+  try { theme = localStorage.getItem('fotosynthese-theme') === 'dark' ? 'dark' : 'light'; } catch(e) {}
+  document.documentElement.dataset.theme = theme;
+  const btn = $('#themeBtn');
+  if (btn) { btn.firstChild.textContent = theme === 'dark' ? '☀' : '☾'; btn.setAttribute('aria-pressed', String(theme === 'dark')); }
+  readColors(); drawChart();
+}
+
+$('#themeBtn').addEventListener('click', () => {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem('fotosynthese-theme', next); } catch(e) {}
+  applyTheme();
+});
+
+/* ---------- UI ---------- */
+const sliders = { light: $('#light'), co2: $('#co2'), temp: $('#temp') };
+const fmt = { light: v => v + ' %', co2: v => v + ' %', temp: v => v + ' °C' };
+
+function syncControls() {
+  for (const k in sliders) {
+    const el = sliders[k];
+    el.value = state[k];
+    el.style.setProperty('--p', ((state[k] - el.min) / (el.max - el.min) * 100) + '%');
+    $('#' + k + 'Out').textContent = fmt[k](state[k]);
+  }
+  const night = state.phase === 'nacht', cyc = state.phase === 'zyklus';
+  $$('#phaseSeg button').forEach(b => { b.setAttribute('aria-pressed', b.dataset.phase === state.phase); b.disabled = state.measuring; });
+  $('#phaseOut').textContent = cyc ? fmtClock(state.clock) + ' Uhr' : night ? 'Nacht' : 'Tag';
+  $('#cycleBox').hidden = !cyc; $('#o2Gauge').hidden = !cyc;
+  const ck = $('#clock'); ck.value = state.clock; ck.style.setProperty('--p', (state.clock / 24 * 100) + '%');
+  $('#playBtn').textContent = state.playing ? '⏸' : '▶';
+  $('#playBtn').setAttribute('aria-label', state.playing ? 'Tagesverlauf anhalten' : 'Tagesverlauf abspielen');
+  sliders.light.disabled = state.measuring || night;
+  sliders.co2.disabled = sliders.temp.disabled = state.measuring;
+  $('#lightLab').textContent = cyc ? 'Lichtstärke (mittags)' : 'Lichtstärke';
+  $('#lightOut').textContent = night ? 'aus' : cyc ? `${state.light} % · jetzt ${Math.round(state.light * dayFactor())} %` : state.light + ' %';
+  $('#lightHint').textContent = night ? 'Nachts ist es dunkel – die Lampe ist aus.' : cyc ? 'Im Tagesverlauf kommt das Licht von der Sonne.' : 'Der Raum ist verdunkelt, Licht kommt nur von der Lampe. Je näher die Lampe, desto heller.';
+  $('#colorOut').textContent = cyc ? 'Sonnenlicht' : night ? '–' : COLORS[state.color].name;
+  $$('#colorSeg button').forEach(b => { b.setAttribute('aria-pressed', !cyc && b.dataset.color === state.color); b.disabled = state.measuring || night || cyc; });
+  if (!state.measuring) {
+    const mb = $('#measureBtn'); mb.disabled = cyc;
+    mb.textContent = cyc ? 'Messen nur bei ☀︎ Tag oder ☾ Nacht' : '▶ Bläschen zählen (1 Minute)';
+  }
+  const day = state.xAxis === 'day';
+  $('#modelLbl').hidden = day;
+  $('#chartNote').innerHTML = day
+    ? '<b style="color:var(--accent2)">▮ Fotosynthese</b> bildet O₂ (nur bei Licht) · <b style="color:var(--resp)">▮ Zellatmung</b> verbraucht O₂ (rund um die Uhr) · <b>┅ Bilanz</b> = Fotosynthese minus Zellatmung'
+    : 'Blasse Punkte: Messungen unter anderen Bedingungen als den aktuell eingestellten.';
+  updateStatus();
+  $$('#xSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.x === state.xAxis));
+  $$('#eqSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.eq === state.eq));
+  $$('.eq[data-eq]').forEach(e => { e.hidden = e.dataset.eq !== state.eq; });
+  $('#taskSel').value = state.task;
+  $('#modelChk').checked = state.showModel;
+}
+
+function feedback(m) {
+  if (state.phase !== 'tag' && dayFactor() === 0) return ['night', '<b>Nacht:</b> Ohne Licht findet <b>keine Fotosynthese</b> statt. Die Pflanze betreibt nur <b>Zellatmung</b>: Sie nimmt Sauerstoff aus dem Wasser auf und gibt Kohlenstoffdioxid ab. Deshalb steigen keine Bläschen auf.'];
+  if (state.light === 0) return ['warn', 'Ohne Licht findet <b>keine Fotosynthese</b> statt. Die Pflanze betreibt aber weiter Zellatmung und verbraucht dabei Sauerstoff – deshalb steigen keine Bläschen auf.'];
+  if (state.temp >= 45) return ['danger', 'Bei dieser Temperatur werden die <b>Enzyme zerstört</b>, die für die Fotosynthese nötig sind. Die Pflanze kann keinen Sauerstoff mehr bilden.'];
+  if (state.co2 === 0) return ['warn', 'Ohne CO₂ fehlt ein Ausgangsstoff der Fotosynthese. Es kann kein Traubenzucker und damit auch kein Sauerstoff gebildet werden.'];
+  if (state.temp <= 2) return ['warn', 'Im eiskalten Wasser arbeiten die Enzyme der Pflanze fast gar nicht. Die Fotosynthese kommt nahezu zum Stillstand.'];
+  if (m.net <= 0) return ['warn', state.phase === 'zyklus' ? 'Dämmerung: Die Fotosynthese ist noch so schwach, dass die <b>Zellatmung überwiegt</b>. Die Pflanze verbraucht mehr Sauerstoff, als sie bildet – es entstehen keine Bläschen.' : 'Die Fotosynthese ist so schwach, dass die Pflanze den gebildeten Sauerstoff <b>selbst für ihre Zellatmung</b> verbraucht. Es entstehen keine sichtbaren Bläschen.'];
+  const f = { L: m.fL, C: m.fC, T: m.fT };
+  const lim = Object.keys(f).reduce((a, b) => f[a] <= f[b] ? a : b);
+  if (f[lim] > 0.9) return ['ok', 'Alle Bedingungen sind <b>nahezu optimal</b>. Die Fotosynthese läuft fast mit maximaler Geschwindigkeit. Mehr Licht oder CO₂ bringt jetzt kaum noch etwas.'];
+  if (lim === 'L') {
+    let t = '<b>Begrenzender Faktor: Licht.</b> Mehr CO₂ würde jetzt kaum helfen. Was passiert, wenn du die Lampe näher stellst?';
+    if (state.color === 'gruen') t = '<b>Begrenzender Faktor: Licht.</b> Grünes Licht wird vom Chlorophyll kaum aufgenommen, sondern zurückgeworfen – deshalb sehen Blätter grün aus.';
+    return ['warn', t];
+  }
+  if (lim === 'C') return ['warn', '<b>Begrenzender Faktor: CO₂.</b> Die Pflanze hätte genug Licht, aber zu wenig Kohlenstoffdioxid. Was passiert, wenn du mehr Natron ins Wasser gibst?'];
+  if (state.temp < 30) return ['warn', '<b>Begrenzender Faktor: Temperatur.</b> Im kühlen Wasser arbeiten die Enzyme langsam. Was passiert, wenn du das Wasser erwärmst?'];
+  return ['warn', '<b>Zu warm!</b> Oberhalb von etwa 35 °C werden die Enzyme geschädigt. Die Fotosynthese wird schwächer.'];
+}
+
+function updateUI() {
+  syncControls();
+  const m = model(env());
+  const vals = { L: m.fL, C: m.fC, T: m.fT };
+  const lim = Object.keys(vals).reduce((a, b) => vals[a] <= vals[b] ? a : b);
+  $$('.factor').forEach(el => {
+    const v = vals[el.dataset.f];
+    el.querySelector('i').style.width = Math.round(v * 100) + '%';
+    el.querySelector('span:last-child').textContent = Math.round(v * 100) + ' %';
+    el.classList.toggle('lim', el.dataset.f === lim && v < 0.9);
+  });
+  const [type, html] = feedback(m);
+  const fb = $('#feedback');
+  fb.className = 'feedback' + (type === 'ok' ? '' : ' ' + type);
+  fb.innerHTML = html;
+  // Stoffwechsel
+  $('#fsBar').style.width = (m.gross / PMAX * 100) + '%';
+  $('#zaBar').style.width = (m.resp / PMAX * 100) + '%';
+  const bal = $('#balance');
+  if (m.bal > 0.5) { bal.className = 'balance pos'; bal.innerHTML = '⬆ Fotosynthese überwiegt: Die Pflanze <b>gibt O₂ ab</b> und nimmt CO₂ auf.'; }
+  else if (m.bal < -0.5) { bal.className = 'balance neg'; bal.innerHTML = '⬇ Zellatmung überwiegt: Die Pflanze <b>nimmt O₂ auf</b> und gibt CO₂ ab.'; }
+  else { bal.className = 'balance'; bal.innerHTML = '⇄ Fotosynthese und Zellatmung halten sich die Waage.'; }
+  $('#o2Bar').style.width = state.o2 + '%';
+  $('#o2Val').textContent = state.o2 > 62 ? 'viel' : state.o2 < 42 ? 'wenig' : 'mittel';
+  // Gleichungen
+  $('#fsRow').style.setProperty('--act', clamp(m.gross / 50, 0, 1).toFixed(2));
+  $('#fsRow').classList.toggle('off', m.gross < 0.5);
+  $('#zaRow').style.setProperty('--act', clamp(m.resp / 8, 0.3, 1).toFixed(2));
+  drawChart();
+}
+
+function renderTask() {
+  const tk = TASKS[state.task];
+  let h = `<h3>${tk.title}</h3>`;
+  if (tk.intro) h += `<p>${tk.intro}</p>`;
+  if (tk.hyp) h += `<p><b>Vermutung:</b> ${tk.hyp}</p>`;
+  if (tk.steps) h += '<ol>' + tk.steps.map(s => `<li>${s}</li>`).join('') + '</ol>';
+  if (tk.evalq) h += `<p><b>Auswertung:</b> ${tk.evalq}</p>`;
+  $('#taskBody').innerHTML = h;
+}
+
+function renderTable(highlightLast) {
+  const tb = $('#tbody');
+  $('#protoCount').textContent = state.data.length ? ` (${state.data.length})` : '';
+  if (!state.data.length) {
+    tb.innerHTML = '<tr class="empty"><td colspan="7">Noch keine Messungen. Starte eine Messung mit „Bläschen zählen“.</td></tr>';
+    return;
+  }
+  tb.innerHTML = state.data.map((d, i) =>
+    `<tr${highlightLast && i === state.data.length - 1 ? ' class="new"' : ''}><td>${i + 1}</td><td>${d.night ? '0 % (Nacht)' : d.light + ' %'}</td><td>${COLORS[d.color].name}</td><td>${d.co2} %</td><td>${d.temp} °C</td><td><b>${d.count}</b></td><td><button class="del" data-i="${i}" aria-label="Messung ${i + 1} löschen">✕</button></td></tr>`
+  ).join('');
+  if (highlightLast) { const w = $('.tableWrap'); w.scrollTop = w.scrollHeight; }
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), msg.length > 45 ? 4200 : 2600);
+}
+
+/* ---------- Messung ---------- */
+function setLocked(on) {
+  $('#taskSel').disabled = on; $('#resetBtn').disabled = on;
+  syncControls();
+}
+let statusTxt = '';
+function updateStatus() {
+  const ph = state.phase === 'zyklus' ? `🕑 ${fmtClock(state.clock)} Uhr` : state.phase === 'nacht' ? '☾ Nacht' : '☀︎ Tag';
+  const txt = state.measuring ? ph + ' · Zeitraffer ×4' : ph;
+  if (txt === statusTxt) return;
+  statusTxt = txt;
+  const p = $('#speedPill'); p.textContent = txt; p.classList.toggle('fast', state.measuring);
+}
+function startMeasure() {
+  if (state.phase === 'zyklus') return;
+  state.measuring = true; state.mElapsed = 0; state.mCount = 0;
+  setLocked(true);
+  const b = $('#measureBtn'); b.disabled = false; b.textContent = '■ Messung abbrechen'; b.classList.add('stop');
+  $('#meter').classList.add('show');
+  updateHud();
+}
+function stopMeasure() {
+  state.measuring = false;
+  const b = $('#measureBtn'); b.classList.remove('stop');
+  setLocked(false);
+  setTimeout(() => { if (!state.measuring) $('#meter').classList.remove('show'); }, 2500);
+}
+function finishMeasure() {
+  const night = state.phase === 'nacht';
+  const row = { light: night ? 0 : state.light, color: state.color, co2: state.co2, temp: state.temp, count: state.mCount, night };
+  stopMeasure();
+  state.data.push(row); save();
+  renderTable(true); drawChart();
+  toast(`Messung ${state.data.length}: ${row.count} Bläschen pro Minute`);
+}
+function updateHud() {
+  $('#hudCount').textContent = state.mCount;
+  $('#hudTime').textContent = `${Math.floor(state.mElapsed)} s von 60 s`;
+  $('#hudBar').style.width = (state.mElapsed / MEAS_SECONDS * 100) + '%';
+}
+
+/* ---------- Versuchsaufbau (Canvas) ---------- */
+const stage = $('#stage'), g = stage.getContext('2d');
+const SW = 640, SH = 440;
+const BX0 = 255, BX1 = 465, BTOP = 105, BBOT = 392, WTOP = 140, PTOP = 175, PBASE = 386;
+const natron = Array.from({ length: 42 }, (_, i) => ({ x: 272 + ((i * 73) % 150) + (i % 3) * 4, y: 383 - ((i * 37) % 12), r: 1.5 + ((i * 13) % 10) / 10 }));
+const stars = Array.from({ length: 12 }, (_, i) => ({ x: 6 + ((i * 47) % 104), y: 6 + ((i * 29) % 60), r: 0.7 + (i % 3) * 0.4 }));
+const bubbles = [], pops = [], gas = [];
+function skyBrightness() {
+  if (state.phase === 'tag') return 1;
+  if (state.phase === 'nacht') return 0;
+  return sunSky() * (0.25 + 0.75 * state.light / 100);
+}
+// Helligkeit des Raums: Tag = nur Lampe (Raum verdunkelt), Nacht = dunkel, 24 h = Sonnenlicht
+function roomBrightness() {
+  if (state.phase === 'tag') return state.light / 100;
+  if (state.phase === 'nacht') return 0;
+  return sunSky() * state.light / 100;
+}
+function sunSky() {
+  const h = state.clock;
+  const tw = h > SUNRISE - 1 && h <= SUNRISE ? (h - SUNRISE + 1) * 0.35 : h >= SUNSET && h < SUNSET + 1 ? (SUNSET + 1 - h) * 0.35 : 0;
+  return Math.max(clamp(daylight(h) * 2.5, 0, 1), tw);
+}
+
+function stemX(y, t) {
+  const k = (PBASE - y) / (PBASE - PTOP);
+  return 345 + Math.sin(y * 0.035 + t * 0.9) * 4 * k - 8 * k * k;
+}
+let VX0 = 0, VX1 = SW, VY0 = 0, VY1 = SH; // sichtbarer Bereich (Szene füllt jede Fenstergröße)
+function fitStage() {
+  const r = stage.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  if (stage.width !== w || stage.height !== h) { stage.width = w; stage.height = h; }
+  const cb = $('#cycleBox'), res = cb && !cb.hidden ? (cb.offsetHeight + 10) * dpr : 0;
+  const sc = Math.min(w / SW, (h - res) / SH), ox = (w - SW * sc) / 2, oy = h - res - SH * sc;
+  g.setTransform(sc, 0, 0, sc, ox, oy);
+  VX0 = -ox / sc; VX1 = SW + ox / sc; VY0 = -oy / sc; VY1 = SH + res / sc;
+  // Schriftfaktor: Beschriftung soll auf dem Bildschirm mind. ca. 10 px groß sein
+  const onScreen = 12 * sc / dpr;
+  return clamp(Math.max(1, 10 / Math.max(onScreen, 1)) * fsf(), 0.85, 1.9);
+}
+function font(size, weight) { return `${weight || 400} ${size}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif`; }
+
+function drawWindow(t, sb, rb) {
+  const x = 506, y = 24, w = 114, h = 90, hr = state.clock;
+  if (state.phase === 'tag') {
+    // Raum verdunkelt: Rollo geschlossen, beleuchtet nur von der Lampe
+    const shade = Math.round(70 + 120 * rb);
+    g.fillStyle = `rgb(${shade + 25},${shade + 15},${shade - 5})`; g.fillRect(x, y, w, h);
+    g.strokeStyle = `rgba(0,0,0,${0.18 + 0.1 * (1 - rb)})`; g.lineWidth = 1;
+    for (let yy = y + 6; yy < y + h; yy += 7) { g.beginPath(); g.moveTo(x, yy); g.lineTo(x + w, yy); g.stroke(); }
+    g.fillStyle = `rgb(${shade - 20},${shade - 30},${shade - 45})`; g.fillRect(x - 4, y - 8, w + 8, 9);
+    g.strokeStyle = 'rgba(80,80,80,.6)'; g.beginPath(); g.moveTo(x + w - 12, y); g.lineTo(x + w - 12, y + h - 10); g.stroke();
+    g.fillStyle = '#777'; g.beginPath(); g.arc(x + w - 12, y + h - 8, 3, 0, 7); g.fill();
+    g.strokeStyle = '#ffffff'; g.lineWidth = 5; g.strokeRect(x, y, w, h);
+    return;
+  }
+  const mix = (a, b) => a.map((v, i) => Math.round(v + (b[i] - v) * sb));
+  const top = mix([10, 20, 48], [143, 202, 255]), bot = mix([34, 50, 94], [228, 244, 255]);
+  const sky = g.createLinearGradient(0, y, 0, y + h);
+  sky.addColorStop(0, rgba(top, 1)); sky.addColorStop(1, rgba(bot, 1));
+  g.fillStyle = sky; g.fillRect(x, y, w, h);
+  g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+  if (state.phase === 'zyklus') {
+    const d = Math.min(Math.abs(hr - SUNRISE), Math.abs(hr - SUNSET));
+    if (d < 1.5) { const gl = g.createLinearGradient(0, y + h, 0, y + h * 0.3); gl.addColorStop(0, `rgba(255,140,60,${(1 - d / 1.5) * 0.75})`); gl.addColorStop(1, 'rgba(255,140,60,0)'); g.fillStyle = gl; g.fillRect(x, y, w, h); }
+  }
+  if (sb < 0.9) stars.forEach((s, i) => { g.fillStyle = `rgba(255,255,240,${(1 - sb) * (0.5 + 0.5 * Math.sin(t * 1.5 + i))})`; g.beginPath(); g.arc(x + s.x, y + s.y, s.r, 0, 7); g.fill(); });
+  let sun = null, moon = null;
+  if (state.phase === 'tag') sun = [x + 84, y + 28];
+  else if (state.phase === 'nacht') moon = [x + 82, y + 30];
+  else if (hr > SUNRISE - 0.6 && hr < SUNSET + 0.6) { const p = (hr - SUNRISE) / (SUNSET - SUNRISE); sun = [x + 10 + p * (w - 20), y + h + 8 - Math.sin(Math.PI * clamp(p, 0, 1)) * (h - 14)]; }
+  else { const p = ((hr - SUNSET + 24) % 24) / (24 - (SUNSET - SUNRISE)); moon = [x + 10 + p * (w - 20), y + h + 6 - Math.sin(Math.PI * clamp(p, 0, 1)) * (h - 24)]; }
+  if (sun && state.phase === 'zyklus') g.globalAlpha = 0.25 + 0.75 * state.light / 100;
+  if (sun) {
+    const rg = g.createRadialGradient(sun[0], sun[1], 4, sun[0], sun[1], 30); rg.addColorStop(0, 'rgba(255,220,110,.6)'); rg.addColorStop(1, 'rgba(255,220,110,0)');
+    g.fillStyle = rg; g.beginPath(); g.arc(sun[0], sun[1], 30, 0, 7); g.fill();
+    g.fillStyle = '#ffd34d'; g.beginPath(); g.arc(sun[0], sun[1], 12, 0, 7); g.fill();
+    g.globalAlpha = 1;
+  }
+  if (moon) {
+    g.fillStyle = '#f4f0d4'; g.beginPath(); g.arc(moon[0], moon[1], 12, 0, 7); g.fill();
+    const f = clamp((moon[1] - y) / h, 0, 1);
+    g.fillStyle = rgba(top.map((v, i) => Math.round(v + (bot[i] - v) * f)), 1);
+    g.beginPath(); g.arc(moon[0] + 6, moon[1] - 5, 11, 0, 7); g.fill();
+  }
+  const dim = state.phase === 'zyklus' ? 1 - state.light / 100 : 0;
+  const lit = sunSky();
+  if (dim > 0.15 && lit > 0) {
+    // Wolkendecke: je weniger Licht, desto dichter und grauer
+    const cv = Math.round(150 + 60 * (1 - dim));
+    g.fillStyle = `rgba(${cv},${cv + 3},${cv + 10},${Math.min(0.92, dim * 1.05) * Math.min(1, lit * 1.5)})`;
+    g.fillRect(x, y, w, h);
+    g.fillStyle = `rgba(${cv + 25},${cv + 28},${cv + 34},${0.7 * Math.min(1, lit * 1.5)})`;
+    [[14, 22, 14, 7], [44, 18, 22, 8], [86, 24, 18, 7], [28, 50, 20, 8], [74, 56, 24, 9], [100, 74, 16, 7], [20, 80, 18, 7]].forEach(([cx, cy, rx, ry]) => {
+      g.beginPath(); g.ellipse(x + cx + Math.sin(t * 0.08 + cy) * 3, y + cy, rx, ry, 0, 0, 7); g.fill();
+    });
+  } else if (sb > 0.3) {
+    g.fillStyle = `rgba(255,255,255,${0.9 * sb})`;
+    [[30, 58, 12], [42, 54, 15], [56, 59, 11]].forEach(([cx, cy, r]) => { g.beginPath(); g.arc(x + cx + Math.sin(t * 0.1) * 4, y + cy, r, 0, 7); g.fill(); });
+  }
+  g.restore();
+  g.strokeStyle = C.dark ? '#3a4754' : '#ffffff'; g.lineWidth = 5;
+  g.strokeRect(x, y, w, h);
+  g.lineWidth = 3; g.beginPath(); g.moveTo(x + w / 2, y); g.lineTo(x + w / 2, y + h); g.moveTo(x, y + h / 2); g.lineTo(x + w, y + h / 2); g.stroke();
+}
+
+function drawStage(t, m) {
+  const K = fitStage(), short = K > 1.2;
+  // Raum
+  const room = g.createLinearGradient(0, VY0, 0, SH);
+  room.addColorStop(0, C.room2); room.addColorStop(1, C.room1);
+  g.fillStyle = room; g.fillRect(VX0, VY0, VX1 - VX0, SH - VY0);
+  // Tisch
+  g.fillStyle = C.bench; g.fillRect(VX0, 398, VX1 - VX0, VY1 - 398);
+  g.fillStyle = C.bench2; g.fillRect(VX0, 398, VX1 - VX0, 5);
+  // Raumhelligkeit nach Tageszeit
+  const sb = skyBrightness(), rb = roomBrightness();
+  if (rb < 1) { g.fillStyle = `rgba(6,10,32,${(1 - rb) * 0.55})`; g.fillRect(VX0, VY0, VX1 - VX0, VY1 - VY0); }
+  drawWindow(t, sb, rb);
+  // Sonnenlicht (Tagesverlauf)
+  const D = state.phase === 'zyklus' ? daylight(state.clock) : 0;
+  if (D > 0) {
+    const a = D * 0.34 * state.light / 100;
+    const sg = g.createLinearGradient(560, 70, 330, 360);
+    sg.addColorStop(0, `rgba(255,236,170,${a})`); sg.addColorStop(1, `rgba(255,236,170,${a * 0.25})`);
+    g.fillStyle = sg; g.beginPath(); g.moveTo(508, 36); g.lineTo(560, 114); g.lineTo(BX1 - 10, 392); g.lineTo(BX0 + 6, 392); g.lineTo(BX0 + 6, 230); g.closePath(); g.fill();
+  }
+
+  // Lampe (nicht im Tagesverlauf – dort leuchtet die Sonne)
+  if (state.phase !== 'zyklus') {
+  const L = state.phase === 'nacht' ? 0 : state.light, col = COLORS[state.color].rgb, on = L > 0;
+  const lx = 60 + state.light, ly = 215;
+  const metal = C.dark ? '#7f8b95' : '#5b646d';
+  if (on) {
+    const a = 0.1 + 0.38 * L / 100;
+    const bg = g.createLinearGradient(lx, 0, 470, 0);
+    bg.addColorStop(0, rgba(col, a)); bg.addColorStop(1, rgba(col, a * 0.25));
+    g.fillStyle = bg; g.beginPath();
+    g.moveTo(lx + 10, ly - 28); g.lineTo(470, ly - 112); g.lineTo(470, ly + 172); g.lineTo(lx + 10, ly + 28); g.closePath(); g.fill();
+  }
+  g.strokeStyle = metal; g.lineWidth = 6; g.lineCap = 'round'; g.lineJoin = 'round';
+  g.beginPath(); g.moveTo(lx - 30, 394); g.lineTo(lx - 30, ly - 48); g.lineTo(lx - 12, ly - 14); g.stroke();
+  g.fillStyle = metal; g.fillRect(lx - 56, 390, 52, 8);
+  if (on) {
+    const R = 36 + L * 0.4;
+    const rg = g.createRadialGradient(lx + 10, ly, 2, lx + 10, ly, R);
+    rg.addColorStop(0, rgba(col, 0.9)); rg.addColorStop(1, rgba(col, 0));
+    g.fillStyle = rg; g.beginPath(); g.arc(lx + 10, ly, R, 0, 7); g.fill();
+  }
+  g.fillStyle = C.dark ? '#3b4954' : '#356b45';
+  g.beginPath(); g.moveTo(lx - 24, ly - 12); g.lineTo(lx + 10, ly - 30); g.lineTo(lx + 10, ly + 30); g.lineTo(lx - 24, ly + 12); g.closePath(); g.fill();
+  g.fillStyle = on ? rgba(col, 1) : (C.dark ? '#555' : '#cfcfcf');
+  g.beginPath(); g.arc(lx + 10, ly, 10, -Math.PI / 2, Math.PI / 2); g.fill();
+  g.fillStyle = roomBrightness() < 0.45 ? 'rgba(235,240,250,.85)' : C.muted; g.font = font(12 * K, 600); g.textAlign = 'center';
+  g.fillText(on ? 'Lampe' : 'Lampe aus', Math.max(lx - 30, 40 * K), 420);
+  }
+
+  // Heizplatte
+  const T = state.temp;
+  const heat = clamp((T - 26) / 20, 0, 1);
+  g.fillStyle = C.dark ? '#2b2f33' : '#6d747b'; g.fillRect(BX0 - 10, 392, BX1 - BX0 + 20, 7);
+  if (heat > 0) { g.fillStyle = `rgba(255,90,40,${0.25 + 0.6 * heat})`; g.fillRect(BX0 - 6, 393, BX1 - BX0 + 12, 4); }
+
+  // Wasser
+  const warm = clamp((T - 22) / 23, 0, 1), cold = clamp((15 - T) / 15, 0, 1);
+  let wc = [110, 175, 215];
+  wc = wc.map((v, i) => v + ([235, 160, 110][i] - v) * warm * 0.55);
+  wc = wc.map((v, i) => Math.round(v + ([185, 225, 250][i] - v) * cold * 0.5));
+  g.fillStyle = rgba(wc, C.dark ? 0.3 : 0.36);
+  g.beginPath();
+  g.moveTo(BX0 + 2, WTOP);
+  for (let x = BX0 + 2; x <= BX1 - 2; x += 6) g.lineTo(x, WTOP + Math.sin(x * 0.08 + t * 2) * 1.2);
+  g.lineTo(BX1 - 2, BBOT - 16); g.quadraticCurveTo(BX1 - 2, BBOT - 2, BX1 - 16, BBOT - 2);
+  g.lineTo(BX0 + 16, BBOT - 2); g.quadraticCurveTo(BX0 + 2, BBOT - 2, BX0 + 2, BBOT - 16); g.closePath(); g.fill();
+
+  // Natron
+  const n = Math.round(state.co2 / 100 * natron.length);
+  g.fillStyle = C.dark ? 'rgba(235,240,245,.75)' : 'rgba(255,255,255,.95)';
+  for (let i = 0; i < n; i++) { const p = natron[i]; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 7); g.fill(); }
+
+  // Wasserpest
+  const vigor = clamp(m.net / 50, 0, 1);
+  const hue = 100 + vigor * 18, sat = 40 + vigor * 25, lig = (C.dark ? 30 : 28) + vigor * 12;
+  g.strokeStyle = `hsl(${hue} ${sat}% ${lig - 6}%)`; g.lineWidth = 3.5; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(stemX(PBASE, t), PBASE);
+  for (let y = PBASE; y >= PTOP; y -= 4) g.lineTo(stemX(y, t), y);
+  g.stroke();
+  let w = 0;
+  for (let y = PBASE - 8; y > PTOP + 6; y -= 11, w++) {
+    const x = stemX(y, t), s = 0.55 + 0.45 * ((y - PTOP) / (PBASE - PTOP));
+    const off = (w % 2) * 0.25, sway = Math.sin(t * 1.3 + y * 0.05) * 0.06;
+    [[-0.62 - off + sway, 1], [Math.PI + 0.62 + off + sway, 1], [-Math.PI / 2 + (w % 2 ? 0.3 : -0.3) + sway, 0.7]].forEach(([a, k], j) => {
+      g.save(); g.translate(x, y); g.rotate(a);
+      g.fillStyle = `hsl(${hue + (j === 2 ? -6 : 0)} ${sat}% ${lig + (j === 2 ? -5 : 4)}%)`;
+      const len = 17 * s * k;
+      g.beginPath(); g.ellipse(len / 2, 0, len / 2, 3.6 * s, 0, 0, 7); g.fill();
+      g.restore();
+    });
+  }
+  const cx = stemX(PTOP, t);
+  g.fillStyle = C.dark ? '#c9e6b5' : '#e3f5d4';
+  g.beginPath(); g.ellipse(cx, PTOP, 3.5, 2, 0, 0, 7); g.fill();
+
+  // Gasteilchen (Kugelmodell)
+  const ball = (x, y, r, c) => { g.fillStyle = c; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.stroke(); };
+  g.lineWidth = 0.8; g.strokeStyle = 'rgba(255,255,255,.85)';
+  gas.forEach(p => {
+    const d = Math.hypot(p.tx - p.x, p.ty - p.y);
+    g.globalAlpha = p.mode === 'in' ? Math.min(p.a, clamp(d / 18, 0, 1)) : p.a * (p.fade == null ? 1 : p.fade);
+    if (p.type === 'o2') { ball(p.x - 2.4, p.y, 2.8, '#e0483a'); ball(p.x + 2.4, p.y, 2.8, '#e0483a'); }
+    else { ball(p.x - 4.6, p.y, 2.5, '#e0483a'); ball(p.x + 4.6, p.y, 2.5, '#e0483a'); ball(p.x, p.y, 3.1, '#3d4650'); }
+  });
+  g.globalAlpha = 1;
+
+  // Eis
+  if (T <= 8) {
+    g.fillStyle = 'rgba(235,248,255,.75)'; g.strokeStyle = 'rgba(180,215,240,.9)'; g.lineWidth = 1.5;
+    [[290, 0.2], [410, -0.3]].forEach(([x, a]) => { g.save(); g.translate(x, WTOP + 6); g.rotate(a + Math.sin(t) * 0.05); g.fillRect(-11, -11, 22, 20); g.strokeRect(-11, -11, 22, 20); g.restore(); });
+  }
+
+  // Bläschen
+  g.lineWidth = 1.2;
+  bubbles.forEach(b => {
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.strokeStyle = 'rgba(255,255,255,.9)';
+    g.beginPath(); g.arc(b.x, b.y, b.r, 0, 7); g.fill(); g.stroke();
+  });
+  pops.forEach(p => { g.strokeStyle = `rgba(255,255,255,${p.a})`; g.beginPath(); g.ellipse(p.x, p.y, p.r, p.r * 0.4, 0, 0, 7); g.stroke(); });
+
+  // Thermometer
+  const tx = 440, tTop = 76, tBase = 370;
+  g.fillStyle = C.dark ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.85)';
+  g.strokeStyle = C.dark ? 'rgba(255,255,255,.35)' : 'rgba(90,100,110,.6)'; g.lineWidth = 1.5;
+  g.beginPath(); g.roundRect ? g.roundRect(tx - 6, tTop, 12, tBase - tTop + 4, 6) : g.rect(tx - 6, tTop, 12, tBase - tTop + 4); g.fill(); g.stroke();
+  const fy = tBase - (T / 50) * (tBase - tTop - 12);
+  g.fillStyle = '#e0483a'; g.fillRect(tx - 2.5, fy, 5, tBase - fy + 4);
+  g.beginPath(); g.arc(tx, tBase + 8, 10, 0, 7); g.fill();
+  g.font = font(10 * Math.min(K, 1.4), 600); g.textAlign = 'right'; g.fillStyle = C.text;
+  for (let v = 0; v <= 50; v += 10) {
+    const y = tBase - (v / 50) * (tBase - tTop - 12);
+    g.fillRect(tx - 10, y - 0.5, 4, 1);
+    if ((y > WTOP + 4 || y < BTOP - 4) && (!short || v % 20 === 0)) g.fillText(v, tx - 13, y + 3.5);
+  }
+  g.textAlign = 'center'; g.font = font(13 * K, 700);
+  g.fillText(T + ' °C', tx, tTop - 8);
+
+  // Glas
+  g.strokeStyle = C.glass; g.lineWidth = 4; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(BX0 - 9, BTOP); g.lineTo(BX0, BTOP + 7); g.lineTo(BX0, BBOT - 16);
+  g.quadraticCurveTo(BX0, BBOT, BX0 + 16, BBOT); g.lineTo(BX1 - 16, BBOT);
+  g.quadraticCurveTo(BX1, BBOT, BX1, BBOT - 16); g.lineTo(BX1, BTOP); g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.28)'; g.lineWidth = 6;
+  g.beginPath(); g.moveTo(BX0 + 12, BTOP + 30); g.lineTo(BX0 + 12, BBOT - 40); g.stroke();
+  g.strokeStyle = C.glass; g.lineWidth = 1.5;
+  for (let y = 180; y <= 360; y += 45) { g.beginPath(); g.moveTo(BX0 + 4, y); g.lineTo(BX0 + 16, y); g.stroke(); }
+
+  // Beschriftung
+  if (state.labels) {
+    g.strokeStyle = C.muted; g.fillStyle = C.text; g.lineWidth = 1; g.font = font(12 * K, 600); g.textAlign = 'left';
+    const label = (txt, x1, y1, x2, y2) => {
+      x2 = Math.min(x2, SW - 6 - g.measureText(txt).width);
+      g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - 4, y2 - 4); g.stroke();
+      g.beginPath(); g.arc(x1, y1, 2, 0, 7); g.fillStyle = C.muted; g.fill();
+      g.fillStyle = C.text; g.fillText(txt, x2, y2);
+    };
+    label(short ? 'O₂-Bläschen' : 'Sauerstoffbläschen', cx + 6, PTOP - 18, 482, 150);
+    label(short ? 'Schnitt' : 'Schnittstelle', cx + 5, PTOP + 1, 482, 196);
+    label(short ? 'Spross' : 'Wasserpest-Spross', stemX(285, t) + 14, 280, 482, 270);
+    if (n > 0) label(short ? 'Natron' : 'Natron (gibt CO₂ ab)', natron[Math.min(n - 1, 8)].x + 2, 380, 482, 350);
+    if (state.phase === 'tag') { g.fillStyle = C.text; g.font = font(11 * K, 600); g.textAlign = 'center'; g.fillText(short ? 'Rollo zu' : 'Raum verdunkelt', 563, 130); g.font = font(12 * K, 600); g.textAlign = 'left'; }
+    if (D > 0) { g.fillStyle = C.text; g.font = font(11 * K, 600); g.textAlign = 'center'; g.fillText(state.light >= 30 ? 'Sonnenlicht' : 'Bewölkt', 563, 130); g.font = font(12 * K, 600); g.textAlign = 'left'; }
+    g.fillStyle = C.muted; g.font = font(11 * K, 600); g.textAlign = 'left';
+    if (heat > 0) g.fillText('Heizplatte', BX1 + 14, 412);
+    if (T <= 8) g.fillText('Eiswürfel', 260, 128);
+  }
+}
+
+/* ---------- Diagramm ---------- */
+const chart = $('#chart'), cg = chart.getContext('2d');
+const AX = {
+  light: { label: 'Lichtstärke in %', min: 0, max: 100, step: 20 },
+  co2:   { label: 'CO₂-Angebot in %', min: 0, max: 100, step: 20 },
+  temp:  { label: 'Temperatur in °C', min: 0, max: 50, step: 10 },
+  color: { label: 'Lichtfarbe', cat: true },
+  day:   { label: 'Uhrzeit', min: 0, max: 24, step: 3 }
+};
+function drawDayChart(W, H, F, pl, pr, pt, pb, iw, ih) {
+  const N = 144, S = [];
+  for (let i = 0; i <= N; i++) { const h = 24 * i / N, m = model({ ...state, color: 'weiss', light: state.light * daylight(h) }); S.push({ h, gr: m.gross, re: m.resp, ba: m.gross - m.resp }); }
+  const top = Math.max(20, Math.ceil(Math.max(...S.map(s => s.gr)) / 10) * 10);
+  const bot = -Math.max(10, Math.ceil(Math.max(...S.map(s => s.re)) / 5) * 5);
+  const X = h => pl + iw * h / 24, Y = v => pt + ih * (top - v) / (top - bot);
+  // Nacht-Schattierung
+  cg.fillStyle = C.dark ? 'rgba(130,135,255,.12)' : 'rgba(70,80,170,.08)';
+  cg.fillRect(X(0), pt, X(SUNRISE) - X(0), ih); cg.fillRect(X(SUNSET), pt, X(24) - X(SUNSET), ih);
+  cg.font = font(11 * F, 600); cg.textAlign = 'center'; cg.fillStyle = C.muted;
+  cg.fillText('☾ Nacht', X(SUNRISE / 2), pt + 14 * F); cg.fillText('☀︎ Tag', X(SUNRISE + 3.2), pt + 14 * F); cg.fillText('☾', X((SUNSET + 24) / 2), pt + 14 * F);
+  // Raster
+  cg.font = font(12 * F); cg.lineWidth = 1;
+  const step = top - bot > 60 ? 20 : 10;
+  for (let v = Math.ceil(bot / step) * step; v <= top; v += step) {
+    cg.strokeStyle = C.chartGrid; cg.beginPath(); cg.moveTo(pl, Y(v)); cg.lineTo(W - pr, Y(v)); cg.stroke();
+    cg.fillStyle = C.muted; cg.textAlign = 'right'; cg.fillText(v < 0 ? '−' + (-v) : v, pl - 8, Y(v) + 4);
+  }
+  cg.textAlign = 'center';
+  for (let h = 0; h <= 24; h += 3) {
+    cg.strokeStyle = C.chartGrid; cg.beginPath(); cg.moveTo(X(h), pt); cg.lineTo(X(h), pt + ih); cg.stroke();
+    cg.fillStyle = C.muted; cg.fillText(h, X(h), H - pb + 16 * F);
+  }
+  cg.strokeStyle = C.muted; cg.lineWidth = 1.5;
+  cg.beginPath(); cg.moveTo(pl, pt); cg.lineTo(pl, pt + ih); cg.stroke();
+  cg.beginPath(); cg.moveTo(pl, Y(0)); cg.lineTo(W - pr, Y(0)); cg.stroke();
+  cg.fillStyle = C.text; cg.font = font(12 * F, 600);
+  cg.fillText('Uhrzeit in Stunden', pl + iw / 2, H - 6);
+  cg.save(); cg.translate(12 * F + 2, pt + ih / 2); cg.rotate(-Math.PI / 2); cg.fillText('O₂ pro Minute', 0, 0); cg.restore();
+  // Bilanz-Flächen
+  const area = (fn, col, a) => { cg.globalAlpha = a; cg.fillStyle = col; cg.beginPath(); cg.moveTo(X(0), Y(0)); S.forEach(s => cg.lineTo(X(s.h), Y(fn(s)))); cg.lineTo(X(24), Y(0)); cg.closePath(); cg.fill(); cg.globalAlpha = 1; };
+  area(s => s.gr, C.accent, 0.22);
+  area(s => -s.re, C.resp, 0.38);
+  // Beschriftung der Flächen
+  cg.font = font(11 * F, 700); cg.textAlign = 'center';
+  const gmax = Math.max(...S.map(s => s.gr));
+  if (Y(0) - Y(gmax) > 40 * F) { cg.fillStyle = C.accent2 || C.accent; cg.fillText('O₂ gebildet', X((SUNRISE + SUNSET) / 2), Y(gmax * 0.45)); }
+  const rmax = Math.max(...S.map(s => s.re));
+  if (Y(-rmax) - Y(0) > 13 * F) { cg.fillStyle = C.resp; cg.fillText('O₂ verbraucht – rund um die Uhr', X(11), (Y(0) + Y(-rmax)) / 2 + 4 * F); }
+  const line = (fn, col, w, dash) => { cg.strokeStyle = col; cg.lineWidth = w; cg.setLineDash(dash || []); cg.beginPath(); S.forEach((s, i) => i ? cg.lineTo(X(s.h), Y(fn(s))) : cg.moveTo(X(s.h), Y(fn(s)))); cg.stroke(); cg.setLineDash([]); };
+  line(s => s.gr, C.accent, 2.5);
+  line(s => -s.re, C.resp, 2.5);
+  line(s => s.ba, C.text, 1.6, [5, 4]);
+  // Tagesbilanz
+  const dt = 24 / N;
+  const G = S.slice(1).reduce((a, s) => a + s.gr * dt, 0), Rr = S.slice(1).reduce((a, s) => a + s.re * dt, 0), sur = G - Rr;
+  const db = $('#dayBal'); db.hidden = false;
+  if (G < 1) {
+    db.innerHTML = '<b>Tagesbilanz (24 Stunden)</b><div class="dbNote">Ohne Licht findet keine Fotosynthese statt. Die Pflanze verbraucht nur Sauerstoff und zehrt von ihren Reserven.</div>';
+  } else {
+    const mx = Math.max(G, Rr), pct = v => Math.round(v / G * 100);
+    const row = (lbl, val, col, txt) => `<div class="dbRow"><span>${lbl}</span><div class="dbBar"><i style="width:${Math.abs(val) / mx * 100}%;background:${col}"></i></div><span class="v">${txt}</span></div>`;
+    db.innerHTML = '<b>Tagesbilanz (24 Stunden)</b>' +
+      row('O₂ gebildet<br><small>Fotosynthese</small>', G, 'var(--accent)', '100 %') +
+      row('O₂ verbraucht<br><small>Zellatmung</small>', Rr, 'var(--resp)', pct(Rr) + ' %') +
+      (sur >= 0
+        ? row('<b>Überschuss</b>', sur, 'var(--accent2)', pct(sur) + ' %') + `<div class="dbNote">Die Zellatmung verbraucht ${pct(Rr)} % des Sauerstoffs, den die Pflanze bildet. Der Rest steht für Wachstum und Reserven (Stärke) zur Verfügung.</div>`
+        : row('<b>Defizit</b>', sur, 'var(--danger)', '−' + pct(-sur) + ' %') + '<div class="dbNote">Die Pflanze verbraucht mehr, als sie bildet. Sie zehrt von ihren Reserven und kann so auf Dauer nicht überleben.</div>');
+  }
+  // aktuelle Uhrzeit
+  if (state.phase === 'zyklus') {
+    const x = X(state.clock), mm = model(env());
+    cg.strokeStyle = C.night; cg.lineWidth = 2; cg.beginPath(); cg.moveTo(x, pt); cg.lineTo(x, pt + ih); cg.stroke();
+    cg.fillStyle = C.text; cg.beginPath(); cg.arc(x, Y(mm.bal), 5, 0, 7); cg.fill();
+    cg.font = font(11 * F, 700); cg.textAlign = x > W - 70 ? 'right' : 'left';
+    cg.fillText(fmtClock(state.clock) + ' Uhr', x + (x > W - 70 ? -6 : 6), pt + ih - 6);
+  }
+}
+function drawChart() {
+  const wrap = $('#chartWrap');
+  const side = state.xAxis === 'day' && wrap.getBoundingClientRect().width >= 600;
+  if (wrap.classList.contains('withBal') !== side) wrap.classList.toggle('withBal', side);
+  const r = chart.getBoundingClientRect();
+  if (!r.width || !C.text) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = r.width, H = r.height;
+  chart.width = Math.round(W * dpr); chart.height = Math.round(H * dpr);
+  cg.setTransform(dpr, 0, 0, dpr, 0, 0); cg.clearRect(0, 0, W, H);
+  const F = fsf(), pl = Math.round(36 + 14 * F), pr = 14, pt = 12, pb = Math.round(28 + 14 * F), iw = W - pl - pr, ih = H - pt - pb;
+  const key = state.xAxis, ax = AX[key];
+  if (key !== 'day') $('#dayBal').hidden = true;
+  if (key === 'day') { drawDayChart(W, H, F, pl, pr, pt, pb, iw, ih); return; }
+  const ymax = Math.max(60, Math.ceil(Math.max(0, ...state.data.map(d => d.count)) / 10) * 10);
+  const X = ax.cat ? i => pl + iw * (i + 0.5) / 4 : v => pl + iw * (v - ax.min) / (ax.max - ax.min);
+  const Y = v => pt + ih * (1 - v / ymax);
+  cg.font = font(12 * F); cg.lineWidth = 1;
+  // Raster
+  for (let v = 0; v <= ymax; v += 10) {
+    cg.strokeStyle = C.chartGrid; cg.beginPath(); cg.moveTo(pl, Y(v)); cg.lineTo(W - pr, Y(v)); cg.stroke();
+    cg.fillStyle = C.muted; cg.textAlign = 'right'; cg.fillText(v, pl - 8, Y(v) + 4);
+  }
+  cg.textAlign = 'center';
+  if (ax.cat) COLOR_KEYS.forEach((k, i) => { cg.fillStyle = C.muted; cg.fillText(COLORS[k].name, X(i), H - pb + 16 * F); });
+  else for (let v = ax.min; v <= ax.max; v += ax.step) {
+    cg.strokeStyle = C.chartGrid; cg.beginPath(); cg.moveTo(X(v), pt); cg.lineTo(X(v), pt + ih); cg.stroke();
+    cg.fillStyle = C.muted; cg.fillText(v, X(v), H - pb + 16 * F);
+  }
+  cg.strokeStyle = C.muted; cg.lineWidth = 1.5;
+  cg.beginPath(); cg.moveTo(pl, pt); cg.lineTo(pl, pt + ih); cg.lineTo(W - pr, pt + ih); cg.stroke();
+  cg.fillStyle = C.text; cg.font = font(12 * F, 600);
+  cg.fillText(ax.label, pl + iw / 2, H - 6);
+  cg.save(); cg.translate(12 * F + 2, pt + ih / 2); cg.rotate(-Math.PI / 2); cg.fillText('Bläschen pro Minute', 0, 0); cg.restore();
+
+  // Modellkurve
+  if (state.showModel) {
+    cg.strokeStyle = C.accent; cg.lineWidth = 2; cg.setLineDash([6, 5]);
+    if (ax.cat) {
+      COLOR_KEYS.forEach((k, i) => { const v = model({ ...env(), color: k }).net, bw = iw / 4 * 0.5; cg.strokeRect(X(i) - bw / 2, Y(v), bw, Y(0) - Y(v)); });
+    } else {
+      cg.beginPath();
+      for (let i = 0; i <= 100; i++) {
+        const xv = ax.min + (ax.max - ax.min) * i / 100;
+        const v = model({ ...env(), [key]: xv }).net;
+        i ? cg.lineTo(X(xv), Y(v)) : cg.moveTo(X(xv), Y(v));
+      }
+      cg.stroke();
+    }
+    cg.setLineDash([]);
+  }
+
+  if (!state.data.length) {
+    cg.fillStyle = C.muted; cg.font = font(14 * F); cg.textAlign = 'center';
+    cg.fillText('Deine Messwerte erscheinen hier.', pl + iw / 2, pt + ih / 2);
+    return;
+  }
+  const others = ['light', 'co2', 'temp', 'color'].filter(k => k !== key);
+  const pts = state.data.map((d, i) => ({
+    d, i, match: others.every(k => d[k] === state[k]),
+    x: ax.cat ? X(COLOR_KEYS.indexOf(d.color)) : X(d[key]), y: Y(d.count)
+  }));
+  // Verbindungslinie der passenden Messungen (Mittelwerte je x)
+  if (!ax.cat) {
+    const groups = {};
+    pts.filter(p => p.match).forEach(p => { (groups[p.x] = groups[p.x] || []).push(p.d.count); });
+    const xs = Object.keys(groups).map(Number).sort((a, b) => a - b);
+    if (xs.length > 1) {
+      cg.strokeStyle = C.accent; cg.globalAlpha = 0.55; cg.lineWidth = 2; cg.beginPath();
+      xs.forEach((x, i) => { const avg = groups[x].reduce((a, b) => a + b, 0) / groups[x].length; i ? cg.lineTo(x, Y(avg)) : cg.moveTo(x, Y(avg)); });
+      cg.stroke(); cg.globalAlpha = 1;
+    }
+  }
+  pts.forEach(p => {
+    cg.globalAlpha = p.match ? 1 : 0.25;
+    const isLast = p.i === state.data.length - 1;
+    cg.fillStyle = ax.cat ? rgba(COLORS[p.d.color].rgb, 1) : C.accent;
+    cg.strokeStyle = C.dark ? '#0e1611' : '#ffffff'; cg.lineWidth = 2;
+    cg.beginPath(); cg.arc(p.x + (ax.cat ? ((p.i % 5) - 2) * 4 : 0), p.y, isLast ? 7 : 5.5, 0, 7); cg.fill(); cg.stroke();
+    if (isLast) { cg.strokeStyle = C.accent; cg.lineWidth = 2; cg.beginPath(); cg.arc(p.x + (ax.cat ? ((p.i % 5) - 2) * 4 : 0), p.y, 11, 0, 7); cg.stroke(); }
+  });
+  cg.globalAlpha = 1;
+}
+
+/* ---------- Schriftgröße ---------- */
+function applyFont() {
+  document.documentElement.style.setProperty('--fs', fsf());
+  $('#fontDown').disabled = state.fsIdx === 0;
+  $('#fontUp').disabled = state.fsIdx === FS_STEPS.length - 1;
+  drawChart();
+}
+function changeFont(d) {
+  const n = clamp(state.fsIdx + d, 0, FS_STEPS.length - 1);
+  if (n === state.fsIdx) return;
+  state.fsIdx = n; save(); applyFont();
+  toast('Schriftgröße ' + Math.round(fsf() * 100) + ' %');
+}
+$('#fontDown').addEventListener('click', () => changeFont(-1));
+$('#fontUp').addEventListener('click', () => changeFont(1));
+
+/* ---------- Vollbild ---------- */
+const root = document.documentElement;
+const fsRequest = root.requestFullscreen || root.webkitRequestFullscreen;
+const fsExit = document.exitFullscreen || document.webkitExitFullscreen;
+const fsActive = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+function updateFsBtn() {
+  const on = fsActive();
+  $('#fsIn').style.display = on ? 'none' : '';
+  $('#fsOut').style.display = on ? '' : 'none';
+  $('#fsLbl').textContent = on ? ' Vollbild beenden' : ' Vollbild';
+  $('#fsBtn').title = on ? 'Vollbild beenden' : 'Vollbild';
+  $('#fsBtn').setAttribute('aria-label', on ? 'Vollbild beenden' : 'Vollbild');
+  setTimeout(drawChart, 150);
+}
+$('#fsBtn').addEventListener('click', () => {
+  if (fsActive()) { try { fsExit && fsExit.call(document); } catch (e) {} return; }
+  if (standalone) { toast('Die App läuft bereits im Vollbild.'); return; }
+  if (!fsRequest) {
+    toast('Vollbild: Teilen → „Zum Home-Bildschirm“ und von dort öffnen.');
+    return;
+  }
+  try {
+    const r = fsRequest.call(root);
+    if (r && r.catch) r.catch(() => toast('Vollbild nicht möglich. Öffne das Labor in einem eigenen Tab.'));
+  } catch (e) { toast('Vollbild nicht möglich. Öffne das Labor in einem eigenen Tab.'); }
+});
+document.addEventListener('fullscreenchange', updateFsBtn);
+document.addEventListener('webkitfullscreenchange', updateFsBtn);
+
+/* ---------- Reiter ---------- */
+let curTab = 'auftrag';
+function setTab(name) {
+  curTab = name;
+  $$('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
+  $$('.tabPane').forEach(p => { p.hidden = p.dataset.pane !== name; });
+  if (name === 'diagramm') drawChart();
+}
+$('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setTab(b.dataset.tab); });
+if (window.ResizeObserver) { let rq = 0; new ResizeObserver(() => { cancelAnimationFrame(rq); rq = requestAnimationFrame(drawChart); }).observe($('#chartBox')); }
+
+/* ---------- Ereignisse ---------- */
+for (const k in sliders) sliders[k].addEventListener('input', () => { state[k] = Number(sliders[k].value); updateUI(); });
+$('#colorSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.disabled) return; state.color = b.dataset.color; updateUI(); });
+$('#xSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.xAxis = b.dataset.x; updateUI(); });
+$('#eqSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.eq = b.dataset.eq; save(); syncControls(); });
+function setPhase(p) {
+  if (state.measuring || p === state.phase) return;
+  state.phase = p;
+  if (p === 'zyklus') { state.clock = 4; state.o2 = 50; state.playing = true; state.xAxis = 'day'; }
+  else state.playing = false;
+  updateUI();
+}
+$('#phaseSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled) setPhase(b.dataset.phase); });
+$('#playBtn').addEventListener('click', () => { state.playing = !state.playing; if (state.playing && state.clock >= 24) state.clock = 0; syncControls(); });
+$('#clock').addEventListener('input', e => { state.clock = Number(e.target.value); updateUI(); });
+$('#modelChk').addEventListener('change', e => { state.showModel = e.target.checked; drawChart(); });
+$('#labelsChk').addEventListener('change', e => { state.labels = e.target.checked; });
+$('#taskSel').addEventListener('change', e => {
+  state.task = e.target.value;
+  const tk = TASKS[state.task];
+  if (tk.preset) Object.assign(state, tk.preset);
+  if (tk.x) state.xAxis = tk.x;
+  state.clock = 4; state.o2 = 50; state.playing = false;
+  state.showModel = false;
+  renderTask(); updateUI();
+  setTab(state.xAxis === 'day' && state.phase === 'zyklus' ? 'auftrag' : 'auftrag');
+});
+$('#resetBtn').addEventListener('click', () => {
+  const tk = TASKS[state.task];
+  Object.assign(state, DEFAULTS, tk.preset || {});
+  state.clock = 4; state.o2 = 50; state.playing = false;
+  updateUI(); toast('Bedingungen zurückgesetzt');
+});
+$('#measureBtn').addEventListener('click', () => {
+  if (state.measuring) { stopMeasure(); toast('Messung abgebrochen'); }
+  else startMeasure();
+});
+$('#tbody').addEventListener('click', e => {
+  const b = e.target.closest('.del'); if (!b) return;
+  state.data.splice(Number(b.dataset.i), 1); save(); renderTable(); drawChart();
+});
+$('#clearBtn').addEventListener('click', () => {
+  if (!state.data.length) return;
+  if (confirm('Alle Messungen löschen?')) { state.data = []; save(); renderTable(); drawChart(); }
+});
+$('#csvBtn').addEventListener('click', () => {
+  if (!state.data.length) { toast('Noch keine Messungen vorhanden'); return; }
+  const rows = [['Nr', 'Lichtstärke (%)', 'Lichtfarbe', 'CO2 (%)', 'Temperatur (°C)', 'Bläschen pro Minute']]
+    .concat(state.data.map((d, i) => [i + 1, d.light, COLORS[d.color].name, d.co2, d.temp, d.count]));
+  const csv = '\ufeff' + rows.map(r => r.join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'fotosynthese-messwerte.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+const dlg = $('#infoDlg');
+$('#infoBtn').addEventListener('click', () => dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', ''));
+$('#closeInfo').addEventListener('click', () => dlg.close ? dlg.close() : dlg.removeAttribute('open'));
+window.addEventListener('resize', drawChart);
+
+/* ---------- Animation ---------- */
+let last = performance.now(), t = 0, gasAcc = 0, uiTimer = 0;
+function waterPoint() { let x, y; do { x = BX0 + 18 + Math.random() * (418 - BX0 - 18); y = WTOP + 30 + Math.random() * (BBOT - WTOP - 58); } while (Math.abs(x - 345) < 30); return [x, y]; }
+function leafPoint() { const y = PTOP + 18 + Math.random() * (PBASE - PTOP - 34); return [stemX(y, t) + (Math.random() - 0.5) * 20, y]; }
+function spawnGas(dayMode) {
+  if (gas.length > 70) return;
+  if (dayMode) { const [x, y] = waterPoint(), [tx, ty] = leafPoint(); gas.push({ type: 'co2', mode: 'in', x, y, tx, ty, a: 0 }); }
+  else {
+    const [x, y] = waterPoint(), [tx, ty] = leafPoint(); gas.push({ type: 'o2', mode: 'in', x, y, tx, ty, a: 0 });
+    const [lx, ly] = leafPoint(), [wx, wy] = waterPoint(); gas.push({ type: 'co2', mode: 'out', x: lx, y: ly, tx: wx, ty: wy, a: 0 });
+  }
+}
+function frame(now) {
+  const dtR = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+  const speed = state.measuring ? SPEED : 1, dt = dtR * speed; t += dtR;
+  // Tagesverlauf
+  if (state.phase === 'zyklus' && state.playing) {
+    const dh = dtR * CLOCK_SPEED;
+    state.clock += dh; if (state.clock >= 24) state.clock -= 24;
+    const mm = model(env());
+    state.o2 = clamp(state.o2 + mm.bal * 0.12 * dh + (50 - state.o2) * 0.04 * dh, 0, 100);
+    uiTimer += dtR;
+    if (uiTimer > 0.2) { uiTimer = 0; updateUI(); }
+  }
+  const m = model(env());
+  // Gasaustausch (netto)
+  if (Math.abs(m.bal) > 0.5) {
+    gasAcc += dtR * 1.1 * Math.sqrt(Math.abs(m.bal));
+    while (gasAcc >= 1) { gasAcc -= 1; spawnGas(m.bal > 0); }
+  }
+  for (let i = gas.length - 1; i >= 0; i--) {
+    const p = gas[i], dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy), v = 24 * dtR;
+    p.a = Math.min(1, p.a + dtR * 2.5);
+    if (d < v + 1) {
+      if (p.mode === 'in') { gas.splice(i, 1); continue; }
+      p.fade = (p.fade == null ? 1 : p.fade) - dtR * 1.5;
+      if (p.fade <= 0) gas.splice(i, 1);
+      continue;
+    }
+    p.x += dx / d * v + Math.sin(t * 3 + i) * 0.15; p.y += dy / d * v;
+  }
+  const k = poisson(m.net / 60 * dt);
+  const cx = stemX(PTOP, t);
+  for (let i = 0; i < k; i++) {
+    if (bubbles.length < 220) bubbles.push({ x: cx + (Math.random() - 0.5) * 5, y: PTOP - 4 - Math.random() * 4, r: 2.2 + Math.random() * 2.4, vy: 42 + Math.random() * 26, ph: Math.random() * 6 });
+  }
+  if (state.measuring) {
+    state.mCount += k; state.mElapsed += dt;
+    if (state.mElapsed >= MEAS_SECONDS) { state.mElapsed = MEAS_SECONDS; updateHud(); finishMeasure(); }
+    else updateHud();
+  }
+  const rise = state.measuring ? 1.8 : 1;
+  for (let i = bubbles.length - 1; i >= 0; i--) {
+    const b = bubbles[i];
+    b.y -= b.vy * dtR * rise; b.x += Math.sin(t * 4 + b.ph) * 0.25;
+    if (b.y <= WTOP + b.r) { pops.push({ x: b.x, y: WTOP, r: b.r, a: 0.9 }); bubbles.splice(i, 1); }
+  }
+  for (let i = pops.length - 1; i >= 0; i--) { const p = pops[i]; p.r += 26 * dtR; p.a -= 2.4 * dtR; if (p.a <= 0) pops.splice(i, 1); }
+  drawStage(t, m);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Start ---------- */
+load();
+applyTheme();
+applyFont();
+updateFsBtn();
+renderTask();
+renderTable();
+setTab('auftrag');
+updateUI();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
