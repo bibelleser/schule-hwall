@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kreislauf">
+<title>Kreislauf-Labor</title>
+<style>
+:root{
+  --bg:#f6f1f0;--panel:#ffffff;--panel2:#f3f7f6;--text:#1b2a27;--muted:#5a6b67;--line:#d2dedb;
+  --accent:#b91c1c;--accent2:#8f1515;--accentSoft:#fbe5e5;
+  --water:#2f7fe0;--ion:#e3a21a;--adh:#e0742a;--ok:#2f8a3e;--okSoft:#e2f2e3;--warn:#b8650f;--warnSoft:#fdf0df;--bad:#c0392b;--badSoft:#fbe5e2;
+  --shadow:0 6px 20px rgba(20,50,50,.08);
+}
+*{box-sizing:border-box}
+html{font-size:calc(15px * var(--fs,1));background:var(--bg)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:1rem/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%;touch-action:manipulation}
+button,select{font:inherit;color:inherit}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px 6px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:24px;height:24px}
+h1{font-size:1.3rem;margin:0;line-height:1.15}
+.sub{margin:0;color:var(--muted);font-size:.85rem}
+.head-actions{display:flex;gap:8px;align-items:center}
+.btn{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow)}
+.btn:hover{border-color:var(--accent)}
+.btn.icon{min-width:44px;padding:0}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{min-height:38px;border:0;background:transparent;border-radius:9px;padding:0 12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.15);color:var(--accent2);font-weight:700}
+.seg button:disabled{opacity:.45}
+#fontUp{font-size:1.15em;font-weight:700}#fontDown{font-size:.92em;font-weight:700}
+.seg button small{font-size:.8em;margin-left:1px}
+/* Stationen */
+.stations{display:flex;gap:6px;padding:4px 14px 10px;overflow-x:auto;scrollbar-width:none}
+.stations::-webkit-scrollbar{display:none}
+.stations button{flex:1 0 auto;min-height:46px;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:14px;border:2px solid var(--line);background:var(--panel);cursor:pointer;font-weight:600;white-space:nowrap}
+.stations button .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);font-size:.85rem;font-weight:800;flex:none}
+.stations button[aria-pressed="true"]{border-color:var(--accent);background:var(--accentSoft);color:var(--accent2)}
+.stations button[aria-pressed="true"] .n{background:var(--accent);border-color:var(--accent);color:#fff}
+/* Layout (Handy zuerst) */
+main{display:flex;flex-direction:column;gap:10px;padding:0 10px 12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.stage{position:sticky;top:0;z-index:5;overflow:hidden;padding:0}
+.stage canvas{display:block;width:100%;aspect-ratio:640/440}
+.hud{position:absolute;top:8px;left:8px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:99px;padding:0 12px;min-height:32px;font-size:.85rem;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.pill input{width:18px;height:18px;accent-color:var(--accent)}
+.side{display:flex;flex-direction:column;padding:0}
+.sideScroll{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.side h2{font-size:1.1rem;margin:0;line-height:1.25}
+.lead{margin:-4px 0 0;color:var(--muted);font-size:.9rem}
+#ctrls{display:flex;flex-direction:column;gap:8px}
+.ctrl{display:flex;flex-direction:column}
+.ctrl .lab{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctrl .lab b{font-weight:600}
+.ctrl output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent2);text-align:right;white-space:nowrap}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:38px;background:transparent;margin:0;cursor:pointer}
+input[type=range]:focus{outline:none}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--line) var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid var(--accent);margin-top:-10px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:8px;border-radius:99px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--accent)}
+.tgls{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tgl{min-height:44px;display:flex;align-items:center;gap:8px;padding:0 10px;border-radius:12px;border:2px solid var(--line);background:var(--panel);cursor:pointer;text-align:left;font-weight:600;font-size:.9rem}
+.tgl .sw{width:34px;height:20px;border-radius:99px;background:var(--line);position:relative;flex:none;transition:background .2s}
+.tgl .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.tgl[aria-pressed="true"]{border-color:var(--accent)}
+.tgl[aria-pressed="true"] .sw{background:var(--accent)}
+.tgl[aria-pressed="true"] .sw::after{left:16px}
+.tgl:disabled{opacity:.45;cursor:not-allowed}
+.btnRow{display:flex;gap:6px;flex-wrap:wrap}
+.btnRow .btn{flex:1 1 auto;box-shadow:none;font-weight:600}
+.out{background:var(--panel2);border-radius:12px;padding:8px 12px;display:grid;gap:5px;font-size:.9rem}
+.out:empty{display:none}
+.orow{display:grid;grid-template-columns:8.5em 1fr auto;align-items:center;gap:8px}
+.obar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.obar i{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .25s}
+.orow b{font-variant-numeric:tabular-nums;text-align:right}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.info{border-radius:12px;background:var(--accentSoft);padding:6px 12px 10px;font-size:.92rem}
+.info[data-i="merke"]{background:var(--okSoft)}.info[data-i="frage"]{background:var(--warnSoft)}
+.info p{margin:6px 0 0}
+.infoTabs{display:flex;gap:4px;border-bottom:1px solid rgba(0,0,0,.08)}
+.infoTabs button{border:0;background:transparent;padding:6px 8px;min-height:36px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer}
+.infoTabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.orow.t{grid-template-columns:1fr auto}
+.box{border-radius:12px;padding:9px 12px;font-size:.92rem}
+.box p{margin:4px 0 0}
+.box.was{background:var(--accentSoft)}
+.box.merke{background:var(--okSoft);border-left:4px solid var(--ok)}
+.box.frage{background:var(--warnSoft)}
+.box.frage summary{cursor:pointer;font-weight:700}
+#toast{position:fixed;left:50%;bottom:24px;max-width:calc(100% - 32px);text-align:center;transform:translate(-50%,30px);opacity:0;pointer-events:none;background:var(--text);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;transition:.3s;z-index:20}
+#toast.show{transform:translate(-50%,0);opacity:1}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);max-width:660px;width:calc(100% - 32px);padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{font-size:1.2rem;margin-top:0}
+dialog h3{font-size:1rem;margin:14px 0 4px}
+dialog p,dialog li{font-size:.93rem}
+dialog ul{padding-left:20px;margin:4px 0}
+/* App-Layout: alles auf einem Bildschirm */
+@media (min-width:760px), (orientation:landscape) and (min-width:640px){
+  html,body{height:100%}
+  body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+  header,.stations{flex:none}
+  main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(310px,34vw,430px);gap:12px;padding:0 14px 14px}
+  .lead{display:none}
+  .sideScroll{gap:8px}
+  input[type=range]{height:34px}
+  .info{font-size:.87rem}
+  .out{font-size:.86rem;gap:3px;padding:6px 12px}
+  .tgl,.btnRow .btn{min-height:40px}
+  .stage{position:relative;top:auto;min-height:0}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto}
+  .side{min-height:0}
+  .sideScroll{flex:1;min-height:0;overflow:auto}
+}
+@media (max-width:1100px){.stations button .t2{display:none}}
+@media (orientation:landscape) and (max-height:520px){
+  header{padding:4px 10px}.sub{display:none}.logo{width:30px;height:30px}h1{font-size:1rem}
+  .btn{min-height:36px}.btn.icon{min-width:38px}
+  .stations{padding:2px 10px 6px}.stations button{min-height:36px;padding:0 10px}
+  main{gap:8px;padding:0 8px 8px}
+  .sideScroll{padding:8px 10px;gap:7px}
+}
+@media (max-width:620px){
+  header{padding:8px 10px 4px}.sub{display:none}h1{font-size:1.1rem}.logo{width:34px;height:34px}
+  .head-actions{gap:4px}.btn.icon{min-width:40px;width:40px}
+  .stations{padding:2px 10px 8px}.stations button{padding:0 10px}
+  .pill{font-size:.75rem;min-height:28px;padding:0 9px}
+  .orow{grid-template-columns:7em 1fr auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.7 3 5 6.5 5c2 0 3.5 1.2 5.5 3.2C14 6.2 15.5 5 17.5 5 21 5 22.8 8.7 21.5 11.8 19.5 16.4 12 21 12 21z"/></svg></div>
+    <div><h1>Kreislauf-Labor</h1><p class="sub">Herz, Lungenkreislauf und Körperkreislauf</p></div>
+  </div>
+  <div class="head-actions">
+    <div class="seg" role="group" aria-label="Schriftgröße">
+      <button id="fontDown" title="Schrift kleiner" aria-label="Schrift kleiner">A<small>−</small></button>
+      <button id="fontUp" title="Schrift größer" aria-label="Schrift größer">A<small>+</small></button>
+    </div>
+    <button class="btn icon" id="fsBtn" title="Vollbild" aria-label="Vollbild">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g id="fsIn"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></g><g id="fsOut" style="display:none"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></g></svg>
+    </button>
+    <button class="btn icon" id="resetBtn" title="Station zurücksetzen" aria-label="Station zurücksetzen">↺</button>
+    <button class="btn icon" id="infoBtn" title="Hinweise" aria-label="Hinweise">ⓘ</button>
+  </div>
+</header>
+<nav class="stations" id="stations" aria-label="Stationen"></nav>
+
+<main>
+  <section class="card stage" aria-label="Animation">
+    <canvas id="stage" role="img" aria-label="Animation zum Wassertransport"></canvas>
+    <div class="hud">
+      <label class="pill"><input type="checkbox" id="labelsChk" checked> Beschriftung</label>
+      <button class="pill" id="pauseBtn" aria-label="Animation anhalten">⏸ Pause</button>
+    </div>
+  </section>
+  <aside class="card side" aria-label="Steuerung und Erklärung">
+    <div class="sideScroll">
+      <h2 id="stTitle"></h2>
+      <p class="lead" id="stLead"></p>
+      <div id="ctrls"></div>
+      <div class="out" id="out" aria-live="polite"></div>
+      <div class="info" id="info">
+        <div class="infoTabs" role="tablist">
+          <button role="tab" data-i="was" aria-selected="true">Was passiert?</button>
+          <button role="tab" data-i="merke">Merke</button>
+          <button role="tab" data-i="frage">Denkfrage</button>
+        </div>
+        <p id="infoText"></p>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div id="toast" role="status"></div>
+
+<dialog id="infoDlg">
+  <h2>Hinweise zum Kreislauf-Labor</h2>
+  <p>Die vier Stationen zeigen, wie das Blut durch den Körper fließt. Jede Station hat eigene Regler; die Animation reagiert sofort.</p>
+  <h3>Die Stationen</h3>
+  <ul>
+    <li><b>Doppelter Kreislauf:</b> Lungenkreislauf und Körperkreislauf im Überblick. Folge einem einzelnen Blutkörperchen auf seinem Weg.</li>
+    <li><b>Das Herz:</b> Vorhöfe, Kammern, Segel- und Taschenklappen; die drei Phasen des Herzschlags (in Zeitlupe).</li>
+    <li><b>Körperkreislauf:</b> Wie viel Blut die Organe bekommen – in Ruhe, beim Sport und nach dem Essen – und der Weg über die Pfortader zur Leber.</li>
+    <li><b>Blutgefäße:</b> Pulswelle in der Arterie, Muskelpumpe und Venenklappen in der Vene, Stoffaustausch in der Kapillare.</li>
+  </ul>
+  <h3>Farben</h3>
+  <p><b style="color:#d6263d">Rot</b> = sauerstoffreiches Blut, <b style="color:#564aaa">Blau-violett</b> = sauerstoffarmes Blut. (Echtes Blut ist nie blau – auch sauerstoffarmes Blut ist dunkelrot. Die Farben sind eine übliche Darstellungsweise.)</p>
+  <h3>Zum Modell</h3>
+  <p>Das Herz wird wie in Schulbüchern von vorne gezeigt: Die rechte Herzhälfte erscheint links im Bild. Die Blutmengen sind gerundete Richtwerte für Erwachsene: etwa 5 l Blut, in Ruhe etwa 5 l pro Minute, bei starker Belastung bis etwa 20 l pro Minute.</p>
+  <p style="text-align:right;margin:16px 0 0"><button class="btn" id="closeInfo">Schließen</button></p>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const fmt1 = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
+
+/* ================= Zeichnen: Grundlagen ================= */
+const cv = $('#stage'), g = cv.getContext('2d');
+const SW = 640, SH = 440;
+let K = 1, VX0 = 0, VX1 = SW, VY0 = 0, VY1 = SH, labels = true, paused = false, T = 0;
+const FS_STEPS = [0.85, 0.925, 1, 1.1, 1.2, 1.32, 1.45];
+let fsIdx = 2;
+const COL = { water: '#2f7fe0', waterSoft: 'rgba(80,150,235,.35)', ion: '#e3a21a', adh: '#e0742a', text: '#1b2a27', muted: '#5a6b67', leaf: '#5aa646', leafD: '#3f8a35', wood: '#8b6b3e', soil: '#7a5a3c' };
+function fit(bg) {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  const sc = Math.min(w / SW, h / SH), ox = (w - SW * sc) / 2, oy = (h - SH * sc) / 2;
+  g.setTransform(sc, 0, 0, sc, ox, oy);
+  VX0 = -ox / sc; VX1 = SW + ox / sc; VY0 = -oy / sc; VY1 = SH + oy / sc;
+  K = clamp(Math.max(1, 10 / Math.max(12 * sc / dpr, 1)) * FS_STEPS[fsIdx], 0.85, 1.9);
+}
+const font = (s, w) => `${w || 600} ${s * K}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif`;
+function text(t, x, y, o = {}) {
+  g.font = font(o.size || 12, o.weight); g.fillStyle = o.color || COL.text; g.textAlign = o.align || 'left'; g.textBaseline = o.base || 'alphabetic';
+  if (o.bg) { const m = g.measureText(t), w = m.width + 10, hh = (o.size || 12) * K + 8; let bx = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w + 5 : x - 5;
+    g.fillStyle = o.bg; rr(bx, y - hh + 5, w, hh, 6); g.fill(); g.fillStyle = o.color || COL.text; }
+  g.fillText(t, x, y); g.textBaseline = 'alphabetic';
+}
+function lbl(t, x1, y1, x2, y2, o = {}) {
+  if (!labels) return;
+  g.strokeStyle = o.line || 'rgba(40,50,50,.55)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2 - 4); g.stroke();
+  g.fillStyle = o.line || 'rgba(40,50,50,.7)'; g.beginPath(); g.arc(x1, y1, 2, 0, 7); g.fill();
+  text(t, x2 + (o.align === 'right' ? -2 : o.align === 'center' ? 0 : 2), y2, { align: o.align || 'left', size: o.size || 12, bg: 'rgba(255,255,255,.82)', color: o.color });
+}
+function rr(x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+function ball(x, y, r, c, stroke) { g.fillStyle = c; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = 1; g.stroke(); } }
+function arrow(x1, y1, x2, y2, c, w = 3) {
+  const a = Math.atan2(y2 - y1, x2 - x1), hl = 8 + w * 2;
+  g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - Math.cos(a) * hl * 0.6, y2 - Math.sin(a) * hl * 0.6); g.stroke();
+  g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - hl * Math.cos(a - 0.45), y2 - hl * Math.sin(a - 0.45)); g.lineTo(x2 - hl * Math.cos(a + 0.45), y2 - hl * Math.sin(a + 0.45)); g.closePath(); g.fill();
+}
+function seeded(n) { let s = n; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; }
+const bar = (label, v, txt, color) => `<div class="orow"><span>${label}</span><div class="obar"><i style="width:${clamp(v, 0, 1) * 100}%;${color ? 'background:' + color : ''}"></i></div><b>${txt}</b></div>`;
+
+/* ================= Hilfen ================= */
+const RED = [214, 38, 61], BLUE = [86, 74, 170];
+const mixRGB = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * clamp(t, 0, 1))).join(',')})`;
+const bloodCol = o => mixRGB(BLUE, RED, o);
+function mkPath(pts) { const L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, L, len: L[L.length - 1] }; }
+function ptAt(P, d, loop) {
+  if (loop) d = ((d % P.len) + P.len) % P.len; else d = clamp(d, 0, P.len);
+  let i = 1; while (i < P.L.length - 1 && P.L[i] < d) i++;
+  const a = P.pts[i - 1], b = P.pts[i], t = (d - P.L[i - 1]) / Math.max(1e-6, P.L[i] - P.L[i - 1]);
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, i - 1, t];
+}
+function strokePath(pts, col, w) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); }
+function rbc(x, y, o, s = 1) { g.fillStyle = bloodCol(o); g.beginPath(); g.ellipse(x, y, 6.5 * s, 4.2 * s, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.2; g.stroke(); g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(x, y, 2.6 * s, 1.5 * s, 0, 0, 7); g.fill(); }
+const pulseOf = v => v;
+
+/* ================= Station 1: Doppelter Kreislauf ================= */
+const P8 = mkPath([[270, 184], [270, 238], [200, 238], [200, 92], [215, 76], [425, 76], [440, 92], [440, 184], [370, 184], [370, 238], [520, 238], [520, 360], [470, 376], [170, 376], [120, 360], [120, 184], [232, 184], [270, 184]]);
+const SEGN = ['rechter Vorhof → rechte Kammer', 'Lungenarterie (O₂-arm)', 'Lungenarterie (O₂-arm)', 'Lungenarterie (O₂-arm)', 'Lungenkapillaren: CO₂ raus, O₂ rein', 'Lungenvene (O₂-reich)', 'Lungenvene (O₂-reich)', 'Lungenvene (O₂-reich)', 'linker Vorhof → linke Kammer', 'Aorta (O₂-reich)', 'Körperarterien (O₂-reich)', 'Körperarterien (O₂-reich)', 'Körperkapillaren: O₂ an die Zellen, CO₂ aufnehmen', 'Körpervenen (O₂-arm)', 'Hohlvene (O₂-arm)', 'Hohlvene (O₂-arm)', 'Hohlvene → rechter Vorhof'];
+const SMALL = new Set([1, 2, 3, 4, 5, 6, 7]), BIG = new Set([9, 10, 11, 12, 13, 14, 15, 16]);
+const dop = {
+  nav: 'Doppelter Kreislauf', bg: '#f7f2f2',
+  title: 'Der doppelte Blutkreislauf',
+  lead: 'Das Blut fließt in zwei hintereinander geschalteten Kreisläufen – immer wieder durch das Herz.',
+  controls: [
+    { t: 'range', id: 'puls', label: 'Puls', min: 50, max: 180, step: 5, v: 70, fmt: v => v + ' Schläge / min' },
+    { t: 'seg', id: 'show', label: 'Hervorheben', opts: [['beide', 'Beide'], ['klein', 'Lungen­kreislauf'], ['gross', 'Körper­kreislauf']], v: 'beide' },
+    { t: 'toggles', items: [['follow', 'Einem Blutkörperchen folgen', true]] }
+  ],
+  was: 'Die rechte Herzhälfte pumpt sauerstoffarmes Blut in die Lunge. Dort gibt es Kohlenstoffdioxid ab und nimmt Sauerstoff auf. Sauerstoffreich fließt es zurück in die linke Herzhälfte (Lungenkreislauf). Die linke Herzhälfte pumpt es durch die Aorta in den ganzen Körper. In den Kapillaren gibt es Sauerstoff und Nährstoffe an die Zellen ab und nimmt Kohlenstoffdioxid auf. Über die Hohlvenen kommt es zurück zur rechten Herzhälfte (Körperkreislauf).',
+  merke: 'Lungenkreislauf (kleiner Kreislauf): rechte Kammer → Lungenarterie → Lunge → Lungenvene → linker Vorhof. Körperkreislauf (großer Kreislauf): linke Kammer → Aorta → Körper → Hohlvenen → rechter Vorhof. Arterien führen vom Herzen weg, Venen zum Herzen hin.',
+  frage: 'Die Lungenarterie führt sauerstoffarmes Blut, die Lungenvene sauerstoffreiches. Warum heißen die Gefäße trotzdem Arterie und Vene?',
+  init() { this.d = 0; },
+  sv() { return Math.min(110, 70 + Math.max(0, this.v.puls - 70) * 0.4); },
+  step(dt) { const beat = (T * this.v.puls / 60) % 1; this.d += dt * (30 + 55 * this.v.puls / 70) * (0.6 + 0.9 * Math.max(0, Math.sin(beat * 2 * Math.PI))); },
+  oxy(d) {
+    const [, , i, t] = ptAt(P8, d, true);
+    if (i < 4) return 0; if (i === 4) return t; if (i < 12) return 1; if (i === 12) return 1 - t; return 0;
+  },
+  draw() {
+    const show = this.v.show, dim = i => (show === 'klein' && BIG.has(i)) || (show === 'gross' && SMALL.has(i));
+    // Lunge & Körper
+    g.globalAlpha = show === 'gross' ? 0.35 : 1;
+    g.fillStyle = '#f6cdd2'; rr(178, 40, 284, 72, 30); g.fill();
+    g.strokeStyle = 'rgba(190,80,100,.35)'; g.lineWidth = 1.5; for (let x = 200; x < 450; x += 18) { g.beginPath(); g.moveTo(x, 60); g.quadraticCurveTo(x + 9, 76, x, 94); g.stroke(); }
+    text('Lunge', 320, 34, { size: 13, weight: 800, align: 'center' });
+    g.globalAlpha = show === 'klein' ? 0.35 : 1;
+    g.fillStyle = '#f7dccb'; rr(148, 340, 344, 72, 30); g.fill();
+    g.strokeStyle = 'rgba(180,110,80,.35)'; for (let x = 170; x < 480; x += 18) { g.beginPath(); g.moveTo(x, 360); g.quadraticCurveTo(x + 9, 376, x, 394); g.stroke(); }
+    text('Körper: Gehirn, Muskeln, Organe …', 320, 432, { size: 13, weight: 800, align: 'center' });
+    g.globalAlpha = 1;
+    // Gefäße
+    for (let i = 0; i < P8.pts.length - 1; i++) {
+      if (i === 0 || i === 8 || i === 16) continue;
+      const o = (this.oxy(P8.L[i]) + this.oxy(P8.L[i + 1] - 0.01)) / 2;
+      g.globalAlpha = dim(i) ? 0.18 : 1;
+      strokePath([P8.pts[i], P8.pts[i + 1]], i === 4 || i === 12 ? 'rgba(170,120,150,.55)' : bloodCol(o > 0.5 ? 1 : 0), i === 4 || i === 12 ? 6 : 12);
+    }
+    g.globalAlpha = 1;
+    // Brücke an der Kreuzung
+    g.strokeStyle = '#f7f2f2'; g.lineWidth = 18; g.beginPath(); g.moveTo(200, 172); g.lineTo(200, 196); g.stroke();
+    g.globalAlpha = dim(2) ? 0.18 : 1; strokePath([[200, 168], [200, 200]], bloodCol(0), 12); g.globalAlpha = 1;
+    // Herz
+    const beat = (T * this.v.puls / 60) % 1, sq = beat < 0.35 ? 1 - Math.sin(beat / 0.35 * Math.PI) * 0.06 : 1;
+    g.save(); g.translate(320, 212); g.scale(sq, sq); g.translate(-320, -212);
+    [[232, 162, 76, 44, 0, 'rechter Vorhof'], [232, 214, 76, 50, 0, 'rechte Kammer'], [332, 162, 76, 44, 1, 'linker Vorhof'], [332, 214, 76, 50, 1, 'linke Kammer']].forEach(([x, y, w, h, o, n]) => {
+      g.fillStyle = o ? 'rgba(214,38,61,.22)' : 'rgba(86,74,170,.22)'; rr(x, y, w, h, 12); g.fill();
+      g.strokeStyle = o ? '#b3203a' : '#4b3f99'; g.lineWidth = o && y > 200 ? 5 : 3; rr(x, y, w, h, 12); g.stroke();
+      if (labels) text(n, x + w / 2, y + (y < 200 ? 14 : h - 6), { size: 9.5, weight: 700, align: 'center', color: o ? '#8f1a30' : '#3c3280', bg: 'rgba(255,255,255,.88)' });
+    });
+    g.restore();
+    g.fillStyle = '#8a6f6f'; g.fillRect(318, 160, 4, 106);
+    // Blutkörperchen
+    const N = 44;
+    for (let k = 0; k < N; k++) {
+      const d = this.d + k * P8.len / N, [x, y, i] = ptAt(P8, d, true);
+      g.globalAlpha = dim(i) ? 0.2 : 1; rbc(x, y, this.oxy(d)); g.globalAlpha = 1;
+    }
+    if (this.v.follow) {
+      const d = this.d + 3.3 * P8.len / N, [x, y, i] = ptAt(P8, d, true);
+      g.strokeStyle = '#111'; g.lineWidth = 2.5; g.beginPath(); g.arc(x, y, 11, 0, 7); g.stroke();
+      rbc(x, y, this.oxy(d), 1.4);
+      this.where = SEGN[i];
+      text(this.where, 320, 140, { size: 12, weight: 800, align: 'center', bg: 'rgba(255,255,255,.95)', color: '#111' });
+    }
+    if (labels) {
+      text('Lungenarterie', 192, 150, { size: 10.5, weight: 700, align: 'right', color: '#4b3f99' });
+      text('Lungenvene', 448, 150, { size: 10.5, weight: 700, color: '#b3203a' });
+      text('Aorta', 528, 300, { size: 10.5, weight: 700, color: '#b3203a' });
+      text('Hohlvene', 112, 300, { size: 10.5, weight: 700, align: 'right', color: '#4b3f99' });
+      text('Lungenkreislauf', 560, 70, { size: 12, weight: 800, align: 'center', color: show === 'gross' ? '#bbb' : '#1b2a27', bg: 'rgba(255,255,255,.85)' });
+      text('Körperkreislauf', 580, 400, { size: 12, weight: 800, align: 'center', color: show === 'klein' ? '#bbb' : '#1b2a27', bg: 'rgba(255,255,255,.85)' });
+      text('Blick von vorne: rechte Herzhälfte links im Bild', 320, VY0 + 16 > 8 ? 8 + 10 : 18, { size: 10, align: 'center', color: COL.muted });
+      rbc(560, 120, 1); text('O₂-reich', 570, 124, { size: 10.5, color: COL.muted }); rbc(560, 140, 0); text('O₂-arm', 570, 144, { size: 10.5, color: COL.muted });
+    }
+  },
+  out() {
+    const sv = this.sv(), hmv = sv * this.v.puls / 1000, round = 5 / hmv * 60;
+    return bar('Puls', this.v.puls / 180, this.v.puls + ' / min') + bar('Blut pro Minute', hmv / 20, fmt1(hmv) + ' l') +
+      `<div class="orow t"><span>Ein Umlauf (5 l Blut)</span><b>ca. ${Math.round(round)} s</b></div>` + (this.v.follow && this.where ? `<div class="orow t"><span>Das Blutkörperchen ist in:</span><b>${this.where.split(':')[0]}</b></div>` : '');
+  }
+};
+
+/* ================= Station 2: Das Herz ================= */
+/* ---- Herz: Geometrie (Längsschnitt, Ansicht von vorne) ---- */
+function crPts(P, closed, n = 8) {
+  const N = P.length, get = i => closed ? P[(i + N) % N] : P[Math.max(0, Math.min(N - 1, i))], out = [];
+  const segs = closed ? N : N - 1;
+  for (let i = 0; i < segs; i++) {
+    const p0 = get(i - 1), p1 = get(i), p2 = get(i + 1), p3 = get(i + 2);
+    for (let k = 0; k < n; k++) {
+      const t = k / n, t2 = t * t, t3 = t2 * t;
+      const f = j => 0.5 * (2 * p1[j] + (-p0[j] + p2[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t2 + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * t3);
+      out.push([f(0), f(1)]);
+    }
+  }
+  if (!closed) out.push(P[N - 1]);
+  return out;
+}
+function mkFlow(start, legs) { const pts = [start], gates = []; legs.forEach(([gt, L]) => L.forEach(p => { pts.push(p); gates.push(gt); })); return { P: mkPath(pts), G: gates }; }
+const AORTA = crPts([[344, 160], [342, 96], [356, 56], [400, 40], [450, 50], [478, 86], [486, 140], [487, 206]], false, 8);
+const ARCH = AORTA.filter(p => p[1] < 92 || p[0] > 400).filter(p => p[1] < 172);
+const HF = {
+  R1: mkFlow([228, -6], [['v', [[230, 176], [240, 212]]], ['av', [[248, 260]]], ['vent', [[266, 302], [296, 334]]], ['out', [[304, 284], [304, 210], [304, 152]]], ['art', [[304, 124], [150, 120]]]]),
+  R2: mkFlow([206, 446], [['v', [[208, 300], [216, 240], [236, 214]]], ['av', [[248, 260]]], ['vent', [[266, 302], [296, 334]]], ['out', [[304, 284], [304, 210], [304, 152]]], ['art', [[304, 124], [520, 126]]]]),
+  L1: mkFlow([614, 192], [['v', [[456, 198], [410, 198]]], ['av', [[402, 254]]], ['vent', [[396, 304], [384, 352]]], ['out', [[362, 304], [348, 240], [344, 152]]], ['art', ARCH]]),
+  L2: mkFlow([614, 212], [['v', [[456, 204], [410, 200]]], ['av', [[402, 254]]], ['vent', [[396, 304], [384, 352]]], ['out', [[362, 304], [348, 240], [344, 152]]], ['art', ARCH]])
+};
+// Hohlräume: f = fest, w = Klappenring, a = Vorhof, v = Kammer, o = Ausflussbahn
+const CAV_RIGHT = [[292, 141, 'f'], [316, 141, 'f'], [318, 200, 'o'], [316, 250, 'v'], [318, 300, 'v'], [324, 345, 'v'], [316, 368, 'v'], [296, 364, 'v'], [262, 342, 'v'], [238, 310, 'v'], [230, 284, 'v'],
+  [226, 262, 'w'], [210, 246, 'a'], [204, 220, 'a'], [210, 192, 'a'], [226, 172, 'a'], [250, 168, 'a'], [270, 180, 'a'], [278, 206, 'a'], [276, 236, 'a'], [268, 256, 'w'], [286, 260, 'v'], [292, 222, 'o'], [292, 180, 'o']];
+const CAV_LEFT = [[332, 141, 'f'], [356, 141, 'f'], [360, 206, 'o'], [368, 236, 'w'], [372, 214, 'a'], [370, 188, 'a'], [386, 172, 'a'], [410, 166, 'a'], [432, 172, 'a'], [452, 188, 'a'], [456, 212, 'a'], [442, 232, 'a'],
+  [432, 244, 'w'], [450, 272, 'v'], [448, 322, 'v'], [426, 366, 'v'], [394, 388, 'v'], [366, 374, 'v'], [352, 336, 'v'], [348, 292, 'v'], [342, 258, 'v'], [336, 214, 'o']];
+function heartPath() { g.beginPath(); g.moveTo(218, 158); g.bezierCurveTo(194, 178, 188, 250, 204, 294); g.bezierCurveTo(232, 346, 310, 394, 372, 414); g.bezierCurveTo(430, 394, 480, 330, 480, 262); g.bezierCurveTo(480, 208, 464, 174, 440, 160); g.bezierCurveTo(400, 144, 260, 138, 218, 158); g.closePath(); }
+function polyPath(Q, closed) { g.beginPath(); Q.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); if (closed) g.closePath(); }
+function vessel(pts, col, w, o = {}) {
+  const Q = o.raw ? pts : crPts(pts, false, 8);
+  g.save(); g.lineJoin = 'round'; g.lineCap = o.cap || 'round';
+  const sp = (c, lw) => { g.strokeStyle = c; g.lineWidth = lw; polyPath(Q); g.stroke(); };
+  if (!o.noShadow) sp('rgba(70,20,40,.16)', w + 7);
+  sp(col, w + 2); sp('rgba(10,0,30,.32)', w + 2); sp(col, w - 1.5);
+  g.translate(-w * 0.16, -w * 0.16); sp('rgba(255,255,255,.22)', w * 0.3);
+  g.restore();
+}
+function cutEnd(x, y, rx, ry, col) { g.fillStyle = col; g.beginPath(); g.ellipse(x, y, rx + 1, ry + 1, 0, 0, 7); g.fill(); g.fillStyle = 'rgba(20,0,20,.42)'; g.beginPath(); g.ellipse(x, y, rx * 0.7, ry * 0.72, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(20,0,20,.35)'; g.lineWidth = 1; g.beginPath(); g.ellipse(x, y, rx + 1, ry + 1, 0, 0, 7); g.stroke(); }
+const lerp = (a, b, t) => a + (b - a) * t, lerpP = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
+const herz = {
+  nav: 'Das Herz', bg: '#f8f1f1',
+  title: 'Blick ins Herz – Längsschnitt',
+  lead: 'Zwei Vorhöfe, zwei Kammern und vier Klappen sorgen dafür, dass das Blut nur in eine Richtung fließt. Ansicht von vorne: Die rechte Herzhälfte liegt im Bild links.',
+  controls: [
+    { t: 'range', id: 'puls', label: 'Puls', min: 40, max: 180, step: 5, v: 60, fmt: v => v + ' Schläge / min' },
+    { t: 'toggles', items: [['slow', 'Zeitlupe', true]] }
+  ],
+  was: 'Erst ziehen sich die Vorhöfe zusammen und drücken Blut in die Kammern. Dann ziehen sich die Kammern kräftig zusammen (Systole): Die Segelklappen schlagen zu – Sehnenfäden verhindern, dass sie in die Vorhöfe durchschlagen – und die Taschenklappen öffnen sich. Das Blut wird in die Lungenarterie und in die Aorta gepumpt. Danach entspannt sich das Herz (Diastole): Die Taschenklappen schließen sich, Blut strömt aus den Venen in Vorhöfe und Kammern.',
+  merke: 'Die Herzscheidewand trennt die rechte Herzhälfte (O₂-armes Blut, Lungenkreislauf) von der linken (O₂-reiches Blut, Körperkreislauf). Die linke Kammer hat die dickste Muskelwand, weil sie das Blut durch den ganzen Körper pumpt. Segelklappen liegen zwischen Vorhof und Kammer, Taschenklappen am Ausgang der Kammern.',
+  frage: 'Vergleiche die Wanddicke der rechten und der linken Kammer. Begründe den Unterschied. Welche Aufgabe haben die Sehnenfäden?',
+  init() { this.ph = 0.55; this.P = []; this.acc = 0; this.avk = 1; this.slk = 0; for (let i = 0; i < 160; i++) this.step(0.05); },
+  phase() { const p = this.ph % 1; return p < 0.15 ? 'atr' : p < 0.5 ? 'sys' : 'dia'; },
+  step(dt) {
+    const sl = this.v.slow ? 4 : 1, Tc = 60 / this.v.puls * sl; this.ph += dt / Tc;
+    const ph = this.phase(), sp = 90 * this.v.puls / 60 / (this.v.slow ? 2.5 : 1);
+    const kk = Math.min(1, dt * 22 / sl);
+    this.avk += ((ph === 'sys' ? 0 : 1) - this.avk) * kk; this.slk += ((ph === 'sys' ? 1 : 0) - this.slk) * kk;
+    this.acc += dt * 13 * this.v.puls / 60 / (this.v.slow ? 2.5 : 1);
+    while (this.acc >= 1) { this.acc -= 1; const r = Math.random(); this.P.push({ path: r < 0.25 ? 'R1' : r < 0.5 ? 'R2' : r < 0.75 ? 'L1' : 'L2', d: 0, j: rnd(-3, 3) }); }
+    this.P.forEach(p => {
+      const F = HF[p.path], gt = F.G[ptAt(F.P, p.d)[2]];
+      const v = gt === 'v' ? (ph === 'atr' ? 0.5 : 1.3) : gt === 'av' ? (ph === 'sys' ? 0 : ph === 'atr' ? 3 : 1.4) : gt === 'vent' ? (ph === 'sys' ? 2.4 : ph === 'atr' ? 1.2 : 0.6) : gt === 'out' ? (ph === 'sys' ? 2.4 : 0) : 2;
+      p.d += v * sp * dt;
+    });
+    this.P = this.P.filter(p => p.d < HF[p.path].P.len - 1);
+    if (this.P.length > 280) this.P.splice(0, this.P.length - 280);
+  },
+  draw() {
+    const ph = this.phase(), p = this.ph % 1;
+    const ac = p < 0.15 ? Math.sin(Math.PI * p / 0.15) : 0;
+    let vc = p >= 0.15 && p < 0.5 ? Math.min(1, (p - 0.15) / 0.12) : p >= 0.5 && p < 0.62 ? 1 - (p - 0.5) / 0.12 : 0; vc = vc * vc * (3 - 2 * vc);
+    const aS = 1 - 0.14 * ac, vS = 1 - 0.2 * vc, hS = 1 - 0.03 * vc;
+    const BL = bloodCol(0), RD = bloodCol(1);
+    // Hintergrund: weicher Lichtkegel
+    const bgG = g.createRadialGradient(330, 250, 30, 330, 250, 360); bgG.addColorStop(0, 'rgba(255,255,255,.75)'); bgG.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = bgG; g.fillRect(VX0, VY0, VX1 - VX0, VY1 - VY0);
+    // --- Gefäße hinter dem Herzen ---
+    vessel([[206, 450], [208, 300]], BL, 28);                                   // untere Hohlvene
+    vessel([[304, 166], [304, 124], [150, 120]], BL, 24);                        // Lungenstamm + rechte Lungenarterie
+    vessel([[304, 124], [440, 126]], BL, 20, { cap: 'butt' });                    // linke Lungenarterie (hinter der Aorta)
+    cutEnd(150, 120, 4, 11, BL);
+    vessel([[228, -10], [230, 182]], BL, 26);                                    // obere Hohlvene
+    [[372, 46], [400, 40], [428, 43]].forEach(([x, y], i) => vessel([[x, y + 6], [x - 6 + i * 4, -8]], RD, 10));
+    vessel(AORTA, RD, 28, { raw: true });                                        // Aorta mit Bogen
+    vessel([[440, 126], [520, 126]], BL, 20, { cap: 'butt', noShadow: true });   // linke Lungenarterie (vor der Aorta)
+    cutEnd(520, 126, 4, 10, BL);
+    vessel([[616, 192], [440, 193]], RD, 13); vessel([[616, 212], [440, 211]], RD, 13); // Lungenvenen
+    cutEnd(616, 192, 3, 6.5, RD); cutEnd(616, 212, 3, 6.5, RD);
+    // --- Herz ---
+    g.save(); g.translate(340, 280); g.scale(hS, hS); g.translate(-340, -280);
+    g.save(); g.shadowColor = 'rgba(90,20,30,.35)'; g.shadowBlur = 18; g.shadowOffsetY = 6; heartPath(); g.fillStyle = '#b8505b'; g.fill(); g.restore();
+    const mg = g.createRadialGradient(290, 210, 20, 340, 290, 250); mg.addColorStop(0, '#ea959b'); mg.addColorStop(0.45, '#c9606a'); mg.addColorStop(1, '#9b3844');
+    heartPath(); g.fillStyle = mg; g.fill();
+    g.save(); heartPath(); g.clip();
+    g.strokeStyle = 'rgba(255,235,235,.09)'; g.lineWidth = 1.3;
+    for (let k = 1; k <= 7; k++) { g.save(); g.translate(352, 292); g.scale(1 - k * 0.075, 1 - k * 0.075); g.translate(-352, -292); heartPath(); g.restore(); g.stroke(); }
+    g.restore();
+    heartPath(); g.strokeStyle = '#7a2431'; g.lineWidth = 3; g.stroke();
+    g.save(); g.translate(340, 285); g.scale(0.985, 0.985); g.translate(-340, -285); heartPath(); g.restore(); g.strokeStyle = 'rgba(255,225,225,.35)'; g.lineWidth = 1.5; g.stroke();
+    // Venen münden in die Vorhöfe
+    vessel([[208, 306], [216, 238]], BL, 26, { noShadow: true });
+    vessel([[229, 150], [231, 188]], BL, 24, { noShadow: true });
+    vessel([[482, 193], [448, 196]], RD, 12, { noShadow: true }); vessel([[482, 211], [448, 208]], RD, 12, { noShadow: true });
+    // Wurzeln von Lungenarterie und Aorta (aufgeschnitten)
+    vessel([[304, 172], [304, 136]], BL, 30, { noShadow: true });
+    vessel([[344, 172], [343, 120]], RD, 32, { noShadow: true });
+    // Hohlräume
+    const tf = (def, cA, cV, ox) => crPts(def.map(([x, y, t]) => t === 'a' ? [cA[0] + (x - cA[0]) * aS, cA[1] + (y - cA[1]) * aS] : t === 'v' ? [cV[0] + (x - cV[0]) * vS, cV[1] + (y - cV[1]) * vS] : t === 'o' ? [ox + (x - ox) * (1 - 0.45 * (1 - vS)), y] : [x, y]), true, 6);
+    const cav = (Q, cx, cy, inner, outer, trabY) => {
+      const cg = g.createRadialGradient(cx, cy, 8, cx, cy, 130); cg.addColorStop(0, inner); cg.addColorStop(1, outer);
+      polyPath(Q, true); g.fillStyle = cg; g.fill();
+      g.save(); polyPath(Q, true); g.clip();
+      g.strokeStyle = 'rgba(70,15,45,.22)'; g.lineWidth = 12; g.stroke();
+      g.beginPath(); g.rect(0, trabY, 640, 200); g.clip();
+      g.setLineDash([3, 6]); g.strokeStyle = 'rgba(190,80,92,.85)'; g.lineWidth = 9; polyPath(Q, true); g.stroke(); g.setLineDash([]);
+      g.restore();
+      polyPath(Q, true); g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 1.4; g.stroke();
+    };
+    cav(tf(CAV_RIGHT, [242, 212], [290, 300], 304), 262, 250, '#e3dff8', '#a69ddd', 282);
+    cav(tf(CAV_LEFT, [410, 198], [396, 312], 346), 396, 270, '#fde3e6', '#ec9ca6', 284);
+    // Papillarmuskeln
+    const sc = (pt, c) => [c[0] + (pt[0] - c[0]) * vS, c[1] + (pt[1] - c[1]) * vS];
+    const PAP = [[[292, 362], [282, 322], [290, 300]], [[318, 330], [300, 312], [290, 300]], [[378, 380], [388, 334], [396, 312]], [[442, 330], [422, 302], [396, 312]]]
+      .map(([b, t, c]) => [sc(b, c), sc(t, c)]);
+    PAP.forEach(([b, t]) => {
+      const a = Math.atan2(t[1] - b[1], t[0] - b[0]), nx = -Math.sin(a), ny = Math.cos(a);
+      const pg = g.createLinearGradient(b[0] - nx * 8, b[1] - ny * 8, b[0] + nx * 8, b[1] + ny * 8); pg.addColorStop(0, '#a8414d'); pg.addColorStop(0.5, '#d27079'); pg.addColorStop(1, '#a8414d');
+      g.fillStyle = pg; g.strokeStyle = 'rgba(110,25,40,.45)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(b[0] + nx * 9, b[1] + ny * 9); g.quadraticCurveTo(lerp(b[0], t[0], .5) + nx * 7.5, lerp(b[1], t[1], .5) + ny * 7.5, t[0] + nx * 4.5, t[1] + ny * 4.5);
+      g.arc(t[0], t[1], 4.5, a + Math.PI / 2, a - Math.PI / 2, true);
+      g.quadraticCurveTo(lerp(b[0], t[0], .5) - nx * 7.5, lerp(b[1], t[1], .5) - ny * 7.5, b[0] - nx * 9, b[1] - ny * 9); g.closePath(); g.fill(); g.stroke();
+    });
+    // Blut
+    const hidden = (x, y, path) => (path[0] === 'R' && ((x > 326 && x < 362 && y < 140) || (x > 214 && x < 246 && y > 104 && y < 136))) || (path[0] === 'L' && x > 470 && y > 112 && y < 140);
+    this.P.forEach(q => { const [x, y] = ptAt(HF[q.path].P, q.d); if (!hidden(x, y, q.path)) rbc(x + q.j, y, q.path[0] === 'L' ? 1 : 0, 1.0); });
+    // Segelklappen mit Sehnenfäden
+    const k = this.avk;
+    const leaflet = (h, tip, ctrl, paps) => {
+      g.strokeStyle = 'rgba(255,250,235,.9)'; g.lineWidth = 0.9;
+      const mid = lerpP(h, tip, 0.6);
+      paps.forEach(pp => [tip, mid].forEach(s => { g.beginPath(); g.moveTo(s[0], s[1]); g.lineTo(pp[0], pp[1]); g.stroke(); }));
+      g.lineCap = 'round';
+      g.strokeStyle = '#9c8a5e'; g.lineWidth = 6.5; g.beginPath(); g.moveTo(h[0], h[1]); g.quadraticCurveTo(ctrl[0], ctrl[1], tip[0], tip[1]); g.stroke();
+      g.strokeStyle = '#f7efd6'; g.lineWidth = 4.5; g.stroke();
+    };
+    const avValve = (hL, hR, openL, openR, papL, papR) => {
+      const m = [(hL[0] + hR[0]) / 2, (hL[1] + hR[1]) / 2 + 7];
+      const tL = lerpP([m[0] - 1, m[1]], openL, k), tR = lerpP([m[0] + 1, m[1]], openR, k);
+      leaflet(hL, tL, lerpP([lerp(hL[0], m[0], 0.5), m[1] - 9], [hL[0] + 2, lerp(hL[1], openL[1], 0.5)], k), papL);
+      leaflet(hR, tR, lerpP([lerp(hR[0], m[0], 0.5), m[1] - 9], [hR[0] - 2, lerp(hR[1], openR[1], 0.5)], k), papR);
+    };
+    avValve([226, 262], [268, 256], [236, 292], [266, 290], [PAP[0][1]], [PAP[1][1]]);
+    avValve([368, 236], [432, 244], [382, 282], [424, 282], [PAP[2][1], PAP[3][1]], [PAP[3][1]]);
+    // Taschenklappen
+    const s = this.slk;
+    const semilunar = (xL, xR, y) => {
+      const cx = (xL + xR) / 2;
+      [[xL, 1], [xR, -1]].forEach(([x, dir]) => {
+        const tip = lerpP([cx, y + 1], [x + dir * 3, y - 14], s), c = lerpP([lerp(x, cx, 0.5), y + 11], [x + dir * 5, y - 6], s);
+        g.lineCap = 'round'; g.strokeStyle = 'rgba(120,90,60,.55)'; g.lineWidth = 5.5; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(c[0], c[1], tip[0], tip[1]); g.stroke();
+        g.strokeStyle = '#fff7e6'; g.lineWidth = 3.5; g.stroke();
+      });
+    };
+    semilunar(292, 316, 154); semilunar(332, 356, 154);
+    g.restore();
+    // Phase
+    const msg = ph === 'atr' ? '① Vorhöfe pumpen Blut in die Kammern' : ph === 'sys' ? '② Systole: Kammern pumpen Blut in die Arterien' : '③ Diastole: Herz entspannt sich und füllt sich';
+    text(msg, 320, 434, { size: 12.5, weight: 800, align: 'center', bg: 'rgba(255,255,255,.95)', color: ph === 'sys' ? '#b3203a' : '#1b2a27' });
+    if (labels) {
+      const o = { size: 10.5 }, oR = { size: 10.5, align: 'right' };
+      lbl('obere Hohlvene', 229, 60, 126, 40, oR);
+      lbl('Lungenarterie', 304, 136, 126, 82, oR);
+      lbl('zur rechten Lunge', 168, 120, 126, 122, oR);
+      lbl('rechter Vorhof', 236, 206, 126, 190, oR);
+      lbl('Segelklappe', 236, 270, 126, 246, oR);
+      lbl('Sehnenfäden', 276, 306, 126, 290, oR);
+      lbl('rechte Kammer', 300, 344, 126, 334, oR);
+      lbl('untere Hohlvene', 206, 400, 126, 392, oR);
+      lbl('Aorta', 428, 44, 500, 30, o);
+      lbl('zur linken Lunge', 516, 126, 500, 100, o);
+      lbl('Taschenklappe', 344, 152, 500, 152, o);
+      lbl('Lungenvenen', 570, 212, 520, 238, o);
+      lbl('linker Vorhof', 416, 194, 500, 268, o);
+      lbl('linke Kammer', 400, 326, 500, 298, o);
+      lbl('Herzmuskel', 464, 300, 500, 328, o);
+      lbl('Herzscheidewand', 336, 320, 500, 358, o);
+      lbl('Herzspitze', 372, 412, 450, 406, o);
+      text(ph === 'sys' ? 'Segelklappen zu · Taschenklappen offen' : 'Segelklappen offen · Taschenklappen zu', 20, 418, { size: 10.5, weight: 800, color: '#6b4fa0', bg: 'rgba(255,255,255,.9)' });
+    }
+  },
+  out() {
+    const ph = this.phase();
+    return `<div class="orow t"><span>Phase</span><b>${ph === 'atr' ? 'Vorhöfe pumpen' : ph === 'sys' ? 'Systole (Kammern pumpen)' : 'Diastole (Entspannung)'}</b></div>` +
+      `<div class="orow t"><span>Segelklappen</span><b>${ph === 'sys' ? 'geschlossen' : 'offen'}</b></div><div class="orow t"><span>Taschenklappen</span><b>${ph === 'sys' ? 'offen' : 'geschlossen'}</b></div>` +
+      bar('Puls', this.v.puls / 180, this.v.puls + ' / min');
+  }
+};
+
+/* ================= Station 3: Körperkreislauf – Organe ================= */
+const FLOW = {
+  ruhe:  { puls: 70, o: { gehirn: 0.75, herz: 0.25, darm: 1.05, leber: 0.35, niere: 1.1, muskel: 1.0, haut: 0.5 } },
+  sport: { puls: 170, o: { gehirn: 0.75, herz: 1.0, darm: 0.3, leber: 0.1, niere: 0.4, muskel: 16.5, haut: 0.95 } },
+  essen: { puls: 80, o: { gehirn: 0.75, herz: 0.3, darm: 2.0, leber: 0.4, niere: 1.1, muskel: 0.9, haut: 0.55 } }
+};
+const ORG = [['gehirn', 'Gehirn', 92], ['herz', 'Herzmuskel', 140], ['darm', 'Magen und Darm', 194], ['leber', 'Leber', 248], ['niere', 'Nieren', 302], ['muskel', 'Muskeln', 354], ['haut', 'Haut', 404]];
+const organ = {
+  nav: 'Körperkreislauf', bg: '#f6f3ef',
+  title: 'Körperkreislauf – wer bekommt wie viel Blut?',
+  lead: 'Die Organe hängen nebeneinander am Körperkreislauf. Je nach Situation wird das Blut anders verteilt.',
+  controls: [
+    { t: 'seg', id: 'z', label: 'Situation', opts: [['ruhe', '😌 Ruhe'], ['sport', '🏃 Sport'], ['essen', '🍝 nach dem Essen']], v: 'ruhe' }
+  ],
+  was: 'Von der Aorta zweigen Arterien zu allen Organen ab. In den Kapillaren der Organe gibt das Blut Sauerstoff und Nährstoffe ab, dann fließt es über Venen zurück zur Hohlvene. Das Blut aus Magen und Darm fließt zuerst über die Pfortader zur Leber – dort werden Nährstoffe verarbeitet und Giftstoffe abgebaut. Beim Sport pumpt das Herz viel mehr Blut und fast alles geht in die Muskeln, nach dem Essen bekommt der Darm mehr.',
+  merke: 'Die Organe sind im Körperkreislauf nebeneinander (parallel) geschaltet. Die Blutverteilung passt sich an: Sport → Muskeln, Essen → Verdauungsorgane. Das Gehirn bekommt immer etwa gleich viel. Pfortader: Darm → Leber.',
+  frage: 'Warum ist es keine gute Idee, direkt nach einem großen Essen schwimmen zu gehen oder Sport zu machen? Begründe mit der Blutverteilung.',
+  init() { this.P = []; this.acc = {}; },
+  paths() {
+    const ps = {};
+    ORG.forEach(([k, , y]) => { ps[k] = mkPath([[470, y], [404, y + 18], [236, y + 18], [168, y]]); });
+    ps.darm = mkPath([[470, 194], [404, 212], [236, 212], [212, 194], [212, 248], [236, 266], [320, 266], [236, 266], [168, 256]]);
+    return ps;
+  },
+  step(dt) {
+    const f = FLOW[this.v.z], ps = this.paths();
+    ORG.forEach(([k]) => { this.acc[k] = (this.acc[k] || 0) + dt * f.o[k] * 2.2; while (this.acc[k] >= 1) { this.acc[k]--; this.P.push({ k, d: 0, o: 1 }); } });
+    const sp = 60 + 40 * f.puls / 70;
+    this.P.forEach(p => {
+      p.d += sp * dt; const [x, , i] = ptAt(ps[p.k], p.d);
+      if (p.k === 'darm') p.o = i === 0 ? 1 : i === 1 ? 0.15 + 0.85 * clamp((x - 236) / 168, 0, 1) : i < 5 ? 0.15 : 0;
+      else p.o = i === 0 ? 1 : i === 1 ? clamp((x - 236) / 168, 0, 1) : 0;
+    });
+    this.P = this.P.filter(p => p.d < ps[p.k].len - 1);
+    if (this.P.length > 520) this.P.splice(0, this.P.length - 520);
+  },
+  draw() {
+    const f = FLOW[this.v.z], ps = this.paths(), tot = Object.values(f.o).reduce((a, b) => a + b, 0);
+    const wOf = q => 2 + 11 * Math.sqrt(q / 16.5);
+    // Herz oben
+    const beat = (T * f.puls / 60) % 1, sc = beat < 0.3 ? 1 - Math.sin(beat / 0.3 * Math.PI) * 0.1 : 1;
+    strokePath([[168, 420], [168, 60], [290, 46]], bloodCol(0), 14); strokePath([[350, 46], [470, 60], [470, 420]], bloodCol(1), 14);
+    g.save(); g.translate(320, 46); g.scale(sc, sc); g.fillStyle = '#c0392b'; g.beginPath(); g.moveTo(0, 26); g.bezierCurveTo(-46, -4, -26, -36, 0, -14); g.bezierCurveTo(26, -36, 46, -4, 0, 26); g.fill(); g.restore();
+    text('Herz', 320, 50, { size: 11, weight: 800, align: 'center', color: '#fff' });
+    if (labels) { text('↕ Lungenkreislauf', 380, 18, { size: 10.5, color: COL.muted }); text('Hohlvene', 160, 440 - 6, { size: 11, weight: 700, align: 'right', color: '#4b3f99' }); text('Aorta', 478, 440 - 6, { size: 11, weight: 700, color: '#b3203a' }); }
+    // Organe
+    ORG.forEach(([k, n, y]) => {
+      const q = f.o[k], w = wOf(q);
+      strokePath([[470, y], [404, y]], bloodCol(1), w);
+      if (k !== 'darm') strokePath([[236, y], [168, y]], bloodCol(0), w + (k === 'leber' ? wOf(f.o.darm) * 0.6 : 0));
+      g.fillStyle = k === 'muskel' && this.v.z === 'sport' ? '#ffd9d0' : '#fff'; rr(236, y - 19, 168, 38, 10); g.fill();
+      g.strokeStyle = '#cdb8b0'; g.lineWidth = 1.5; rr(236, y - 19, 168, 38, 10); g.stroke();
+      text(n, 246, y - 2, { size: 11.5, weight: 800 });
+      text((q < 1 ? String(q).replace('.', ',') : fmt1(q)) + ' l/min', 246, y + 13, { size: 10, color: COL.muted });
+      g.fillStyle = '#eee'; g.fillRect(330, y + 6, 66, 6); g.fillStyle = '#b3203a'; g.fillRect(330, y + 6, 66 * q / tot, 6);
+      text(Math.round(q / tot * 100) + ' %', 396, y - 2, { size: 10, weight: 800, align: 'right', color: '#b3203a' });
+    });
+    // Pfortader
+    strokePath([[236, 194], [212, 194], [212, 248], [236, 248]], bloodCol(0.15), wOf(f.o.darm));
+    if (labels) text('Pfortader', 206, 224, { size: 10.5, weight: 800, align: 'right', color: '#6b4fa0', bg: 'rgba(255,255,255,.85)' });
+    // Blut
+    this.P.forEach(p => { const [x, y] = ptAt(ps[p.k], p.d); rbc(x, y, p.o, 0.8); });
+    text('Herz pumpt', 560, 104, { size: 12, weight: 800, align: 'center' });
+    text(`${fmt1(tot)} l pro Minute`, 560, 124, { size: 14, weight: 800, align: 'center', color: '#b3203a', bg: 'rgba(255,255,255,.9)' });
+    text(`Puls: ca. ${f.puls} / min`, 560, 146, { size: 11, align: 'center', color: COL.muted });
+    if (labels) { rbc(520, 190, 1); text('O₂-reich', 530, 194, { size: 10.5, color: COL.muted }); rbc(520, 210, 0); text('O₂-arm', 530, 214, { size: 10.5, color: COL.muted }); text('Richtwerte', 560, 420, { size: 10, align: 'center', color: COL.muted }); }
+  },
+  out() {
+    const f = FLOW[this.v.z], tot = Object.values(f.o).reduce((a, b) => a + b, 0);
+    return bar('Blut pro Minute', tot / 20, fmt1(tot) + ' l') + bar('Muskeln', f.o.muskel / tot, Math.round(f.o.muskel / tot * 100) + ' %') +
+      bar('Magen, Darm, Leber', (f.o.darm + f.o.leber) / tot, Math.round((f.o.darm + f.o.leber) / tot * 100) + ' %') + bar('Gehirn', f.o.gehirn / tot, '0,75 l (' + Math.round(f.o.gehirn / tot * 100) + ' %)');
+  }
+};
+
+/* ================= Station 4: Blutgefäße ================= */
+const gef = {
+  nav: 'Blutgefäße', bg: '#f7f4f2',
+  title: 'Arterien, Venen und Kapillaren',
+  lead: 'Drei Arten von Blutgefäßen mit ganz unterschiedlichen Aufgaben.',
+  controls: [
+    { t: 'toggles', items: [['move', 'Beine bewegen (Muskelpumpe)', true], ['valves', 'Venenklappen intakt', true]] },
+    { t: 'range', id: 'puls', label: 'Puls', min: 50, max: 180, step: 5, v: 70, fmt: v => v + ' / min' }
+  ],
+  was: 'Arterien führen das Blut vom Herzen weg. Sie haben eine dicke, elastische Wand, denn bei jedem Herzschlag kommt eine Druckwelle – das ist der Puls. Venen führen das Blut zurück zum Herzen. Der Druck ist dort gering; Muskeln drücken die Venen zusammen und Venenklappen sorgen dafür, dass das Blut nicht zurückfließt. In den Kapillaren fließt das Blut langsam: Durch die hauchdünne Wand gibt es Sauerstoff und Nährstoffe an die Zellen ab und nimmt Kohlenstoffdioxid auf.',
+  merke: 'Arterie: vom Herzen weg, dicke elastische Wand, hoher Druck, Puls. Vene: zum Herzen hin, dünne Wand, Venenklappen, Muskelpumpe. Kapillare: haarfein, Wand aus einer Zellschicht, Stoffaustausch mit den Zellen.',
+  frage: 'Schalte die Venenklappen aus. Was passiert mit dem Blut in der Vene? Erkläre, wie Krampfadern entstehen und warum langes Stehen ohne Bewegung ungünstig ist.',
+  init() { this.A = Array.from({ length: 34 }, () => ({ x: rnd(20, 300), y: rnd(-9, 9) })); this.Vn = Array.from({ length: 34 }, () => ({ y: rnd(190, 430), x: rnd(-6, 6) })); this.R = []; this.G = []; this.acc = 0; this.pool = 0; this.up = []; },
+  step(dt) {
+    const pulse = this.v.puls, ph = (T * pulse / 60) % 1, wave = ph * 380 - 40;
+    this.wave = wave;
+    this.A.forEach(p => { const boost = Math.exp(-((p.x - wave) ** 2) / 900); p.x += (70 + 90 * boost) * dt * pulse / 70; if (p.x > 300) { p.x = 20; p.y = rnd(-8, 8); } });
+    // Vene mit Muskelpumpe
+    const mv = this.v.move, ok = this.v.valves, mph = Math.sin(T * 2.4), con = mv && mph > 0;
+    this.con = con;
+    const V1 = 262, V2 = 352; // Klappen
+    this.Vn.forEach(p => {
+      let v = 0;
+      if (mv) {
+        if (con) v = p.y > V2 ? (ok ? 0 : 0) : -70;
+        else v = ok ? (p.y > V1 ? -40 : 0) : 55;
+      } else v = ok ? -14 : 22;
+      const ny = p.y + v * dt;
+      if (ok && v > 0) { /* Klappen verhindern Rückfluss */ }
+      else if (ok && con && p.y > V2 && ny < V2) { p.y = V2 + 1; }
+      else p.y = ny;
+      if (p.y < 188) { this.up.push(T); p.y = rnd(420, 432); }
+      if (p.y > 434) p.y = 434;
+    });
+    this.up = this.up.filter(t => T - t < 5);
+    this.pool = clamp(this.pool + dt * (ok ? -0.4 : (mv ? 0.15 : 0.25)), 0, 1);
+    // Kapillare
+    this.acc += dt * 1.2;
+    while (this.acc >= 1) { this.acc -= 1; this.R.push({ x: 336, o: 1 }); }
+    this.R.forEach(r => { r.x += 34 * dt; const before = r.o; r.o = clamp(1 - (r.x - 380) / 220, 0, 1);
+      if (Math.random() < dt * 0.9 && r.x > 380 && r.x < 600) { const up = Math.random() < 0.5; this.G.push({ type: 'o2', x: r.x, y: 250 + (up ? -8 : 8), vy: up ? -22 : 22, a: 1 }); }
+      if (Math.random() < dt * 0.5 && r.x > 380 && r.x < 600) { const up = Math.random() < 0.5; this.G.push({ type: 'nut', x: r.x, y: 250 + (up ? -8 : 8), vy: up ? -18 : 18, a: 1 }); }
+      if (Math.random() < dt * 0.8 && r.x > 380 && r.x < 600) { const up = Math.random() < 0.5; this.G.push({ type: 'co2', x: r.x + rnd(-10, 10), y: up ? 196 : 304, vy: up ? 22 : -22, a: 1, inn: true }); }
+    });
+    this.R = this.R.filter(r => r.x < 640);
+    this.G.forEach(q => { q.y += q.vy * dt; q.x += 8 * dt; if (q.inn ? Math.abs(q.y - 250) < 6 : Math.abs(q.y - 250) > 46) q.a -= dt * 2.5; });
+    this.G = this.G.filter(q => q.a > 0);
+  },
+  draw() {
+    // Querschnitte
+    const xs = (cx, cy, ro, ri, col, n) => { g.fillStyle = col; g.beginPath(); g.arc(cx, cy, ro, 0, 7); g.fill(); g.fillStyle = '#c8202f'; g.beginPath(); g.arc(cx, cy, ri, 0, 7); g.fill(); text(n, cx, cy + ro + 14, { size: 10, weight: 700, align: 'center', color: COL.muted }); };
+    // Arterie
+    text('Arterie (vom Herzen weg)', 20, 26, { size: 12, weight: 800 });
+    const wave = this.wave || 0;
+    g.fillStyle = '#e7a7a7';
+    g.beginPath(); for (let x = 16; x <= 304; x += 4) { const r = 17 + 5 * Math.exp(-((x - wave) ** 2) / 900); g.lineTo(x, 70 - r - 7); } for (let x = 304; x >= 16; x -= 4) { const r = 17 + 5 * Math.exp(-((x - wave) ** 2) / 900); g.lineTo(x, 70 + r + 7); } g.closePath(); g.fill();
+    g.fillStyle = '#f6d6d6'; g.beginPath(); for (let x = 16; x <= 304; x += 4) { const r = 17 + 5 * Math.exp(-((x - wave) ** 2) / 900); g.lineTo(x, 70 - r); } for (let x = 304; x >= 16; x -= 4) { const r = 17 + 5 * Math.exp(-((x - wave) ** 2) / 900); g.lineTo(x, 70 + r); } g.closePath(); g.fill();
+    this.A.forEach(p => rbc(p.x, 70 + p.y, 1));
+    if (labels) text('dicke, elastische Wand – Pulswelle', 160, 120, { size: 10.5, align: 'center', color: COL.muted });
+    // Vene
+    text('Vene im Bein (zum Herzen hin)', 20, 162, { size: 12, weight: 800 });
+    const bulge = 8 * this.pool, vx = 150, w = 14 + bulge, con = this.con;
+    const mW = con ? 30 : 22;
+    g.fillStyle = '#c96f5f'; g.beginPath(); g.ellipse(vx - 44 - (con ? 6 : 0), 306, mW, 70, 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(vx + 44 + (con ? 6 : 0), 306, mW, 70, 0, 0, 7); g.fill();
+    g.fillStyle = '#b9b2d6'; g.fillRect(vx - w - 3, 186, 2 * w + 6, 250); g.fillStyle = '#e4e0f3'; g.fillRect(vx - w, 186, 2 * w, 250);
+    if (con) { g.fillStyle = 'rgba(201,111,95,.5)'; g.fillRect(vx - w - 3, 270, 4, 70); g.fillRect(vx + w - 1, 270, 4, 70); }
+    this.Vn.forEach(p => rbc(vx + p.x * (w / 14), p.y, 0));
+    const vv = (y, open) => { g.strokeStyle = this.v.valves ? '#5b4fa0' : '#c0392b'; g.lineWidth = 3; const a = this.v.valves ? (open ? -1.15 : -0.15) : 0.9;
+      g.beginPath(); g.moveTo(vx - w, y); g.lineTo(vx - w + Math.cos(a) * w, y + Math.sin(a) * w); g.moveTo(vx + w, y); g.lineTo(vx + w - Math.cos(a) * w, y + Math.sin(a) * w); g.stroke(); };
+    vv(262, con); vv(352, !con);
+    arrow(vx + 40, 220, vx + 40, 190, '#5b4fa0', 3);
+    if (labels) {
+      lbl('Venenklappe', vx + w, 262, 214, 214, { size: 10.5 });
+      lbl('Muskel', vx + 50, 330, 214, 380, { size: 10.5 });
+      text(this.v.move ? (con ? 'Muskel spannt an → Blut nach oben' : 'Muskel entspannt → Blut strömt nach') : 'keine Bewegung', vx, 452 - 14, { size: 10.5, weight: 700, align: 'center', bg: 'rgba(255,255,255,.9)' });
+      if (!this.v.valves) text('Klappen defekt: Blut fließt zurück und staut sich!', vx, 182 - 2, { size: 10.5, weight: 800, align: 'center', color: '#c0392b', bg: 'rgba(255,255,255,.9)' });
+    }
+    // Kapillare
+    g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(326, VY0, 2, VY1 - VY0);
+    text('Kapillare im Gewebe', 340, 26, { size: 12, weight: 800 });
+    for (let i = 0; i < 6; i++) { [[196], [304]].forEach(([cy]) => { g.fillStyle = '#f3dccb'; rr(342 + i * 48, cy - 40 + (cy > 250 ? 0 : 0), 42, 36, 10); g.fill(); g.fillStyle = '#c9a68e'; g.beginPath(); g.arc(363 + i * 48, cy - 22 + (cy > 250 ? 0 : 0) + 4, 5, 0, 7); g.fill(); }); }
+    g.fillStyle = '#f5c4c4'; g.fillRect(330, 240, 310, 20); g.strokeStyle = '#e09a9a'; g.lineWidth = 1.5; g.strokeRect(330, 240, 310, 20);
+    this.R.forEach(r => rbc(r.x, 250, r.o, 1.1));
+    this.G.forEach(q => { g.globalAlpha = Math.max(0, q.a); if (q.type === 'nut') ball(q.x, q.y, 3, '#e3a21a'); else { const o = q.type === 'o2'; ball(q.x - 2.4, q.y, 2.4, '#e0483a'); ball(q.x + 2.4, q.y, 2.4, '#e0483a'); if (!o) ball(q.x, q.y, 2.6, '#3d4650'); } g.globalAlpha = 1; });
+    if (labels) {
+      text('von der Arterie', 336, 284 + 40, { size: 10, color: '#b3203a' }); text('zur Vene', 632, 324, { size: 10, align: 'right', color: '#4b3f99' });
+      text('Zellen', 600, 152, { size: 10.5, weight: 700, align: 'right', color: COL.muted });
+      ball(350, 362, 2.4, '#e0483a'); ball(355, 362, 2.4, '#e0483a'); text('O₂ zu den Zellen', 362, 366, { size: 10, color: COL.muted });
+      ball(350, 380, 3, '#e3a21a'); text('Nährstoffe zu den Zellen', 362, 384, { size: 10, color: COL.muted });
+      ball(346, 398, 2.4, '#e0483a'); ball(354, 398, 2.4, '#e0483a'); ball(350, 398, 2.6, '#3d4650'); text('CO₂ ins Blut', 362, 402, { size: 10, color: COL.muted });
+      xs(420, 424 - 6, 12, 5, '#e7a7a7', ''); xs(470, 418, 12, 9, '#c9c3e3', ''); xs(515, 418, 5, 3.5, '#f5c4c4', '');
+      text('Arterie', 420, 440 - 2, { size: 9.5, align: 'center', color: COL.muted }); text('Vene', 470, 438, { size: 9.5, align: 'center', color: COL.muted }); text('Kapillare', 515, 438, { size: 9.5, align: 'center', color: COL.muted });
+      text('im Querschnitt:', 404, 420, { size: 9.5, align: 'right', color: COL.muted });
+    }
+  },
+  out() {
+    const flow = this.up.length / 5;
+    return `<div class="orow t"><span>Arterie</span><b>Pulswelle ${this.v.puls} / min</b></div>` +
+      bar('Blutstrom in der Vene', Math.min(1, flow / 4), flow > 1.5 ? 'gut' : flow > 0.3 ? 'langsam' : 'staut sich', flow > 1.5 ? '#2f8a3e' : flow > 0.3 ? '#d39b1e' : '#c0392b') +
+      `<div class="orow t"><span>Kapillare</span><b>Stoffaustausch ✓</b></div>`;
+  }
+};
+
+/* ================= Steuerung ================= */
+const STATIONS = { dop, herz, organ, gef };
+const ORDER = ['dop', 'herz', 'organ', 'gef'];
+let cur = 'dop';
+function setDefaults(st) { st.v = {}; st.controls.forEach(c => { if (c.t === 'range' || c.t === 'seg') st.v[c.id] = c.v; if (c.t === 'toggles') c.items.forEach(([id, , on]) => st.v[id] = on); }); }
+ORDER.forEach(k => { setDefaults(STATIONS[k]); STATIONS[k].init(); });
+$('#stations').innerHTML = ORDER.map((k, i) => `<button data-st="${k}"><span class="n">${i + 1}</span>${STATIONS[k].nav}</button>`).join('');
+function updRange(el) { el.style.setProperty('--p', ((el.value - el.min) / (el.max - el.min) * 100) + '%'); }
+function buildControls() {
+  const st = STATIONS[cur], box = $('#ctrls'); let h = '';
+  st.controls.forEach(c => {
+    if (c.t === 'range') h += `<div class="ctrl"><div class="lab"><b>${c.label}</b><output id="o_${c.id}">${c.fmt(st.v[c.id])}</output></div><input type="range" data-r="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${st.v[c.id]}" aria-label="${c.label}"></div>`;
+    if (c.t === 'seg') h += `<div class="ctrl"><div class="lab"><b>${c.label}</b></div><div class="seg" style="display:grid;grid-template-columns:1fr 1fr">${c.opts.map(([v, l]) => `<button data-seg="${c.id}" data-val="${v}" aria-pressed="${st.v[c.id] === v}" style="white-space:normal;line-height:1.15;padding:4px 6px">${l}</button>`).join('')}</div></div>`;
+    if (c.t === 'toggles') h += `<div class="tgls">${c.items.map(([id, l]) => `<button class="tgl" data-tgl="${id}" aria-pressed="${!!st.v[id]}"><span class="sw"></span>${l}</button>`).join('')}</div>`;
+    if (c.t === 'buttons') h += `<div class="btnRow">${c.items.map(([id, l]) => `<button class="btn" data-act="${id}">${l}</button>`).join('')}</div>`;
+  });
+  box.innerHTML = h; $$('#ctrls input[type=range]').forEach(updRange);
+  if (st.sync) st.sync();
+}
+function renderStation() {
+  const st = STATIONS[cur];
+  $$('#stations button').forEach(b => b.setAttribute('aria-pressed', b.dataset.st === cur));
+  $('#stTitle').textContent = st.title; $('#stLead').textContent = st.lead;
+  setInfo('was');
+  buildControls(); $('#out').innerHTML = st.out();
+  try { localStorage.setItem('kreislauf-labor-st', cur); } catch (e) {}
+}
+function setInfo(k) {
+  const st = STATIONS[cur]; $('#info').dataset.i = k;
+  $$('.infoTabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.i === k));
+  $('#infoText').textContent = st[k];
+}
+$('.infoTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setInfo(b.dataset.i); });
+$('#stations').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cur = b.dataset.st; renderStation(); });
+$('#ctrls').addEventListener('input', e => {
+  const el = e.target.closest('input[type=range]'); if (!el) return;
+  const st = STATIONS[cur], id = el.dataset.r, c = st.controls.find(c => c.id === id);
+  st.v[id] = Number(el.value); updRange(el); $('#o_' + id).textContent = c.fmt(st.v[id]);
+  if (st.onChange) st.onChange(id); $('#out').innerHTML = st.out();
+});
+$('#ctrls').addEventListener('click', e => {
+  const st = STATIONS[cur], b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.seg) { st.v[b.dataset.seg] = b.dataset.val; $$(`[data-seg="${b.dataset.seg}"]`).forEach(x => x.setAttribute('aria-pressed', x === b)); if (st.onChange) st.onChange(b.dataset.seg); }
+  if (b.dataset.tgl) { st.v[b.dataset.tgl] = !st.v[b.dataset.tgl]; b.setAttribute('aria-pressed', st.v[b.dataset.tgl]); if (st.onChange) st.onChange(b.dataset.tgl); }
+  if (b.dataset.act && st.onChange) st.onChange(b.dataset.act);
+  $('#out').innerHTML = st.out();
+});
+$('#resetBtn').addEventListener('click', () => { const st = STATIONS[cur]; setDefaults(st); st.init(); renderStation(); toast('Station zurückgesetzt'); });
+$('#labelsChk').addEventListener('change', e => { labels = e.target.checked; });
+$('#pauseBtn').addEventListener('click', () => { paused = !paused; $('#pauseBtn').textContent = paused ? '▶ Weiter' : '⏸ Pause'; $('#pauseBtn').setAttribute('aria-label', paused ? 'Animation fortsetzen' : 'Animation anhalten'); });
+
+let tt;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2400); }
+
+/* Schrift */
+function applyFont() { document.documentElement.style.setProperty('--fs', FS_STEPS[fsIdx]); $('#fontDown').disabled = fsIdx === 0; $('#fontUp').disabled = fsIdx === FS_STEPS.length - 1; }
+function changeFont(d) { const n = clamp(fsIdx + d, 0, FS_STEPS.length - 1); if (n === fsIdx) return; fsIdx = n; try { localStorage.setItem('kreislauf-labor-fs', fsIdx); } catch (e) {} applyFont(); toast('Schriftgröße ' + Math.round(FS_STEPS[fsIdx] * 100) + ' %'); }
+$('#fontDown').addEventListener('click', () => changeFont(-1));
+$('#fontUp').addEventListener('click', () => changeFont(1));
+
+/* Vollbild */
+const root = document.documentElement;
+const fsReq = root.requestFullscreen || root.webkitRequestFullscreen, fsExit = document.exitFullscreen || document.webkitExitFullscreen;
+const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+function updFs() { const on = fsOn(); $('#fsIn').style.display = on ? 'none' : ''; $('#fsOut').style.display = on ? '' : 'none'; $('#fsBtn').title = on ? 'Vollbild beenden' : 'Vollbild'; $('#fsBtn').setAttribute('aria-label', $('#fsBtn').title); }
+$('#fsBtn').addEventListener('click', () => {
+  if (fsOn()) { try { fsExit && fsExit.call(document); } catch (e) {} return; }
+  if (standalone) { toast('Die App läuft bereits im Vollbild.'); return; }
+  if (!fsReq) { toast('Vollbild: Teilen → „Zum Home-Bildschirm“ und von dort öffnen.'); return; }
+  try { const r = fsReq.call(root); if (r && r.catch) r.catch(() => toast('Vollbild nicht möglich. Öffne die Seite in einem eigenen Tab.')); } catch (e) { toast('Vollbild nicht möglich.'); }
+});
+document.addEventListener('fullscreenchange', updFs); document.addEventListener('webkitfullscreenchange', updFs);
+
+const dlg = $('#infoDlg');
+$('#infoBtn').addEventListener('click', () => dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', ''));
+$('#closeInfo').addEventListener('click', () => dlg.close ? dlg.close() : dlg.removeAttribute('open'));
+
+/* Animation */
+let last = performance.now(), outT = 0;
+function frame(now) {
+  const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+  const st = STATIONS[cur];
+  if (!paused) { T += dt; st.step(dt); }
+  fit(st.bg); st.draw();
+  outT += dt; if (outT > 0.3) { outT = 0; $('#out').innerHTML = st.out(); }
+  requestAnimationFrame(frame);
+}
+try { const s = localStorage.getItem('kreislauf-labor-st'); if (STATIONS[s]) cur = s; const fr = localStorage.getItem('kreislauf-labor-fs'), f = Number(fr); if (fr !== null && Number.isInteger(f) && f >= 0 && f < FS_STEPS.length) fsIdx = f; } catch (e) {}
+applyFont(); updFs(); renderStation(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
