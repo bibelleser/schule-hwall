@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Gasaustausch">
-<title>Gasaustausch</title>
+<title>Gasaustausch-Labor</title>
 <style>
 :root{
   --bg:#f6f0f1;--panel:#ffffff;--panel2:#f3f7f6;--text:#1b2a27;--muted:#5a6b67;--line:#d2dedb;
@@ -144,7 +144,7 @@ dialog ul{padding-left:20px;margin:4px 0}
 <header>
   <div class="brand">
     <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v8"/><path d="M12 11c-1 0-2 1-3 1"/><path d="M12 11c1 0 2 1 3 1"/><path d="M9 7C6 7 3 11 3 16c0 3 1 5 3 5s3-2 3-4V7z"/><path d="M15 7c3 0 6 4 6 9 0 3-1 5-3 5s-3-2-3-4V7z"/></svg></div>
-    <div><h1>Gasaustausch</h1><p class="sub">Atmung und Gasaustausch in den Lungenbläschen</p></div>
+    <div><h1>Gasaustausch-Labor</h1><p class="sub">Atmung und Gasaustausch in den Lungenbläschen</p></div>
   </div>
   <div class="head-actions">
     <div class="seg" role="group" aria-label="Schriftgröße">
@@ -461,6 +461,7 @@ const alv = {
   frage: 'Stelle eine verdickte Wand und „Sport“ ein. Warum bekommen die roten Blutkörperchen jetzt nicht mehr genug Sauerstoff? Was merkt ein Mensch mit einer solchen Lungenerkrankung?',
   init() { this.O = []; this.C = []; this.R = []; this.sat = []; this.acc = 0; this.co2out = []; for (let x = -20; x < 680; x += 46) this.R.push(this.rbc(x)); for (let i = 0; i < 30; i++) this.O.push(this.inAir()); for (let i = 0; i < 4; i++) this.C.push({ ...this.inAir(), m: 'air' }); for (let i = 0; i < 240; i++) this.step(0.05); },
   rbc(x) { return { x, y: 0, o2: 6, co2: 3, ph: rnd(0, 6) }; },
+  o2slot(r, i) { return [r.x - 13.5 + (i % 4) * 9, r.y + 14 + Math.floor(i / 4) * 7]; },
   inAir() { let x, y; do { x = rnd(AX - ARX + 20, AX + ARX - 20); y = rnd(AY - ARY + 20, AY - 10); } while (((x - AX) / ARX) ** 2 + ((y - AY) / ARY) ** 2 > 0.85); return { x, y, m: 'air' }; },
   geo() { const th = 3 + this.v.wall / 100 * 14; return { th, ct: AY + th, cb: AY + th + 64 }; },
   inside(x, y) { return ((x - AX) / ARX) ** 2 + ((y - AY) / ARY) ** 2 < 1 && y < AY; },
@@ -482,7 +483,7 @@ const alv = {
         const nx = p.x + rnd(-1, 1) * 75 * dt, ny = p.y + rnd(-1, 1) * 75 * dt + 10 * dt;
         if (this.inside(nx, ny)) { p.x = nx; p.y = ny; }
       } else if (p.m === 'x') {
-        const r = p.r, tx = r.x, ty = r.y, dx = tx - p.x, dy = ty - p.y, dd = Math.hypot(dx, dy), sp = (160 / (1 + v.wall / 30)) * dt;
+        const r = p.r, [tx, ty] = this.o2slot(r, p.slot), dx = tx - p.x, dy = ty - p.y, dd = Math.hypot(dx, dy), sp = (160 / (1 + v.wall / 30)) * dt;
         if (dd < sp + 2 || r.x > VX1 + 20) { r.o2 = Math.min(8, r.o2 + 1); r.pend--; p.m = 'done'; }
         else { p.x += dx / dd * sp + speed * dt * 0.6; p.y += dy / dd * sp; }
       }
@@ -496,7 +497,7 @@ const alv = {
       if (Math.random() < rate * dt) {
         let best = null, bd = 1e9;
         this.O.forEach(p => { if (p.m === 'air' && p.y > AY - 170) { const d = Math.abs(p.x - r.x) + (AY - p.y) * 0.5; if (d < bd) { bd = d; best = p; } } });
-        if (best) { best.m = 'x'; best.r = r; r.pend = (r.pend || 0) + 1; }
+        if (best) { best.m = 'x'; best.r = r; best.slot = clamp(r.o2 + (r.pend || 0), 0, 7); r.pend = (r.pend || 0) + 1; }
       }
     });
     // Kohlenstoffdioxid
@@ -530,6 +531,7 @@ const alv = {
       g.fillStyle = mixRGB([118, 64, 140], [214, 38, 61], t); g.beginPath(); g.ellipse(r.x, r.y, 17, 10, 0, 0, 7); g.fill();
       g.fillStyle = 'rgba(0,0,0,.15)'; g.beginPath(); g.ellipse(r.x, r.y, 8, 4, 0, 0, 7); g.fill();
       for (let i = 0; i < r.co2; i++) mol(r.x - 9 + i * 9, r.y - 15, 'co2', 0.9, 0.7);
+      for (let i = 0; i < r.o2; i++) { const [ox, oy] = this.o2slot(r, i); mol(ox, oy, 'o2', 0.9, 0.7); }
     });
     // Wand
     g.fillStyle = v.wall > 15 ? '#c99a8f' : '#e3aaa2'; g.fillRect(VX0, AY, VX1 - VX0, th);
