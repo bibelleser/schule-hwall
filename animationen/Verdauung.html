@@ -1,0 +1,1028 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Verdauung">
+<title>Verdauungs</title>
+<style>
+:root{
+  --bg:#f6f1f0;--panel:#ffffff;--panel2:#f3f7f6;--text:#1b2a27;--muted:#5a6b67;--line:#d2dedb;
+  --accent:#c2410c;--accent2:#9a3412;--accentSoft:#fdebdd;
+  --water:#2f7fe0;--ion:#e3a21a;--adh:#e0742a;--ok:#2f8a3e;--okSoft:#e2f2e3;--warn:#b8650f;--warnSoft:#fdf0df;--bad:#c0392b;--badSoft:#fbe5e2;
+  --shadow:0 6px 20px rgba(20,50,50,.08);
+}
+*{box-sizing:border-box}
+html{font-size:calc(15px * var(--fs,1));background:var(--bg)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:1rem/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%;touch-action:manipulation}
+button,select{font:inherit;color:inherit}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px 6px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:24px;height:24px}
+h1{font-size:1.3rem;margin:0;line-height:1.15}
+.sub{margin:0;color:var(--muted);font-size:.85rem}
+.head-actions{display:flex;gap:8px;align-items:center}
+.btn{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow)}
+.btn:hover{border-color:var(--accent)}
+.btn.icon{min-width:44px;padding:0}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{min-height:38px;border:0;background:transparent;border-radius:9px;padding:0 12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.15);color:var(--accent2);font-weight:700}
+.seg button:disabled{opacity:.45}
+#fontUp{font-size:1.15em;font-weight:700}#fontDown{font-size:.92em;font-weight:700}
+.seg button small{font-size:.8em;margin-left:1px}
+/* Stationen */
+.stations{display:flex;gap:6px;padding:4px 14px 10px;overflow-x:auto;scrollbar-width:none}
+.stations::-webkit-scrollbar{display:none}
+.stations button{flex:1 0 auto;min-height:46px;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:14px;border:2px solid var(--line);background:var(--panel);cursor:pointer;font-weight:600;white-space:nowrap}
+.stations button .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);font-size:.85rem;font-weight:800;flex:none}
+.stations button[aria-pressed="true"]{border-color:var(--accent);background:var(--accentSoft);color:var(--accent2)}
+.stations button[aria-pressed="true"] .n{background:var(--accent);border-color:var(--accent);color:#fff}
+/* Layout (Handy zuerst) */
+main{display:flex;flex-direction:column;gap:10px;padding:0 10px 12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.stage{position:sticky;top:0;z-index:5;overflow:hidden;padding:0}
+.stage canvas{display:block;width:100%;aspect-ratio:640/440}
+.hud{position:absolute;top:8px;left:8px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:99px;padding:0 12px;min-height:32px;font-size:.85rem;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.pill input{width:18px;height:18px;accent-color:var(--accent)}
+.side{display:flex;flex-direction:column;padding:0}
+.sideScroll{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.side h2{font-size:1.1rem;margin:0;line-height:1.25}
+.lead{margin:-4px 0 0;color:var(--muted);font-size:.9rem}
+#ctrls{display:flex;flex-direction:column;gap:8px}
+.ctrl{display:flex;flex-direction:column}
+.ctrl .lab{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctrl .lab b{font-weight:600}
+.ctrl output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent2);text-align:right;white-space:nowrap}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:38px;background:transparent;margin:0;cursor:pointer}
+input[type=range]:focus{outline:none}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--line) var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid var(--accent);margin-top:-10px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:8px;border-radius:99px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--accent)}
+.tgls{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tgl{min-height:44px;display:flex;align-items:center;gap:8px;padding:0 10px;border-radius:12px;border:2px solid var(--line);background:var(--panel);cursor:pointer;text-align:left;font-weight:600;font-size:.9rem}
+.tgl .sw{width:34px;height:20px;border-radius:99px;background:var(--line);position:relative;flex:none;transition:background .2s}
+.tgl .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.tgl[aria-pressed="true"]{border-color:var(--accent)}
+.tgl[aria-pressed="true"] .sw{background:var(--accent)}
+.tgl[aria-pressed="true"] .sw::after{left:16px}
+.tgl:disabled{opacity:.45;cursor:not-allowed}
+.btnRow{display:flex;gap:6px;flex-wrap:wrap}
+.btnRow .btn{flex:1 1 auto;box-shadow:none;font-weight:600}
+.out{background:var(--panel2);border-radius:12px;padding:8px 12px;display:grid;gap:5px;font-size:.9rem}
+.out:empty{display:none}
+.orow{display:grid;grid-template-columns:8.5em 1fr auto;align-items:center;gap:8px}
+.obar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.obar i{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .25s}
+.orow b{font-variant-numeric:tabular-nums;text-align:right}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.info{border-radius:12px;background:var(--accentSoft);padding:6px 12px 10px;font-size:.92rem}
+.info[data-i="merke"]{background:var(--okSoft)}.info[data-i="frage"]{background:var(--warnSoft)}
+.info p{margin:6px 0 0}
+.infoTabs{display:flex;gap:4px;border-bottom:1px solid rgba(0,0,0,.08)}
+.infoTabs button{border:0;background:transparent;padding:6px 8px;min-height:36px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer}
+.infoTabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.orow.t{grid-template-columns:1fr auto}
+.orow.b{grid-template-columns:minmax(0,1fr) auto;row-gap:3px}.orow.b .obar{grid-column:1/-1}.orow span{min-width:0}
+.box{border-radius:12px;padding:9px 12px;font-size:.92rem}
+.box p{margin:4px 0 0}
+.box.was{background:var(--accentSoft)}
+.box.merke{background:var(--okSoft);border-left:4px solid var(--ok)}
+.box.frage{background:var(--warnSoft)}
+.box.frage summary{cursor:pointer;font-weight:700}
+#toast{position:fixed;left:50%;bottom:24px;max-width:calc(100% - 32px);text-align:center;transform:translate(-50%,30px);opacity:0;pointer-events:none;background:var(--text);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;transition:.3s;z-index:20}
+#toast.show{transform:translate(-50%,0);opacity:1}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);max-width:660px;width:calc(100% - 32px);padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{font-size:1.2rem;margin-top:0}
+dialog h3{font-size:1rem;margin:14px 0 4px}
+dialog p,dialog li{font-size:.93rem}
+dialog ul{padding-left:20px;margin:4px 0}
+/* App-Layout: alles auf einem Bildschirm */
+@media (min-width:760px), (orientation:landscape) and (min-width:640px){
+  html,body{height:100%}
+  body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+  header,.stations{flex:none}
+  main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(310px,34vw,430px);gap:12px;padding:0 14px 14px}
+  .lead{display:none}
+  .sideScroll{gap:8px}
+  input[type=range]{height:34px}
+  .info{font-size:.87rem}
+  .out{font-size:.86rem;gap:3px;padding:6px 12px}
+  .tgl,.btnRow .btn{min-height:40px}
+  .stage{position:relative;top:auto;min-height:0}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto}
+  .side{min-height:0}
+  .sideScroll{flex:1;min-height:0;overflow:auto}
+}
+@media (max-width:1100px){.stations button .t2{display:none}}
+@media (orientation:landscape) and (max-height:520px){
+  header{padding:4px 10px}.sub{display:none}.logo{width:30px;height:30px}h1{font-size:1rem}
+  .btn{min-height:36px}.btn.icon{min-width:38px}
+  .stations{padding:2px 10px 6px}.stations button{min-height:36px;padding:0 10px}
+  main{gap:8px;padding:0 8px 8px}
+  .sideScroll{padding:8px 10px;gap:7px}
+}
+@media (max-width:620px){
+  header{padding:8px 10px 4px}.sub{display:none}h1{font-size:1.1rem}.logo{width:34px;height:34px}
+  .head-actions{gap:4px}.btn.icon{min-width:40px;width:40px}
+  .stations{padding:2px 10px 8px}.stations button{padding:0 10px}
+  .pill{font-size:.75rem;min-height:28px;padding:0 9px}
+  .orow{grid-template-columns:7em 1fr auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v4c0 2-2 3-2 6 0 4 3 7 7 7 3 0 6-2 6-5s-3-4-5-3-2 3-4 2-1-3-1-5V2"/><path d="M14 19v3"/></svg></div>
+    <div><h1>Verdauungs</h1><p class="sub">Verdauungsorgane, Nährstoffe und Enzyme</p></div>
+  </div>
+  <div class="head-actions">
+    <div class="seg" role="group" aria-label="Schriftgröße">
+      <button id="fontDown" title="Schrift kleiner" aria-label="Schrift kleiner">A<small>−</small></button>
+      <button id="fontUp" title="Schrift größer" aria-label="Schrift größer">A<small>+</small></button>
+    </div>
+    <button class="btn icon" id="fsBtn" title="Vollbild" aria-label="Vollbild">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g id="fsIn"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></g><g id="fsOut" style="display:none"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></g></svg>
+    </button>
+    <button class="btn icon" id="resetBtn" title="Station zurücksetzen" aria-label="Station zurücksetzen">↺</button>
+    <button class="btn icon" id="infoBtn" title="Hinweise" aria-label="Hinweise">ⓘ</button>
+  </div>
+</header>
+<nav class="stations" id="stations" aria-label="Stationen"></nav>
+
+<main>
+  <section class="card stage" aria-label="Animation">
+    <canvas id="stage" role="img" aria-label="Animation zur Verdauung"></canvas>
+    <div class="hud">
+      <label class="pill"><input type="checkbox" id="labelsChk" checked> Beschriftung</label>
+      <button class="pill" id="pauseBtn" aria-label="Animation anhalten">⏸ Pause</button>
+    </div>
+  </section>
+  <aside class="card side" aria-label="Steuerung und Erklärung">
+    <div class="sideScroll">
+      <h2 id="stTitle"></h2>
+      <p class="lead" id="stLead"></p>
+      <div id="ctrls"></div>
+      <div class="out" id="out" aria-live="polite"></div>
+      <div class="info" id="info">
+        <div class="infoTabs" role="tablist">
+          <button role="tab" data-i="was" aria-selected="true">Was passiert?</button>
+          <button role="tab" data-i="merke">Merke</button>
+          <button role="tab" data-i="frage">Denkfrage</button>
+        </div>
+        <p id="infoText"></p>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div id="toast" role="status"></div>
+
+<dialog id="infoDlg">
+  <h2>Hinweise zum Verdauungs-Labor</h2>
+  <p>Die vier Stationen zeigen, wie die Nahrung im Körper zerlegt und aufgenommen wird. Jede Station hat eigene Regler; die Animation reagiert sofort.</p>
+  <h3>Die Stationen</h3>
+  <ul>
+    <li><b>Weg der Nahrung:</b> Ein Bissen wandert durch die Verdauungsorgane. Die Lupe zeigt, wo Stärke, Eiweiß und Fett zerlegt und aufgenommen werden. Tipp: Galle ausschalten.</li>
+    <li><b>Enzyme:</b> Das Schlüssel-Schloss-Prinzip: Amylase, Pepsin und Lipase spalten nur ihr passendes Substrat.</li>
+    <li><b>Temperatur &amp; pH:</b> Ein Reagenzglasversuch mit Iodprobe bzw. Eiklar. Temperatur- und pH-Optimum, Denaturierung bei Hitze.</li>
+    <li><b>Dünndarm &amp; Zotten:</b> Oberflächenvergrößerung durch Falten, Zotten und Mikrovilli; Aufnahme ins Blut und in die Lymphe.</li>
+  </ul>
+  <h3>Farben der Moleküle</h3>
+  <p><b style="color:#3f86d6">Blaue Sechsecke</b> = Kohlenhydrate (Stärke, Maltose, Glucose) · <b style="color:#d0564f">bunte Perlen</b> = Eiweiße und Aminosäuren · <b style="color:#b8900f">Gelb</b> = Fette, Glycerin und Fettsäuren · <b style="color:#4f9a45">Grün</b> = Ballaststoffe.</p>
+  <h3>Zum Modell</h3>
+  <p>Moleküle sind stark vereinfacht und nicht maßstabsgetreu. Das Schlüssel-Schloss-Modell ist eine Vereinfachung; tatsächlich passt sich das aktive Zentrum beim Binden etwas an das Substrat an („induzierte Passform“). Zeiten und Oberflächen sind gerundete Richtwerte für Erwachsene.</p>
+  <p style="text-align:right;margin:16px 0 0"><button class="btn" id="closeInfo">Schließen</button></p>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const fmt1 = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
+
+/* ================= Zeichnen: Grundlagen ================= */
+const cv = $('#stage'), g = cv.getContext('2d');
+const SW = 640, SH = 440;
+let K = 1, VX0 = 0, VX1 = SW, VY0 = 0, VY1 = SH, labels = true, paused = false, T = 0;
+const FS_STEPS = [0.85, 0.925, 1, 1.1, 1.2, 1.32, 1.45];
+let fsIdx = 2;
+const COL = { water: '#2f7fe0', waterSoft: 'rgba(80,150,235,.35)', ion: '#e3a21a', adh: '#e0742a', text: '#1b2a27', muted: '#5a6b67', leaf: '#5aa646', leafD: '#3f8a35', wood: '#8b6b3e', soil: '#7a5a3c' };
+function fit(bg) {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  const sc = Math.min(w / SW, h / SH), ox = (w - SW * sc) / 2, oy = (h - SH * sc) / 2;
+  g.setTransform(sc, 0, 0, sc, ox, oy);
+  VX0 = -ox / sc; VX1 = SW + ox / sc; VY0 = -oy / sc; VY1 = SH + oy / sc;
+  K = clamp(Math.max(1, 10 / Math.max(12 * sc / dpr, 1)) * FS_STEPS[fsIdx], 0.85, 1.9);
+}
+const font = (s, w) => `${w || 600} ${s * K}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif`;
+function text(t, x, y, o = {}) {
+  g.font = font(o.size || 12, o.weight); g.fillStyle = o.color || COL.text; g.textAlign = o.align || 'left'; g.textBaseline = o.base || 'alphabetic';
+  if (o.bg) { const m = g.measureText(t), w = m.width + 10, hh = (o.size || 12) * K + 8; let bx = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w + 5 : x - 5;
+    g.fillStyle = o.bg; rr(bx, y - hh + 5, w, hh, 6); g.fill(); g.fillStyle = o.color || COL.text; }
+  g.fillText(t, x, y); g.textBaseline = 'alphabetic';
+}
+function lbl(t, x1, y1, x2, y2, o = {}) {
+  if (!labels) return;
+  g.strokeStyle = o.line || 'rgba(40,50,50,.55)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2 - 4); g.stroke();
+  g.fillStyle = o.line || 'rgba(40,50,50,.7)'; g.beginPath(); g.arc(x1, y1, 2, 0, 7); g.fill();
+  text(t, x2 + (o.align === 'right' ? -2 : o.align === 'center' ? 0 : 2), y2, { align: o.align || 'left', size: o.size || 12, bg: 'rgba(255,255,255,.82)', color: o.color });
+}
+function rr(x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+function ball(x, y, r, c, stroke) { g.fillStyle = c; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = 1; g.stroke(); } }
+function arrow(x1, y1, x2, y2, c, w = 3) {
+  const a = Math.atan2(y2 - y1, x2 - x1), hl = 8 + w * 2;
+  g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - Math.cos(a) * hl * 0.6, y2 - Math.sin(a) * hl * 0.6); g.stroke();
+  g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - hl * Math.cos(a - 0.45), y2 - hl * Math.sin(a - 0.45)); g.lineTo(x2 - hl * Math.cos(a + 0.45), y2 - hl * Math.sin(a + 0.45)); g.closePath(); g.fill();
+}
+function seeded(n) { let s = n; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; }
+const bar = (label, v, txt, color) => `<div class="orow b"><span>${label}</span><b>${txt}</b><div class="obar"><i style="width:${clamp(v, 0, 1) * 100}%;${color ? 'background:' + color : ''}"></i></div></div>`;
+
+/* ================= Hilfen ================= */
+const RED = [214, 38, 61], BLUE = [86, 74, 170];
+const mixRGB = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * clamp(t, 0, 1))).join(',')})`;
+const bloodCol = o => mixRGB(BLUE, RED, o);
+function mkPath(pts) { const L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, L, len: L[L.length - 1] }; }
+function ptAt(P, d, loop) {
+  if (loop) d = ((d % P.len) + P.len) % P.len; else d = clamp(d, 0, P.len);
+  let i = 1; while (i < P.L.length - 1 && P.L[i] < d) i++;
+  const a = P.pts[i - 1], b = P.pts[i], t = (d - P.L[i - 1]) / Math.max(1e-6, P.L[i] - P.L[i - 1]);
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, i - 1, t];
+}
+function strokePath(pts, col, w) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); }
+function rbc(x, y, o, s = 1) { g.fillStyle = bloodCol(o); g.beginPath(); g.ellipse(x, y, 6.5 * s, 4.2 * s, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.2; g.stroke(); g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(x, y, 2.6 * s, 1.5 * s, 0, 0, 7); g.fill(); }
+const pulseOf = v => v;
+
+/* ================= Moleküle (gemeinsam) ================= */
+const MC = { kh: '#3f86d6', khD: '#24599a', fat: '#ecc12f', fatD: '#a87f0c', h2o: '#5fb4ea', fib: '#4f9a45' };
+const AAC = ['#e0564f', '#4fa65a', '#e3a21a', '#8d63d2', '#2fa3a0', '#d0679e'];
+function hexa(x, y, r, fill, stroke) { g.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; g.lineTo(x + r * Math.cos(a), y + r * Math.sin(a)); } g.closePath(); g.fillStyle = fill; g.fill(); g.strokeStyle = stroke || 'rgba(0,0,0,.35)'; g.lineWidth = 1; g.stroke(); }
+function zig(x, y, a, len, col, w = 2) { const n = Math.max(2, Math.round(len / 3.6)); g.strokeStyle = col; g.lineWidth = w; g.lineJoin = 'round'; g.lineCap = 'round'; g.beginPath(); for (let i = 0; i <= n; i++) { const d = i * len / n, o = i % 2 ? 2.2 : -2.2; g.lineTo(x + Math.cos(a) * d - Math.sin(a) * o, y + Math.sin(a) * d + Math.cos(a) * o); } g.stroke(); }
+function drawMol(m, s = 1) {
+  const x = m.x, y = m.y, a = m.a || 0, ca = Math.cos(a), sa = Math.sin(a);
+  const chain = (n, step, fn) => { for (let i = 0; i < n; i++) { const d = (i - (n - 1) / 2) * step * s; fn(x + ca * d, y + sa * d, i); } };
+  const bond = (n, step, col) => { if (n < 2) return; const d = (n - 1) / 2 * step * s; g.strokeStyle = col; g.lineWidth = 1.8 * s; g.beginPath(); g.moveTo(x - ca * d, y - sa * d); g.lineTo(x + ca * d, y + sa * d); g.stroke(); };
+  switch (m.t) {
+    case 'st': case 'mal': case 'glu': { const n = m.t === 'st' ? 6 : m.t === 'mal' ? 2 : 1; bond(n, 9, MC.khD); chain(n, 9, (px, py) => hexa(px, py, 4.6 * s, MC.kh, MC.khD)); break; }
+    case 'eiw': case 'pep': case 'as': { const n = m.t === 'eiw' ? 6 : m.t === 'pep' ? 3 : 1; bond(n, 8, '#7a4b4b'); chain(n, 8, (px, py, i) => ball(px, py, 3.8 * s, AAC[(i + (m.c || 0)) % AAC.length], 'rgba(0,0,0,.35)')); break; }
+    case 'fett': case 'emu': { const r = (m.t === 'fett' ? 15 : 6) * s, fg = g.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r); fg.addColorStop(0, '#fff6c4'); fg.addColorStop(1, MC.fat); g.fillStyle = fg; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.strokeStyle = MC.fatD; g.lineWidth = 1; g.stroke(); break; }
+    case 'tg': case 'gly': {
+      const px = -sa, py = ca;
+      for (let i = -1; i <= 1; i++) { const bx = x + px * 7 * s * i, by = y + py * 7 * s * i; if (m.t === 'tg') zig(bx, by, a, 20 * s, MC.fatD, 1.8 * s); else { g.strokeStyle = '#9a6b06'; g.lineWidth = 1.6 * s; g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + ca * 5 * s, by + sa * 5 * s); g.stroke(); } }
+      g.strokeStyle = '#9a6b06'; g.lineWidth = 3.4 * s; g.lineCap = 'round'; g.beginPath(); g.moveTo(x - px * 8 * s, y - py * 8 * s); g.lineTo(x + px * 8 * s, y + py * 8 * s); g.stroke();
+      break;
+    }
+    case 'fs': zig(x - ca * 9 * s, y - sa * 9 * s, a, 18 * s, MC.fatD, 1.8 * s); break;
+    case 'h2o': ball(x, y, 2.3 * s, MC.h2o); break;
+    case 'bal': { g.strokeStyle = MC.fib; g.lineWidth = 2.6 * s; g.lineCap = 'round'; g.beginPath(); for (let i = 0; i <= 12; i++) { const d = (i - 6) * 2.3 * s, o = Math.sin(i * 1.1 + (m.c || 0)) * 3 * s; g.lineTo(x + ca * d - sa * o, y + sa * d + ca * o); } g.stroke(); break; }
+    case 'bak': { g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = '#9c8a45'; rr(-6 * s, -2.6 * s, 12 * s, 5.2 * s, 2.6 * s); g.fill(); g.strokeStyle = 'rgba(0,0,0,.3)'; g.lineWidth = 1; g.stroke(); g.restore(); break; }
+    case 'h': text('H⁺', x, y + 3, { size: 8, weight: 800, align: 'center', color: '#c0392b' }); break;
+  }
+}
+const MSIZE = { st: 26, mal: 9, glu: 5, eiw: 22, pep: 11, as: 4, fett: 16, emu: 7, tg: 16, gly: 9, fs: 10, h2o: 3, bal: 15, bak: 7, h: 5 };
+function moveMol(m, dt, k = 40) { m.vx = (m.vx + rnd(-k, k) * dt) * 0.985; m.vy = (m.vy + rnd(-k, k) * dt) * 0.985; m.x += m.vx * dt; m.y += m.vy * dt; m.a += (m.w || 0) * dt; }
+function tube(pts, col, w, edge) { strokePath(pts, edge || 'rgba(120,50,40,.45)', w + 2.5); strokePath(pts, col, w); g.save(); g.translate(-w * 0.15, -w * 0.15); strokePath(pts, 'rgba(255,255,255,.25)', w * 0.3); g.restore(); }
+function crPts(P, closed, n = 8) {
+  const N = P.length, get = i => closed ? P[(i + N) % N] : P[Math.max(0, Math.min(N - 1, i))], out = [];
+  for (let i = 0; i < (closed ? N : N - 1); i++) {
+    const p0 = get(i - 1), p1 = get(i), p2 = get(i + 1), p3 = get(i + 2);
+    for (let k = 0; k < n; k++) { const t = k / n, t2 = t * t, t3 = t2 * t; const f = j => 0.5 * (2 * p1[j] + (-p0[j] + p2[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t2 + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * t3); out.push([f(0), f(1)]); }
+  }
+  if (!closed) out.push(P[N - 1]);
+  return out;
+}
+function poly(Q, closed) { g.beginPath(); Q.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); if (closed) g.closePath(); }
+
+/* ================= Station 1: Weg der Nahrung ================= */
+function mkLegs(start, legs) { const pts = [start], reg = [], raw = {}; let prev = start; legs.forEach(([r, L]) => { raw[r] = [prev, ...L]; L.forEach(p => { pts.push(p); reg.push(r); }); prev = L[L.length - 1]; }); return { P: mkPath(pts), reg, raw }; }
+const BS = 0.76, BX = 200, BY = 215, Mo = ([x, y]) => [BX + (x - 195) * BS, BY + (y - 156) * BS];
+const DUENN = (() => { const R = seeded(11), P = [[234, 282]];
+  for (let k = 0; k < 7; k++) { const y = 291 + k * 11.5, xs = [242, 226, 210, 194, 178, 162, 148]; if (k % 2) xs.reverse();
+    xs.forEach((x, i) => P.push([x + (R() - 0.5) * 10, y + (R() - 0.5) * 13]));
+    if (k < 6) { const ex = k % 2 ? 252 : 140; P.push([ex + (R() - 0.5) * 4, y + 6]); } }
+  P.push([140, 372], [132, 376]); return P; })();
+const RAWLEGS = [
+  ['magen', [[230, 182], [254, 198], [250, 222], [226, 232], [204, 234]]],
+  ['zwoelf', [[186, 236], [170, 242], [168, 256], [188, 260], [214, 256], [224, 266]]],
+  ['duenn', DUENN],
+  ['dick', [[120, 374], [120, 300], [124, 278], [150, 272], [195, 282], [240, 272], [266, 278], [272, 300], [272, 352], [264, 380], [240, 392], [214, 384], [200, 394]]],
+  ['end', [[196, 408], [195, 424]]]
+];
+const RAWD = mkLegs([204, 176], RAWLEGS).raw;
+const TRACT = mkLegs([240, 79], [
+  ['mund', [[222, 80], [204, 80], [194, 90], [196, 112]]],
+  ['speis', [[198, 140], [200, 180], Mo([204, 176])]],
+  ...RAWLEGS.map(([r, L]) => [r, L.map(Mo)])
+]);
+const REGDUR = { mund: 3, speis: 1.8, magen: 7, zwoelf: 3.2, duenn: 11, dick: 8, end: 2 };
+const REGLEN = {}; TRACT.reg.forEach((r, i) => { REGLEN[r] = (REGLEN[r] || 0) + TRACT.P.L[i + 1] - TRACT.P.L[i]; });
+const REGINFO = {
+  mund: { name: 'Mund', lupe: 'Bissen im Mund', enz: 'Amylase: Stärke → Maltose', ph: 'pH ≈ 7', dur: 'ca. 1 Minute', bg: '#fdf1ea' },
+  speis: { name: 'Speiseröhre', lupe: 'Bissen in der Speiseröhre', enz: 'nur Transport (Peristaltik)', ph: '', dur: 'ca. 5–10 Sekunden', bg: '#fbefe9' },
+  magen: { name: 'Magen', lupe: 'Speisebrei im Magen', enz: 'Pepsin: Eiweiß → Peptide', ph: 'pH 1–2 (stark sauer)', dur: 'ca. 1–5 Stunden', bg: '#fde6e1' },
+  zwoelf: { name: 'Zwölffingerdarm', lupe: 'Speisebrei im Zwölffingerdarm', enz: 'Amylase, Trypsin, Lipase · Galle', ph: 'pH ≈ 7–8', dur: 'wenige Minuten', bg: '#fbf3dc' },
+  duenn: { name: 'Dünndarm', lupe: 'Speisebrei im Dünndarm', enz: 'Maltase, Peptidasen, Lipase', ph: 'pH ≈ 7–8', dur: 'ca. 3–6 Stunden', bg: '#fbf3e2' },
+  dick: { name: 'Dickdarm', lupe: 'Inhalt des Dickdarms', enz: 'Bakterien · Wasser wird entzogen', ph: '', dur: 'ca. 10–40 Stunden', bg: '#f4ece0' },
+  end: { name: 'Mastdarm und After', lupe: 'Kot im Mastdarm', enz: 'Kot wird ausgeschieden', ph: '', dur: '', bg: '#efe6da' }
+};
+const MEALS = { brot: { st: 4, bal: 3, eiw: 1, h2o: 8 }, kaese: { eiw: 4, fett: 1, h2o: 8 }, butter: { fett: 2, h2o: 6 }, mix: { st: 3, eiw: 2, fett: 1, bal: 2, h2o: 8 } };
+const LUPE = { x: 522, y: 222, r: 98 };
+const OX = 25;
+const weg = {
+  nav: 'Weg der Nahrung', bg: '#f7f3ee',
+  title: 'Der Weg der Nahrung',
+  lead: 'Verfolge einen Bissen vom Mund bis zum After. Die Lupe zeigt, was dabei mit den Nährstoffen passiert.',
+  controls: [
+    { t: 'seg', id: 'meal', label: 'Mahlzeit', opts: [['brot', 'Brot (Stärke)'], ['kaese', 'Käse (Eiweiß, Fett)'], ['butter', 'Butter (Fett)'], ['mix', 'Käsebrot (alles)']], v: 'mix' },
+    { t: 'range', id: 'speed', label: 'Ablauf-Tempo', min: 0.5, max: 2, step: 0.25, v: 1, fmt: v => v === 1 ? 'normal' : fmt1(v) + ' ×' },
+    { t: 'toggles', items: [['galle', 'Galle fließt in den Darm', true]] },
+    { t: 'buttons', items: [['neu', 'Neuer Bissen']] }
+  ],
+  was: 'Im Mund zerkleinern die Zähne die Nahrung. Der Speichel macht sie gleitfähig und enthält Amylase, die Stärke in Malzzucker (Maltose) spaltet. Die Speiseröhre schiebt den Bissen durch wellenförmige Muskelbewegungen (Peristaltik) in den Magen. Dort tötet Salzsäure Bakterien ab, und Pepsin beginnt, Eiweiße zu spalten. Im Zwölffingerdarm kommen der Saft der Bauchspeicheldrüse und Galle aus der Leber hinzu. Im Dünndarm werden die Nährstoffe vollständig in ihre Bausteine zerlegt und durch die Darmwand ins Blut oder in die Lymphe aufgenommen. Im Dickdarm wird vor allem Wasser zurückgewonnen; Unverdauliches wird als Kot ausgeschieden.',
+  merke: 'Verdauung bedeutet: Enzyme zerlegen die Nährstoffe in ihre kleinsten Bausteine. Stärke → Glucose (Traubenzucker), Eiweiß → Aminosäuren, Fett → Glycerin und Fettsäuren. Nur diese Bausteine können durch die Dünndarmwand aufgenommen werden. Galle ist kein Enzym: Sie zerteilt (emulgiert) Fett in feine Tröpfchen, sodass die Lipase besser angreifen kann.',
+  frage: 'Schalte die Galle aus und verfolge einen Bissen Butter. Was ändert sich und warum? Erkläre außerdem, warum im Magen keine Stärke mehr abgebaut wird.',
+  init() { this.newBite(); },
+  onChange(id) { if (id === 'neu' || id === 'meal') this.newBite(); },
+  newBite() {
+    this.d = 0; this.wait = 0; this.M = []; this.res = { glu: 0, as: 0, gly: 0, fs: 0, h2o: 0 }; this.lastR = 'mund';
+    Object.entries(MEALS[this.v.meal]).forEach(([t, n]) => { for (let i = 0; i < n; i++) this.add(t); });
+    const c = this.cnt(); this.tot = { kh: c.kh, aa: c.aa, ft: c.ft };
+  },
+  add(t, x, y, a) { const R = LUPE.r - 22, ang = rnd(0, 7), r0 = Math.sqrt(Math.random()) * R; const m = { t, x: x === undefined ? LUPE.x + Math.cos(ang) * r0 : x, y: y === undefined ? LUPE.y + Math.sin(ang) * r0 : y, a: a === undefined ? rnd(0, 7) : a, w: rnd(-0.6, 0.6), vx: rnd(-14, 14), vy: rnd(-14, 14), c: Math.floor(rnd(0, 6)) }; this.M.push(m); return m; },
+  split(m, t, n, step) { m.dead = true; for (let i = 0; i < n; i++) { const d = (i - (n - 1) / 2) * step, q = this.add(t, m.x + Math.cos(m.a) * d, m.y + Math.sin(m.a) * d, m.a); q.vx += Math.cos(m.a) * d * 2; q.vy += Math.sin(m.a) * d * 2; } },
+  cnt() {
+    const c = { kh: 0, glu: 0, aa: 0, as: 0, ft: 0, fsg: 0 };
+    this.M.forEach(m => { if (m.dead || m.out) return; const t = m.t;
+      if (t === 'st') c.kh += 6; if (t === 'mal') c.kh += 2; if (t === 'glu') { c.kh++; c.glu++; }
+      if (t === 'eiw') c.aa += 6; if (t === 'pep') c.aa += 3; if (t === 'as') { c.aa++; c.as++; }
+      if (t === 'fett') c.ft += 3; if (t === 'emu') c.ft++; if (t === 'gly') { c.ft++; c.fsg++; } });
+    c.kh += this.res.glu; c.glu += this.res.glu; c.aa += this.res.as; c.as += this.res.as; c.ft += this.res.gly; c.fsg += this.res.gly;
+    return c;
+  },
+  region() { return TRACT.reg[Math.min(TRACT.reg.length - 1, ptAt(TRACT.P, this.d)[2])]; },
+  step(dt) {
+    const sp = this.v.speed;
+    if (this.wait > 0) { this.wait -= dt * sp; if (this.wait <= 0) this.newBite(); }
+    const r = this.region();
+    if (this.wait <= 0) { this.d += REGLEN[r] / REGDUR[r] * sp * dt; if (this.d >= TRACT.P.len) { this.d = TRACT.P.len; this.wait = 3.5; } }
+    if (r !== this.lastR) {
+      if (r === 'magen') for (let i = 0; i < 7; i++) this.add('h');
+      if (r === 'dick') for (let i = 0; i < 6; i++) this.add('bak', LUPE.x + rnd(-60, 60), LUPE.y + rnd(-60, 60));
+      this.lastR = r;
+    }
+    const P = k => Math.random() < k * dt * sp, galle = this.v.galle, cx = LUPE.x, cy = LUPE.y;
+    const wallY = cy + LUPE.r - 26;
+    this.M.forEach(m => {
+      if (m.dead) return;
+      if (m.out) { m.y += 46 * dt * sp; m.x += m.vx * 0.3 * dt; m.alpha = (m.alpha ?? 1) - dt * 1.6 * sp; if (m.alpha <= 0) m.dead = true; return; }
+      moveMol(m, dt * Math.min(1.6, sp), m.t === 'h' ? 70 : 40);
+      if (r === 'magen') { const dx = m.x - cx, dy = m.y - cy; m.vx += -dy * 0.9 * dt; m.vy += dx * 0.9 * dt; }
+      if (r === 'duenn' && ['glu', 'as', 'gly', 'fs'].includes(m.t)) m.vy += 30 * dt;
+      const lim = LUPE.r - 6 - MSIZE[m.t] * 0.6 - (r === 'duenn' || r === 'dick' ? 0 : 0);
+      const dx = m.x - cx, dy = m.y - cy, dd = Math.hypot(dx, dy);
+      if (dd > lim) { m.x = cx + dx / dd * lim; m.y = cy + dy / dd * lim; m.vx -= dx / dd * 20; m.vy -= dy / dd * 20; }
+      switch (m.t) {
+        case 'st': if ((r === 'mund' && P(0.09)) || ((r === 'zwoelf' || r === 'duenn') && P(0.55))) this.split(m, 'mal', 3, 18); break;
+        case 'mal': if (r === 'duenn' && P(0.45)) this.split(m, 'glu', 2, 9); break;
+        case 'eiw': if ((r === 'magen' && P(0.22)) || ((r === 'zwoelf' || r === 'duenn') && P(0.45))) this.split(m, 'pep', 2, 24); break;
+        case 'pep': if (r === 'duenn' && P(0.4)) this.split(m, 'as', 3, 8); break;
+        case 'fett': if ((r === 'zwoelf' || r === 'duenn') && P(galle ? 0.9 : 0.035)) { m.dead = true; for (let i = 0; i < 3; i++) this.add('emu', m.x + rnd(-10, 10), m.y + rnd(-10, 10)); } break;
+        case 'emu': if ((r === 'zwoelf' || r === 'duenn') && P(0.35)) { m.dead = true; this.add('gly', m.x, m.y); for (let i = 0; i < 3; i++) this.add('fs', m.x + rnd(-8, 8), m.y + rnd(-8, 8)); } break;
+        case 'glu': case 'as': if (r === 'duenn' && m.y > cy - 10 && P(0.5)) { m.out = 'blut'; this.res[m.t]++; } break;
+        case 'gly': case 'fs': if (r === 'duenn' && m.y > cy - 10 && P(0.45)) { m.out = 'lymph'; this.res[m.t]++; } break;
+        case 'h2o': if (r === 'dick' && this.M.filter(q => q.t === 'h2o' && !q.out && !q.dead).length > 2 && P(0.3)) { m.out = 'blut'; this.res.h2o++; } break;
+        case 'h': if (r !== 'magen' && P(1.5)) m.dead = true; break;
+        case 'bal': if (r === 'dick' && P(0.025)) m.dead = true; break;
+        case 'bak': if (r !== 'dick' && r !== 'end') m.dead = true; break;
+      }
+    });
+    this.M = this.M.filter(m => !m.dead);
+  },
+  draw() {
+    const r = this.region(), info = REGINFO[r], [bx, by] = ptAt(TRACT.P, this.d);
+    // --- Körper als weiche Silhouette (wie Schulbuch-Grafik) ---
+    const bodyG = g.createRadialGradient(200, 250, 20, 200, 250, 250); bodyG.addColorStop(0, '#fff1ea'); bodyG.addColorStop(0.55, '#fadccd'); bodyG.addColorStop(1, '#f2bfa8');
+    const armPath = mx => { const X = x => mx ? 400 - x : x; g.beginPath(); g.moveTo(X(96), 184); g.bezierCurveTo(X(72), 190, X(62), 212, X(62), 240); g.lineTo(X(56), 320); g.bezierCurveTo(X(52), 360, X(50), 395, X(50), 450); g.lineTo(X(80), 450); g.bezierCurveTo(X(81), 395, X(85), 360, X(89), 320); g.lineTo(X(106), 236); g.closePath(); };
+    const torsoPath = () => { g.beginPath(); g.moveTo(180, 120); g.lineTo(180, 146); g.bezierCurveTo(166, 158, 132, 160, 110, 168); g.bezierCurveTo(92, 174, 86, 190, 92, 208); g.lineTo(120, 234);
+      g.bezierCurveTo(124, 270, 128, 300, 126, 330); g.bezierCurveTo(124, 362, 118, 388, 120, 414); g.lineTo(122, 450); g.lineTo(193, 450); g.lineTo(195, 438); g.quadraticCurveTo(200, 428, 205, 438); g.lineTo(207, 450); g.lineTo(278, 450); g.lineTo(280, 414);
+      g.bezierCurveTo(282, 388, 276, 362, 274, 330); g.bezierCurveTo(272, 300, 276, 270, 280, 234); g.lineTo(308, 208); g.bezierCurveTo(314, 190, 308, 174, 290, 168); g.bezierCurveTo(268, 160, 234, 158, 220, 146); g.lineTo(220, 120); g.closePath(); };
+    const HEAD = crPts([[216, 150], [213, 118], [219, 106], [230, 102], [237, 96], [237, 89], [240, 84], [236, 79], [240, 74], [238, 69], [246, 64], [244, 58], [237, 48], [236, 38], [229, 22], [214, 9], [192, 5], [170, 12], [156, 30], [154, 54], [161, 78], [173, 96], [179, 118], [178, 150]], true, 8);
+    g.save(); g.shadowColor = 'rgba(200,120,95,.25)'; g.shadowBlur = 16;
+    [0, 1].forEach(mx => { armPath(mx); g.fillStyle = bodyG; g.fill(); });
+    torsoPath(); g.fillStyle = bodyG; g.fill(); poly(HEAD, true); g.fill();
+    g.restore();
+    // weiches Licht auf Kopf und Brust
+    const glow = (x, y, rad) => { const gg = g.createRadialGradient(x, y, 2, x, y, rad); gg.addColorStop(0, 'rgba(255,255,255,.55)'); gg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gg; g.beginPath(); g.arc(x, y, rad, 0, 7); g.fill(); };
+    g.save(); poly(HEAD, true); g.clip(); glow(196, 38, 46); g.restore();
+    g.save(); torsoPath(); g.clip(); glow(200, 200, 90); g.restore();
+    // nach unten ausblenden
+    const fade = g.createLinearGradient(0, 398, 0, 444); fade.addColorStop(0, 'rgba(247,243,238,0)'); fade.addColorStop(1, 'rgba(247,243,238,1)');
+    g.fillStyle = fade; g.fillRect(30, 398, 340, VY1 - 398 + 2);
+    // --- Kopf: Nasen- und Mundhöhle, Rachen ---
+    g.lineJoin = 'round';
+    poly(crPts([[242, 61], [226, 54], [206, 54], [194, 60], [197, 66], [216, 66], [238, 66]], true, 6), true); g.fillStyle = '#ee9aa2'; g.fill(); g.strokeStyle = '#c4505c'; g.lineWidth = 1.5; g.stroke();
+    strokePath([[236, 69], [200, 69]], '#f6c6c6', 3);
+    poly(crPts([[239, 75], [226, 72], [206, 72], [196, 76], [197, 84], [212, 86], [230, 84], [238, 80]], true, 6), true); g.fillStyle = '#b8424f'; g.fill();
+    g.fillStyle = '#e8737f'; g.beginPath(); g.ellipse(214, 81, 16, 4.6, -0.05, 0, 7); g.fill();
+    g.fillStyle = '#fffaf2'; rr(233, 72.5, 4, 2.6, 1); g.fill(); rr(233, 81.2, 4, 2.6, 1); g.fill();
+    g.strokeStyle = '#d65f6d'; g.lineWidth = 2.6; g.lineCap = 'round'; g.beginPath(); g.moveTo(240.5, 73.5); g.lineTo(238, 76); g.moveTo(238.5, 80.5); g.lineTo(240, 83.5); g.stroke();
+    [[180, 82, 4], [183, 90, 3.5], [177, 89, 3], [211, 96, 3.4], [217, 96, 3], [226, 89, 2.4]].forEach(([x, y, rad]) => ball(x, y, rad, '#f0c27a', '#c99a4c'));
+    g.strokeStyle = 'rgba(190,140,70,.8)'; g.lineWidth = 1; g.beginPath(); g.moveTo(183, 82); g.quadraticCurveTo(206, 72, 228, 76); g.moveTo(214, 94); g.lineTo(218, 86); g.stroke();
+    // Rachen und Speiseröhre (liegt hinter der Leber)
+    tube(crPts([[196, 60], [192, 74], [193, 92], ...TRACT.raw.speis], false, 6), '#ec8e98', 7, 'rgba(180,70,80,.5)');
+    if (!RAWD[r]) { g.save(); g.globalAlpha = 0.45 + 0.2 * Math.sin(T * 4); strokePath(crPts(TRACT.raw[r], false, 6), '#f2b705', 12); g.restore(); }
+    // --- Organe ---
+    g.save(); g.translate(BX - 195 * BS, BY - 156 * BS); g.scale(BS, BS);
+    const ST = crPts([[200, 172], [214, 158], [236, 156], [258, 170], [270, 196], [266, 226], [244, 246], [212, 248], [190, 242], [186, 230], [208, 224], [222, 208], [218, 190], [206, 180]], true, 6);
+    if (RAWD[r]) { g.save(); g.globalAlpha = 0.55 + 0.25 * Math.sin(T * 4); g.shadowColor = '#f2b705'; g.shadowBlur = 14; if (r === 'magen') { poly(ST, true); g.strokeStyle = '#f5c400'; g.lineWidth = 10; g.stroke(); } else strokePath(crPts(RAWD[r], false, 6), '#f5c400', r === 'dick' ? 30 : r === 'end' ? 22 : 20); g.restore(); }
+    // Magen
+    const ST2 = crPts([[200, 172], [214, 158], [236, 156], [258, 170], [270, 196], [266, 226], [244, 246], [212, 248], [190, 242], [186, 230], [208, 224], [222, 208], [218, 190], [206, 180]], true, 6);
+    const sg = g.createRadialGradient(240, 206, 4, 236, 206, 62); sg.addColorStop(0, '#fbb7c0'); sg.addColorStop(1, '#e6798b');
+    poly(ST, true); g.fillStyle = sg; g.fill(); g.strokeStyle = '#c45568'; g.lineWidth = 1.6; g.stroke();
+    g.strokeStyle = 'rgba(190,70,90,.3)'; g.lineWidth = 1.2; [[228, 190, 258, 206], [230, 206, 260, 224], [216, 236, 250, 232]].forEach(([a, b, c, d]) => { g.beginPath(); g.moveTo(a, b); g.quadraticCurveTo((a + c) / 2 + 4, (b + d) / 2 - 6, c, d); g.stroke(); });
+    ball(187, 237, 4, '#c45568');
+    // Bauchspeicheldrüse
+    g.fillStyle = '#ecc874'; g.strokeStyle = '#c69a45'; g.lineWidth = 1.4;
+    g.beginPath(); g.moveTo(178, 248); g.bezierCurveTo(200, 236, 240, 232, 264, 236); g.bezierCurveTo(274, 242, 266, 254, 252, 254); g.bezierCurveTo(230, 256, 205, 260, 186, 259); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.25)'; for (let x = 192; x < 258; x += 9) { g.beginPath(); g.arc(x, 246 + (x % 2), 2.6, 0, 7); g.fill(); }
+    // Zwölffingerdarm, Dünndarm
+    tube(crPts(RAWD.zwoelf, false, 6), '#f19aa3', 11, 'rgba(170,70,85,.55)');
+    const SI = crPts(RAWD.duenn, false, 6);
+    poly(crPts([[142, 284], [200, 278], [252, 286], [258, 330], [252, 370], [200, 378], [142, 374], [136, 330]], true, 6), true); g.fillStyle = '#df7f8c'; g.fill();
+    strokePath(SI, '#c96a77', 13.5); strokePath(SI, '#f3a0aa', 11); g.save(); g.translate(-1.6, -1.8); strokePath(SI, 'rgba(255,225,230,.55)', 3); g.restore();
+    // Dickdarm mit Ausbuchtungen
+    strokePath([[113, 392], [104, 404], [108, 416]], '#cf8a55', 7.5); strokePath([[113, 392], [104, 404], [108, 416]], '#f2b27c', 5);
+    const colon = crPts(RAWD.dick, false, 10), sac = [colon[0]]; let acc = 0;
+    for (let i = 1; i < colon.length; i++) { acc += Math.hypot(colon[i][0] - colon[i - 1][0], colon[i][1] - colon[i - 1][1]); if (acc >= 8.5) { acc = 0; sac.push(colon[i]); } }
+    const cec = [120, 386];
+    [cec, ...sac].forEach(([x, y], i) => ball(x, y, i ? 11.6 : 13.6, '#cf8a55'));
+    [cec, ...sac].forEach(([x, y], i) => { const R = i ? 10.2 : 12.2, cg = g.createRadialGradient(x - 3, y - 3, 1, x, y, R); cg.addColorStop(0, '#fbd3a8'); cg.addColorStop(1, '#eda56d'); g.fillStyle = cg; g.beginPath(); g.arc(x, y, R, 0, 7); g.fill(); });
+    strokePath(colon, 'rgba(255,240,220,.5)', 2.2);
+    tube(RAWD.end, '#eda56d', 12, 'rgba(180,110,60,.6)');
+    g.fillStyle = '#c47448'; g.beginPath(); g.ellipse(195, 425, 6.5, 2.8, 0, 0, 7); g.fill();
+    // Leber (liegt vor dem oberen Magen) und Gallenblase
+    const lg = g.createRadialGradient(150, 160, 6, 160, 170, 90); lg.addColorStop(0, '#c4523f'); lg.addColorStop(1, '#8a2a22');
+    g.fillStyle = lg; g.strokeStyle = '#6e2019'; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(106, 152); g.bezierCurveTo(128, 128, 226, 124, 258, 146); g.bezierCurveTo(264, 156, 250, 164, 234, 168); g.bezierCurveTo(214, 172, 198, 176, 186, 186); g.bezierCurveTo(170, 200, 144, 216, 122, 216); g.bezierCurveTo(106, 206, 102, 176, 106, 152); g.closePath(); g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(255,200,190,.25)'; g.lineWidth = 2; g.beginPath(); g.moveTo(186, 140); g.quadraticCurveTo(184, 160, 176, 186); g.stroke();
+    const gb = g.createRadialGradient(152, 204, 2, 156, 208, 12); gb.addColorStop(0, '#e2ee7a'); gb.addColorStop(1, '#8fae2c');
+    g.fillStyle = gb; g.beginPath(); g.ellipse(156, 208, 11, 6.5, 0.5, 0, 7); g.fill(); g.strokeStyle = '#6f8a22'; g.lineWidth = 1; g.stroke();
+    g.strokeStyle = this.v.galle ? '#7f9e2a' : 'rgba(127,158,42,.35)'; g.lineWidth = 2.6; g.setLineDash(this.v.galle ? [] : [3, 3]); g.beginPath(); g.moveTo(163, 213); g.quadraticCurveTo(171, 232, 168, 250); g.stroke(); g.setLineDash([]);
+    g.strokeStyle = '#c69a45'; g.lineWidth = 2; g.beginPath(); g.moveTo(186, 252); g.lineTo(170, 251); g.stroke();
+    g.restore();
+    // Bissen mit Peristaltik
+    const inBody = !!RAWD[r], sc = inBody ? BS * 1.15 : 1;
+    const br = { mund: 4.5, speis: 4.5, magen: 10, zwoelf: 5.5, duenn: 5.5, dick: 8, end: 7 }[r] * sc, col = r === 'magen' || r === 'zwoelf' || r === 'duenn' ? '#c49152' : r === 'dick' || r === 'end' ? '#6e4524' : '#9b6a35';
+    if (this.wait <= 0 || this.wait > 3) { const wob = r === 'magen' ? Math.sin(T * 6) * 1.2 : 0; g.fillStyle = col; g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 1; g.beginPath(); g.ellipse(bx, by, br + wob, br - wob, 0, 0, 7); g.fill(); g.stroke(); }
+    // Lupe
+    const lx = LUPE.x, ly = LUPE.y, lr = LUPE.r;
+    g.fillStyle = 'rgba(255,255,255,.45)'; g.strokeStyle = 'rgba(90,70,50,.35)'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(bx, by); g.lineTo(lx - lr * 0.55, ly - lr * 0.83); g.lineTo(lx - lr * 0.55, ly + lr * 0.83); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(bx, by); g.lineTo(lx - lr * 0.55, ly - lr * 0.83); g.moveTo(bx, by); g.lineTo(lx - lr * 0.55, ly + lr * 0.83); g.stroke();
+    g.strokeStyle = '#6b5a4a'; g.lineWidth = 12; g.lineCap = 'round'; g.beginPath(); g.moveTo(lx + lr * 0.74, ly + lr * 0.74); g.lineTo(lx + lr * 0.98, ly + lr * 0.98); g.stroke();
+    // Beschriftung
+    if (labels) {
+      const L = { size: 10, align: 'right' }, R = { size: 10 }, XL = 84, XR = 318;
+      lbl('Nasenhöhle', 222, 60, XR, 40, R);
+      lbl('Mundhöhle', 222, 80, XR, 66, R);
+      lbl('Speicheldrüsen', 180, 86, XL, 70, L);
+      lbl('Rachen', 193, 96, XL, 104, L);
+      lbl('Speiseröhre', 199, 160, XR, 140, R);
+      lbl('Leber', ...Mo([130, 170]), XL, 182, L);
+      lbl('Gallenblase', ...Mo([152, 210]), XL, 218, L);
+      lbl('Zwölffingerdarm', ...Mo([168, 254]), XL, 252, L);
+      lbl('Dickdarm', ...Mo([113, 330]), XL, 300, L);
+      lbl('Blinddarm', ...Mo([116, 390]), XL, 340, L);
+      lbl('Wurmfortsatz', ...Mo([105, 408]), XL, 364, L);
+      lbl('Magen', ...Mo([264, 206]), XR, 196, R);
+      lbl('Bauchspeicheldrüse', ...Mo([262, 244]), XR, 232, R);
+      lbl('Dünndarm', ...Mo([236, 330]), XR, 290, R);
+      lbl('Mastdarm', ...Mo([198, 408]), XR, 356, R);
+      lbl('After', ...Mo([195, 425]), XR, 384, R);
+    }
+    g.save(); g.shadowColor = 'rgba(0,0,0,.2)'; g.shadowBlur = 12; g.fillStyle = info.bg; g.beginPath(); g.arc(lx, ly, lr, 0, 7); g.fill(); g.restore();
+    g.save(); g.beginPath(); g.arc(lx, ly, lr, 0, 7); g.clip();
+    if (r === 'duenn' || r === 'dick') {
+      const wy = ly + lr - 24;
+      g.fillStyle = r === 'duenn' ? '#f2b8ab' : '#e2b199'; g.fillRect(lx - lr, wy, 2 * lr, 40);
+      if (r === 'duenn') for (let x = lx - lr + 8; x < lx + lr; x += 22) {
+        g.fillStyle = '#f2b8ab'; rr(x - 7, wy - 18, 14, 30, 7); g.fill(); g.strokeStyle = '#c9776b'; g.lineWidth = 1; g.stroke();
+        g.strokeStyle = '#d6263d'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(x - 3, wy + 14); g.lineTo(x - 3, wy - 10); g.stroke();
+        g.strokeStyle = '#e9cf63'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 2, wy + 14); g.lineTo(x + 2, wy - 8); g.stroke();
+      }
+      text(r === 'duenn' ? 'Darmwand mit Zotten' : 'Darmwand', lx, ly + lr - 6, { size: 9, weight: 700, align: 'center', color: '#7a3a30' });
+    }
+    this.M.forEach(m => { g.globalAlpha = clamp(m.alpha ?? 1, 0, 1); drawMol(m); g.globalAlpha = 1; });
+    if (this.wait > 0) text('ausgeschieden', lx, ly - lr + 30, { size: 12, weight: 800, align: 'center', bg: 'rgba(255,255,255,.9)' });
+    g.restore();
+    g.strokeStyle = '#6b5a4a'; g.lineWidth = 6; g.beginPath(); g.arc(lx, ly, lr, 0, 7); g.stroke();
+    g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = 2; g.beginPath(); g.arc(lx, ly, lr - 6, 3.6, 4.6); g.stroke();
+    text('Lupe: ' + info.name, lx, 82, { size: 12.5, weight: 800, align: 'center' });
+    text(info.enz, lx, 100, { size: 10, align: 'center', color: '#7a4a1a' });
+    if (info.ph) text(info.ph, lx, 114, { size: 10, weight: 700, align: 'center', color: r === 'magen' ? '#c0392b' : COL.muted });
+    // Legende
+    const LEG = [['st', 'Stärke', 0.55], ['eiw', 'Eiweiß', 0.6], ['mal', 'Maltose', 0.8], ['pep', 'Peptid', 0.8], ['glu', 'Glucose', 0.9], ['as', 'Aminosäure', 0.9], ['emu', 'Fetttröpfchen', 0.9], ['fs', 'Fettsäure', 0.8], ['gly', 'Glycerin', 0.8], ['bal', 'Ballaststoff', 0.8]];
+    LEG.forEach(([t, n, s], i) => { const x = 420 + (i % 2) * 112, y = 342 + Math.floor(i / 2) * 19; drawMol({ t, x: x + 16, y: y - 4, a: t === 'gly' ? 0 : 0, c: 0 }, s); text(n, x + 38, y, { size: 9.5, color: COL.muted }); });
+  },
+  out() {
+    const r = this.region(), info = REGINFO[r], c = this.cnt(), t = this.tot, pc = (a, b) => b ? a / b : 0;
+    let h = `<div class="orow t"><span>Ort</span><b>${info.name}</b></div>` + (info.dur ? `<div class="orow t"><span>Verweildauer</span><b>${info.dur}</b></div>` : '');
+    if (t.kh) h += bar('Stärke → Glucose', pc(c.glu, t.kh), Math.round(pc(c.glu, t.kh) * 100) + ' %', MC.kh);
+    if (t.aa) h += bar('Eiweiß → Aminosäuren', pc(c.as, t.aa), Math.round(pc(c.as, t.aa) * 100) + ' %', '#d0564f');
+    if (t.ft) h += bar('Fett → Glycerin + Fettsäuren', pc(c.fsg, t.ft), Math.round(pc(c.fsg, t.ft) * 100) + ' %', '#d4a514');
+    h += `<div class="orow t"><span>Ins Blut aufgenommen</span><b>${this.res.glu + this.res.as} Bausteine</b></div><div class="orow t"><span>In die Lymphe</span><b>${this.res.gly + this.res.fs} Bausteine</b></div>`;
+    if (!this.v.galle && t.ft && (r === 'dick' || r === 'end')) h += `<div class="orow t"><span>Ohne Galle</span><b style="color:#c0392b">Fett bleibt unverdaut</b></div>`;
+    return h;
+  }
+};
+
+/* ================= Station 2: Enzyme – Schlüssel-Schloss ================= */
+const ENZ = {
+  amy: { name: 'Amylase', col: '#2f8f83', notch: 'hex', sub: 'st', subN: 'Stärke', prod: 'Maltose' },
+  pep: { name: 'Pepsin', col: '#8d4fc4', notch: 'round', sub: 'eiw', subN: 'Eiweiß', prod: 'Peptide' },
+  lip: { name: 'Lipase', col: '#df7a1f', notch: 'rect', sub: 'tg', subN: 'Fett', prod: 'Glycerin + Fettsäuren' }
+};
+const NOTCH_H = { hex: 6.5, round: 6, rect: 9.5 };
+function drawEnz(x, y, a, type, s = 1, label = true) {
+  const E = ENZ[type], R = 24, h = NOTCH_H[E.notch], x0 = Math.sqrt(R * R - h * h);
+  g.save(); g.translate(x, y); g.rotate(a); g.scale(s, s);
+  const eg = g.createRadialGradient(-8, -8, 3, 0, 0, R + 8); eg.addColorStop(0, '#ffffffaa'); eg.addColorStop(0.25, E.col); eg.addColorStop(1, E.col);
+  g.fillStyle = E.col; [[-14, -14, 14], [-14, 14, 14], [-20, 0, 12]].forEach(([bx, by, br]) => { g.beginPath(); g.arc(bx, by, br, 0, 7); g.fill(); });
+  g.beginPath(); g.arc(0, 0, R, Math.asin(h / R), 2 * Math.PI - Math.asin(h / R)); g.lineTo(x0, -h);
+  if (E.notch === 'hex') { g.lineTo(x0 - 5, -h); g.lineTo(x0 - 10.5, 0); g.lineTo(x0 - 5, h); }
+  if (E.notch === 'round') { g.arc(x0, 0, h, -Math.PI / 2, Math.PI / 2, true); }
+  if (E.notch === 'rect') { g.lineTo(x0 - 6.5, -h); g.lineTo(x0 - 6.5, h); }
+  g.lineTo(x0, h); g.closePath(); g.fillStyle = eg; g.fill(); g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 1.2; g.stroke();
+  g.restore();
+  if (label) text(E.name, x - Math.cos(a) * 6, y - Math.sin(a) * 6 + 3, { size: 7.5 * Math.max(1, s * 0.8), weight: 800, align: 'center', color: '#fff' });
+}
+function notchPos(e) { const E = ENZ[e.type], R = 24 * (e.s || 1), h = NOTCH_H[E.notch] * (e.s || 1), x0 = Math.sqrt(R * R - h * h), d = x0 - (E.notch === 'hex' ? 5.6 : E.notch === 'round' ? 0.5 : 2.6) * (e.s || 1); return [e.x + Math.cos(e.a) * d, e.y + Math.sin(e.a) * d]; }
+function boundPose(e, t) { const [nx, ny] = notchPos(e), off = t === 'st' ? 2.5 * 9 : t === 'eiw' ? 2.5 * 8 : 0; return { x: nx + Math.cos(e.a) * off, y: ny + Math.sin(e.a) * off, a: e.a }; }
+const BOX = { x0: 14, y0: 132, x1: 626, y1: 428 };
+const enz = {
+  nav: 'Enzyme', bg: '#f3f6f4',
+  title: 'Enzyme: das Schlüssel-Schloss-Prinzip',
+  lead: 'Jedes Verdauungsenzym spaltet nur „sein“ Substrat – das, das in sein aktives Zentrum passt.',
+  controls: [
+    { t: 'seg', id: 'type', label: 'Enzym', opts: [['amy', 'Amylase'], ['pep', 'Pepsin (Protease)'], ['lip', 'Lipase']], v: 'amy' },
+    { t: 'toggles', items: [['sSt', 'Stärke', true], ['sEiw', 'Eiweiß', true], ['sTg', 'Fett', true]] },
+    { t: 'range', id: 'n', label: 'Anzahl Enzyme', min: 1, max: 6, step: 1, v: 4, fmt: v => v },
+    { t: 'buttons', items: [['fill', 'Substrat nachfüllen']] }
+  ],
+  was: 'Enzyme sind Eiweißstoffe, die als Biokatalysatoren chemische Reaktionen beschleunigen. Jedes Enzym hat ein aktives Zentrum mit einer ganz bestimmten Form. Nur ein Substrat, das genau hineinpasst, wird gebunden und gespalten – wie ein Schlüssel, der nur in ein bestimmtes Schloss passt. Danach werden die Produkte freigesetzt. Das Enzym bleibt unverändert und kann sofort das nächste Substrat umsetzen.',
+  merke: 'Schlüssel-Schloss-Prinzip: Enzyme sind substratspezifisch (jedes Enzym setzt nur ein bestimmtes Substrat um) und wirkungsspezifisch (es katalysiert nur eine bestimmte Reaktion). Amylase spaltet Stärke, Proteasen wie Pepsin spalten Eiweiße, Lipase spaltet Fette. Enzyme werden bei der Reaktion nicht verbraucht.',
+  frage: 'Wähle Amylase und lass nur Fett als Substrat übrig. Was beobachtest du? Erkläre. Was ändert sich, wenn du mehr Enzyme einsetzt?',
+  init() { this.E = []; this.S = []; this.done = 0; this.miss = 0; this.syncEnz(); this.fill(); },
+  syncEnz() {
+    const n = this.v.n;
+    while (this.E.length < n) this.E.push({ x: rnd(BOX.x0 + 60, BOX.x1 - 60), y: rnd(BOX.y0 + 50, BOX.y1 - 50), a: rnd(0, 7), w: rnd(-0.5, 0.5), vx: rnd(-10, 10), vy: rnd(-10, 10), busy: null, no: 0 });
+    while (this.E.length > n) { const e = this.E.pop(); if (e.busy) e.busy.m.bound = null; }
+    this.E.forEach(e => { e.type = this.v.type; });
+  },
+  fill() {
+    const on = [['st', this.v.sSt], ['eiw', this.v.sEiw], ['tg', this.v.sTg]];
+    on.forEach(([t, o]) => { if (!o) return; for (let i = 0; i < 6; i++) this.S.push({ t, x: rnd(BOX.x0 + 30, BOX.x1 - 30), y: rnd(BOX.y0 + 30, BOX.y1 - 30), a: rnd(0, 7), w: rnd(-0.8, 0.8), vx: rnd(-25, 25), vy: rnd(-25, 25), c: Math.floor(rnd(0, 6)) }); });
+    if (this.S.length > 120) this.S.splice(0, this.S.length - 120);
+  },
+  onChange(id) {
+    if (id === 'n' || id === 'type') { this.syncEnz(); this.E.forEach(e => { if (e.busy) { e.busy.m.bound = null; e.busy = null; } }); if (id === 'type') { this.done = 0; this.miss = 0; } }
+    if (id === 'fill') this.fill();
+    if (id === 'sSt' || id === 'sEiw' || id === 'sTg') { const map = { sSt: 'st', sEiw: 'eiw', sTg: 'tg' }, t = map[id]; if (!this.v[id]) { this.S = this.S.filter(m => m.t !== t || m.bound); } else this.fill(); }
+  },
+  step(dt) {
+    const B = BOX;
+    this.E.forEach(e => {
+      e.vx = (e.vx + rnd(-12, 12) * dt) * 0.99; e.vy = (e.vy + rnd(-12, 12) * dt) * 0.99; e.x += e.vx * dt; e.y += e.vy * dt; e.a += e.w * dt * (e.busy ? 0.2 : 1);
+      if (Math.random() < dt * 0.3) e.w = rnd(-0.6, 0.6);
+      if (e.x < B.x0 + 34 || e.x > B.x1 - 34) e.vx *= -1; if (e.y < B.y0 + 34 || e.y > B.y1 - 34) e.vy *= -1;
+      e.x = clamp(e.x, B.x0 + 34, B.x1 - 34); e.y = clamp(e.y, B.y0 + 34, B.y1 - 34);
+      e.no = Math.max(0, e.no - dt);
+      if (e.busy) {
+        e.busy.t += dt; const m = e.busy.m, p = boundPose(e, m.t); m.x += (p.x - m.x) * Math.min(1, dt * 12); m.y += (p.y - m.y) * Math.min(1, dt * 12); m.a = p.a;
+        if (e.busy.t > 0.9) { // Spaltung
+          m.dead = true; const ca = Math.cos(e.a), sa = Math.sin(e.a), push = (t, ox, oy, aa) => this.S.push({ t, x: m.x + ox, y: m.y + oy, a: aa, w: rnd(-1, 1), vx: ca * 40 + rnd(-15, 15), vy: sa * 40 + rnd(-15, 15), c: m.c, prod: true });
+          if (m.t === 'st') for (let i = 0; i < 3; i++) { const d = (i - 1) * 20; push('mal', ca * d, sa * d, e.a); }
+          if (m.t === 'eiw') for (let i = 0; i < 2; i++) { const d = (i - 0.5) * 26; push('pep', ca * d, sa * d, e.a); }
+          if (m.t === 'tg') { push('gly', 0, 0, e.a); for (let i = -1; i <= 1; i++) push('fs', ca * 16 - sa * i * 9, sa * 16 + ca * i * 9, e.a); }
+          e.busy = null; this.done++; e.flash = 0.5;
+        }
+      }
+      e.flash = Math.max(0, (e.flash || 0) - dt);
+    });
+    this.S.forEach(m => {
+      if (m.bound || m.dead) return;
+      moveMol(m, dt, 50);
+      const sz = MSIZE[m.t] * 0.5;
+      if (m.x < B.x0 + sz || m.x > B.x1 - sz) { m.vx *= -1; m.x = clamp(m.x, B.x0 + sz, B.x1 - sz); }
+      if (m.y < B.y0 + sz || m.y > B.y1 - sz) { m.vy *= -1; m.y = clamp(m.y, B.y0 + sz, B.y1 - sz); }
+      if (m.prod) return;
+      this.E.forEach(e => {
+        if (m.bound) return;
+        const [nx, ny] = notchPos(e);
+        // nächstes "Ende" des Substrats zur Bindestelle
+        const half = m.t === 'st' ? 2.5 * 9 : m.t === 'eiw' ? 2.5 * 8 : 0, ca = Math.cos(m.a), sa = Math.sin(m.a);
+        const ends = half ? [[m.x - ca * half, m.y - sa * half], [m.x + ca * half, m.y + sa * half]] : [[m.x, m.y]];
+        const near = ends.some(([px, py]) => Math.hypot(px - nx, py - ny) < 16);
+        if (!e.busy && ENZ[e.type].sub === m.t) { let best = null, bd = 1e9; ends.forEach(([px, py]) => { const d = Math.hypot(px - nx, py - ny); if (d < bd) { bd = d; best = [px, py]; } }); if (bd < 140) { m.vx += (nx - best[0]) * 2.2 * dt * 10; m.vy += (ny - best[1]) * 2.2 * dt * 10; m.vx *= 0.96; m.vy *= 0.96; } }
+        if (near) {
+          if (!e.busy && ENZ[e.type].sub === m.t) { m.bound = e; e.busy = { m, t: 0 }; }
+          else if (ENZ[e.type].sub !== m.t && e.no <= 0) { e.no = 0.6; this.miss++; m.vx = (m.x - e.x) * 1.5; m.vy = (m.y - e.y) * 1.5; }
+        }
+        const dd = Math.hypot(m.x - e.x, m.y - e.y);
+        if (dd < 28 && !m.bound) { m.vx += (m.x - e.x) / dd * 30; m.vy += (m.y - e.y) / dd * 30; }
+      });
+    });
+    this.S = this.S.filter(m => !m.dead);
+    // alte Produkte entfernen, wenn zu viele
+    const prods = this.S.filter(m => m.prod); if (prods.length > 70) { const rm = new Set(prods.slice(0, prods.length - 70)); this.S = this.S.filter(m => !rm.has(m)); }
+  },
+  draw() {
+    const E = ENZ[this.v.type], sub = E.sub;
+    // Ablauf oben
+    const P = [[20, '① Substrat nähert sich'], [176, '② passt ins aktive Zentrum'], [332, '③ wird gespalten'], [488, '④ Produkte frei – Enzym bleibt']];
+    P.forEach(([x, cap], i) => {
+      g.fillStyle = '#ffffff'; rr(x, 14, 136, 104, 12); g.fill(); g.strokeStyle = '#d5e0dc'; g.lineWidth = 1; g.stroke();
+      const ex = x + 40, ey = 58, e = { x: ex, y: ey, a: 0, type: this.v.type, s: 1 };
+      drawEnz(ex, ey, 0, this.v.type, 1, true);
+      const p = boundPose(e, sub);
+      if (i === 0) drawMol({ t: sub, x: p.x + 26, y: ey - 6, a: -0.3, c: 0 });
+      if (i === 1 || i === 2) { drawMol({ t: sub, x: p.x, y: p.y, a: 0, c: 0 }); if (i === 2) { g.strokeStyle = '#c0392b'; g.lineWidth = 2; g.setLineDash([3, 2]); g.beginPath(); const cx = sub === 'st' ? p.x - 13.5 : sub === 'eiw' ? p.x : p.x + 4; g.moveTo(cx, ey - 16); g.lineTo(cx, ey + 16); g.stroke(); g.setLineDash([]); text('✂', cx, ey - 18, { size: 11, align: 'center', color: '#c0392b' }); } }
+      if (i === 3) { if (sub === 'st') [[ex + 52, 38], [ex + 74, 60], [ex + 50, 80]].forEach(([x2, y2]) => drawMol({ t: 'mal', x: x2, y: y2, a: 0.3 })); if (sub === 'eiw') [[ex + 58, 42], [ex + 60, 76]].forEach(([x2, y2], k) => drawMol({ t: 'pep', x: x2, y: y2, a: -0.2, c: k * 3 })); if (sub === 'tg') { drawMol({ t: 'gly', x: ex + 44, y: 46, a: 0 }); [[ex + 72, 40], [ex + 76, 62], [ex + 60, 84]].forEach(([x2, y2]) => drawMol({ t: 'fs', x: x2, y: y2, a: 0.4 })); } }
+      text(cap, x + 68, 112, { size: 9, weight: 700, align: 'center', color: '#2b3b37' });
+      if (i < 3) text('→', x + 146, 64, { size: 14, weight: 800, align: 'center', color: COL.muted });
+    });
+    // Reaktionsraum
+    g.fillStyle = '#ffffff'; rr(BOX.x0, BOX.y0, BOX.x1 - BOX.x0, BOX.y1 - BOX.y0, 14); g.fill(); g.strokeStyle = '#d5e0dc'; g.lineWidth = 1.5; g.stroke();
+    this.S.forEach(m => { if (!m.bound) { g.globalAlpha = m.prod ? 0.85 : 1; drawMol(m); g.globalAlpha = 1; } });
+    this.E.forEach(e => {
+      if (e.flash) { g.fillStyle = `rgba(47,138,62,${e.flash * 0.5})`; g.beginPath(); g.arc(e.x, e.y, 38, 0, 7); g.fill(); }
+      drawEnz(e.x, e.y, e.a, e.type, 1, true);
+      if (e.busy) drawMol(e.busy.m);
+      if (e.no > 0) { const [nx, ny] = notchPos(e); text('✗', nx + Math.cos(e.a) * 14, ny + Math.sin(e.a) * 14 + 5, { size: 15, weight: 800, align: 'center', color: '#c0392b' }); }
+    });
+    if (labels) {
+      text('Reaktionsraum', BOX.x0 + 10, BOX.y0 + 18, { size: 10.5, weight: 800, color: COL.muted });
+      text(`${E.name} spaltet nur ${E.subN} → ${E.prod}`, BOX.x1 - 10, BOX.y0 + 18, { size: 10.5, weight: 700, align: 'right', color: E.col });
+      text('↑ aktives Zentrum', 64, 92, { size: 8.5, align: 'center', color: COL.muted });
+    }
+  },
+  out() {
+    const E = ENZ[this.v.type], left = this.S.filter(m => m.t === E.sub && !m.dead).length;
+    return `<div class="orow t"><span>Enzym</span><b style="color:${E.col}">${E.name}</b></div><div class="orow t"><span>passendes Substrat</span><b>${E.subN}</b></div><div class="orow t"><span>Produkte</span><b>${E.prod}</b></div>` +
+      `<div class="orow t"><span>gespalten</span><b>${this.done} Moleküle</b></div><div class="orow t"><span>passendes Substrat übrig</span><b>${left}</b></div><div class="orow t"><span>passt nicht (abgeprallt)</span><b>${this.miss}×</b></div>`;
+  }
+};
+
+/* ================= Station 3: Temperatur und pH ================= */
+const EBED = {
+  amy: { name: 'Speichel-Amylase', opt: 6.8, sig: 1.4, sub: 'Stärke', col: '#2f8f83' },
+  pep: { name: 'Pepsin', opt: 2, sig: 1.1, sub: 'Eiweiß (Eiklar)', col: '#8d4fc4' }
+};
+const fT = T => Math.pow(2, (T - 37) / 10);
+const kDen = T => T > 38 ? 0.02 * (Math.exp((T - 38) / 4) - 1) : 0;
+const fPH = (ph, e) => Math.exp(-((ph - EBED[e].opt) ** 2) / (2 * EBED[e].sig ** 2));
+const actCurveT = T => fT(T) * Math.exp(-kDen(T) * 12);
+const ACT_MAX = Math.max(...Array.from({ length: 81 }, (_, T) => actCurveT(T)));
+const phColor = ph => { const st = [[1, [214, 40, 40]], [3, [240, 120, 40]], [5, [235, 200, 50]], [7, [80, 170, 70]], [9, [40, 110, 200]], [11, [110, 60, 160]]]; for (let i = 0; i < st.length - 1; i++) if (ph <= st[i + 1][0]) return mixRGB(st[i][1], st[i + 1][1], (ph - st[i][0]) / (st[i + 1][0] - st[i][0])); return mixRGB(st[5][1], st[5][1], 0); };
+const bed = {
+  nav: 'Temperatur & pH', bg: '#f4f5f8',
+  title: 'Enzyme brauchen die richtigen Bedingungen',
+  lead: 'Ein Reagenzglasversuch: Wie schnell baut das Enzym sein Substrat ab – bei verschiedenen Temperaturen und pH-Werten?',
+  controls: [
+    { t: 'seg', id: 'e', label: 'Versuch', opts: [['amy', 'Amylase + Stärke (Iodprobe)'], ['pep', 'Pepsin + Eiklar']], v: 'amy' },
+    { t: 'range', id: 'T', label: 'Temperatur', min: 0, max: 80, step: 1, v: 37, fmt: v => v + ' °C' },
+    { t: 'range', id: 'ph', label: 'pH-Wert', min: 1, max: 11, step: 0.5, v: 7, fmt: v => fmt1(v) },
+    { t: 'toggles', items: [['fast', 'Zeitraffer', false]] },
+    { t: 'buttons', items: [['neu', 'Neuer Ansatz']] }
+  ],
+  was: 'Im Reagenzglas ist Stärkelösung mit etwas Iodlösung und Speichel. Solange Stärke vorhanden ist, färbt Iod die Lösung blau-schwarz. Baut die Amylase die Stärke ab, verschwindet die Färbung: Die Lösung wird gelb-braun wie die Iodlösung selbst. Je wärmer es ist, desto schneller bewegen sich die Teilchen und desto öfter treffen Enzym und Substrat aufeinander – bis etwa 40 °C. Darüber verändert das Enzym seine räumliche Form (Denaturierung): Das aktive Zentrum passt nicht mehr, das Enzym ist dauerhaft unbrauchbar. Beim Pepsin-Versuch löst sich trübes, geronnenes Eiklar auf, wenn das Enzym arbeitet.',
+  merke: 'Jedes Enzym hat ein Temperaturoptimum (beim Menschen um 37 °C) und ein pH-Optimum: Speichel-Amylase arbeitet am besten bei pH 7, Pepsin im sauren Magensaft bei pH 1,5–2. Kälte verlangsamt Enzyme nur (umkehrbar), Hitze zerstört sie (Denaturierung, nicht umkehrbar). RGT-Regel: 10 °C wärmer → etwa doppelt so schnell, solange das Enzym nicht denaturiert.',
+  frage: 'Stelle 0 °C ein und beobachte eine Weile. Erwärme dann auf 37 °C. Wiederhole den Versuch mit 70 °C und kühle danach ab. Erkläre den Unterschied. Warum ist hohes Fieber über 42 °C lebensgefährlich?',
+  init() { this.reset(); },
+  reset() { this.S = 1; this.N = 1; this.t = 0; this.P = Array.from({ length: 9 }, () => ({ x: rnd(-14, 14), y: rnd(0, 180), vx: rnd(-1, 1), vy: rnd(-1, 1), a: rnd(0, 7) })); this.F = Array.from({ length: 34 }, () => ({ x: rnd(-15, 15), y: rnd(10, 190), r: rnd(1.5, 3.5) })); },
+  onChange(id) { if (id === 'neu' || id === 'e') this.reset(); },
+  act() { return fT(this.v.T) * fPH(this.v.ph, this.v.e) * this.N; },
+  step(dt) {
+    const k = this.v.fast ? 4 : 1, d = dt * k, T = this.v.T;
+    this.N *= Math.exp(-kDen(T) * d);
+    this.S = Math.max(0, this.S - 0.11 * this.act() * this.S / (this.S + 0.15) * d);
+    this.t += d;
+    const sp = 18 + T * 1.3;
+    this.P.forEach(p => { p.vx += rnd(-1, 1) * dt * 6; p.vy += rnd(-1, 1) * dt * 6; const n = Math.hypot(p.vx, p.vy) || 1; p.vx /= n; p.vy /= n; p.x += p.vx * sp * dt; p.y += p.vy * sp * dt; p.a += dt * 2; if (Math.abs(p.x) > 15) { p.vx *= -1; p.x = clamp(p.x, -15, 15); } if (p.y < 4 || p.y > 196) { p.vy *= -1; p.y = clamp(p.y, 4, 196); } });
+  },
+  draw() {
+    const T = this.v.T, e = this.v.e, E = EBED[e];
+    // Wasserbad
+    const wcol = T < 37 ? mixRGB([200, 228, 250], [230, 238, 240], T / 37) : mixRGB([240, 230, 225], [255, 176, 150], (T - 37) / 43);
+    g.fillStyle = 'rgba(200,215,225,.35)'; rr(34, 150, 236, 262, 18); g.fill(); g.strokeStyle = '#9aaab5'; g.lineWidth = 3; g.stroke();
+    g.fillStyle = wcol; rr(37, 190, 230, 219, 16); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 2; g.beginPath(); for (let x = 40; x < 266; x += 4) g.lineTo(x, 190 + Math.sin(x / 9 + T * 0.1 + this.t * 2) * 1.5); g.stroke();
+    if (T < 6) [[70, 205], [210, 210], [235, 198]].forEach(([x, y]) => { g.fillStyle = 'rgba(255,255,255,.85)'; rr(x, y, 18, 15, 3); g.fill(); g.strokeStyle = '#aac8e0'; g.lineWidth = 1; g.stroke(); });
+    if (T > 55) for (let i = 0; i < 4; i++) { const x = 70 + i * 50, ph = (this.t * 0.6 + i * 0.3) % 1; g.strokeStyle = `rgba(160,160,170,${0.5 * (1 - ph)})`; g.lineWidth = 2.5; g.beginPath(); g.moveTo(x, 182 - ph * 50); g.bezierCurveTo(x + 8, 172 - ph * 50, x - 8, 160 - ph * 50, x, 148 - ph * 50); g.stroke(); }
+    // Reagenzglas
+    const tx = 150, top = 92, bot = 392, lt = 176;
+    let liq;
+    if (e === 'amy') liq = mixRGB([214, 160, 64], [28, 34, 92], clamp(this.S * 1.15, 0, 1));
+    else liq = mixRGB([250, 246, 232], [238, 234, 220], this.S);
+    g.save(); g.beginPath(); g.moveTo(tx - 20, top); g.lineTo(tx - 20, bot - 20); g.arc(tx, bot - 20, 20, Math.PI, 0, true); g.lineTo(tx + 20, top); g.closePath(); g.clip();
+    g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(tx - 22, top, 44, bot - top);
+    g.fillStyle = liq; g.fillRect(tx - 22, lt, 44, bot - lt);
+    if (e === 'pep') { this.F.forEach((f, i) => { if (i / this.F.length < this.S) { g.fillStyle = 'rgba(255,255,255,.95)'; g.beginPath(); g.arc(tx + f.x, lt + f.y, f.r, 0, 7); g.fill(); g.strokeStyle = 'rgba(180,170,150,.6)'; g.lineWidth = 0.8; g.stroke(); } }); }
+    const nDen = Math.round((1 - this.N) * this.P.length);
+    this.P.forEach((p, i) => {
+      const x = tx + p.x, y = lt + 8 + p.y * 0.95;
+      if (i < nDen) { g.strokeStyle = E.col; g.lineWidth = 1.6; g.beginPath(); for (let k = 0; k < 7; k++) g.lineTo(x - 6 + k * 2, y + Math.sin(k * 2.2 + i) * 3); g.stroke(); }
+      else { g.fillStyle = E.col; g.beginPath(); g.moveTo(x, y); g.arc(x, y, 4.2, p.a + 0.6, p.a + 2 * Math.PI - 0.6); g.closePath(); g.fill(); g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 0.8; g.stroke(); }
+    });
+    g.restore();
+    g.strokeStyle = '#7f8c96'; g.lineWidth = 2; g.beginPath(); g.moveTo(tx - 20, top - 4); g.lineTo(tx - 20, bot - 20); g.arc(tx, bot - 20, 20, Math.PI, 0, true); g.lineTo(tx + 20, top - 4); g.stroke();
+    g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 3; g.beginPath(); g.moveTo(tx - 13, top + 10); g.lineTo(tx - 13, bot - 30); g.stroke();
+    // Thermometer
+    const thx = 236, t0 = 220, t1 = 390, hT = (t1 - t0) * clamp(T / 80, 0, 1);
+    g.fillStyle = '#fff'; rr(thx - 6, t0 - 6, 12, t1 - t0 + 10, 6); g.fill(); g.strokeStyle = '#8899a6'; g.lineWidth = 1.5; g.stroke();
+    g.fillStyle = '#d33'; g.fillRect(thx - 3, t1 - hT, 6, hT); ball(thx, t1 + 6, 8, '#d33', '#8899a6');
+    text(T + ' °C', thx, t0 - 12, { size: 12, weight: 800, align: 'center', bg: 'rgba(255,255,255,.9)' });
+    // pH-Teststreifen
+    g.fillStyle = '#fff'; rr(52, 214, 30, 62, 4); g.fill(); g.strokeStyle = '#aab'; g.lineWidth = 1; g.stroke();
+    g.fillStyle = phColor(this.v.ph); rr(56, 218, 22, 22, 3); g.fill();
+    text('pH ' + fmt1(this.v.ph), 67, 262, { size: 10, weight: 800, align: 'center' });
+    // Ergebnis
+    let res;
+    if (e === 'amy') res = this.S > 0.6 ? 'blau-schwarz: viel Stärke' : this.S > 0.15 ? 'dunkel: noch etwas Stärke' : 'gelb-braun: Stärke abgebaut';
+    else res = this.S > 0.6 ? 'trüb: viel Eiweiß' : this.S > 0.15 ? 'leicht trüb' : 'klar: Eiweiß abgebaut';
+    text(e === 'amy' ? 'Iodprobe' : 'Eiklar-Probe', 150, 30, { size: 12, weight: 800, align: 'center' });
+    text(res, 150, 48, { size: 11, weight: 700, align: 'center', bg: 'rgba(255,255,255,.9)', color: this.S > 0.15 ? '#1b2a27' : '#2f8a3e' });
+    text('Zeit im Modell: ' + Math.floor(this.t) + ' min', 150, 66, { size: 10, align: 'center', color: COL.muted });
+    if (this.N < 0.5) text('Enzym denaturiert!', 150, 136, { size: 11.5, weight: 800, align: 'center', color: '#c0392b', bg: 'rgba(255,255,255,.92)' });
+    if (labels) { lbl(E.name, tx - 6, lt + 40, 28, 128, { size: 10 }); lbl('Wasserbad', 70, 380, 40, 432, { size: 10 }); }
+    // Diagramme
+    const chart = (x0, y0, w, h, xmin, xmax, fn, cur, xl, ticks, title, extra) => {
+      g.fillStyle = '#fff'; rr(x0 - 34, y0 - 26, w + 48, h + 62, 12); g.fill(); g.strokeStyle = '#dde3ea'; g.lineWidth = 1; g.stroke();
+      text(title, x0 - 24, y0 - 9, { size: 11, weight: 800 });
+      g.strokeStyle = '#c7cfd8'; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x0, y0 + h); g.lineTo(x0 + w, y0 + h); g.stroke();
+      ticks.forEach(v => { const X = x0 + (v - xmin) / (xmax - xmin) * w; text(String(v), X, y0 + h + 13, { size: 9, align: 'center', color: COL.muted }); g.strokeStyle = '#eef1f4'; g.beginPath(); g.moveTo(X, y0); g.lineTo(X, y0 + h); g.stroke(); });
+      text(xl, x0 + w, y0 + h + 26, { size: 9, align: 'right', color: COL.muted });
+      text('Aktivität', x0 - 4, y0 + 8, { size: 8.5, align: 'right', color: COL.muted });
+      if (extra) extra();
+      g.strokeStyle = E.col; g.lineWidth = 2.6; g.beginPath(); for (let i = 0; i <= 80; i++) { const v = xmin + (xmax - xmin) * i / 80; g.lineTo(x0 + i / 80 * w, y0 + h - fn(v) * h * 0.92); } g.stroke();
+      const X = x0 + (cur - xmin) / (xmax - xmin) * w, Y = y0 + h - fn(cur) * h * 0.92;
+      g.strokeStyle = 'rgba(192,57,43,.5)'; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(X, y0); g.lineTo(X, y0 + h); g.stroke(); g.setLineDash([]);
+      ball(X, Y, 5.5, '#c0392b', '#fff');
+    };
+    chart(370, 44, 240, 120, 0, 80, v => actCurveT(v) / ACT_MAX, T, 'Temperatur in °C', [0, 20, 37, 60, 80], 'Aktivität und Temperatur', () => {
+      g.fillStyle = 'rgba(192,57,43,.07)'; const x = 370 + 42 / 80 * 240; g.fillRect(x, 44, 610 - x, 120); text('Denaturierung', 560, 58, { size: 8.5, align: 'center', color: '#c0392b' });
+    });
+    const other = e === 'amy' ? 'pep' : 'amy';
+    chart(370, 262, 240, 120, 1, 11, v => fPH(v, e), this.v.ph, 'pH-Wert', [1, 3, 5, 7, 9, 11], 'Aktivität und pH-Wert', () => {
+      g.strokeStyle = 'rgba(120,130,140,.45)'; g.lineWidth = 1.6; g.setLineDash([4, 3]); g.beginPath(); for (let i = 0; i <= 80; i++) { const v = 1 + 10 * i / 80; g.lineTo(370 + i / 80 * 240, 382 - fPH(v, other) * 120 * 0.92); } g.stroke(); g.setLineDash([]);
+      text(EBED[other].name.replace('Speichel-', ''), 370 + (EBED[other].opt - 1) / 10 * 240, 276, { size: 8.5, align: 'center', color: COL.muted });
+      for (let i = 0; i < 10; i++) { g.fillStyle = phColor(1 + i * 10 / 9); g.fillRect(370 + i * 24, 377, 24, 4); }
+    });
+  },
+  out() {
+    const a = this.act() / ACT_MAX;
+    return bar('Enzymaktivität jetzt', a, Math.round(clamp(a, 0, 1) * 100) + ' %', EBED[this.v.e].col) +
+      bar(EBED[this.v.e].sub + ' übrig', this.S, Math.round(this.S * 100) + ' %', this.v.e === 'amy' ? '#24346b' : '#b9b2a0') +
+      bar('Enzym intakt', this.N, Math.round(this.N * 100) + ' %', this.N > 0.5 ? '#2f8a3e' : '#c0392b') +
+      `<div class="orow t"><span>Optimum</span><b>ca. 37–40 °C · pH ${fmt1(EBED[this.v.e].opt)}</b></div>`;
+  }
+};
+
+/* ================= Station 4: Dünndarm – Aufnahme ================= */
+const VC = { x: 335, top: 160, w: 36, base: 400 };
+const VILLI = [{ x: VC.x - 98, top: 210, w: 30 }, { x: VC.x, top: VC.top, w: VC.w }, { x: VC.x + 98, top: 210, w: 30 }];
+const villusAt = (x, y, pad = 0) => VILLI.findIndex(v => (Math.abs(x - v.x) < v.w + pad && y > v.top) || Math.hypot(x - v.x, y - v.top) < v.w + pad);
+const zot = {
+  nav: 'Dünndarm & Zotten', bg: '#f8f2ee',
+  title: 'Dünndarm: Aufnahme ins Blut',
+  lead: 'Falten, Zotten und Mikrovilli vergrößern die Oberfläche des Dünndarms. So können die Bausteine der Nahrung schnell ins Blut und in die Lymphe gelangen.',
+  controls: [
+    { t: 'toggles', items: [['F', 'Ringfalten', true], ['Z', 'Darmzotten', true], ['Mv', 'Mikrovilli', true]] },
+    { t: 'range', id: 'food', label: 'Nährstoffangebot', min: 1, max: 5, step: 1, v: 3, fmt: v => ['', 'gering', 'wenig', 'mittel', 'viel', 'sehr viel'][v] }
+  ],
+  was: 'Die Schleimhaut des Dünndarms bildet Ringfalten. Darauf sitzen Millionen fingerförmiger Darmzotten, und jede Darmzelle trägt an ihrer Oberfläche winzige Ausstülpungen, die Mikrovilli. Glucose und Aminosäuren gelangen durch die Darmzellen in die Blutkapillaren der Zotte und von dort über die Pfortader zur Leber. Glycerin und Fettsäuren werden in den Darmzellen wieder zu Fett zusammengebaut und gelangen in das Lymphgefäß der Zotte.',
+  merke: 'Prinzip der Oberflächenvergrößerung: Je größer die Oberfläche, desto mehr Stoffe können pro Zeit aufgenommen werden. Ein glattes Rohr von 3 m Länge hätte nur etwa 0,3 m² Innenfläche. Mit Falten (×3), Zotten (×10) und Mikrovilli (×20) sind es nach Lehrbuch-Schätzung rund 170–200 m². Neuere Messungen kommen auf etwa 30 m² – das Prinzip bleibt gleich. Zucker und Aminosäuren → Blut (Pfortader → Leber); Fette → Lymphe.',
+  frage: 'Schalte nacheinander Falten, Zotten und Mikrovilli aus. Wie verändert sich die Oberfläche? Welche Folgen hätte eine Erkrankung, bei der die Zotten zerstört werden (z. B. unbehandelte Zöliakie)?',
+  init() { this.M = []; this.acc = 0; this.log = []; },
+  area() { return 0.28 * (this.v.F ? 3 : 1) * (this.v.Z ? 10 : 1) * (this.v.Mv ? 20 : 1); },
+  step(dt) {
+    this.acc += dt * (0.4 + this.v.food * 0.55);
+    while (this.acc >= 1) { this.acc -= 1; const r = Math.random(), t = r < 0.4 ? 'glu' : r < 0.7 ? 'as' : r < 0.9 ? 'fs' : 'gly'; this.M.push({ t, x: rnd(222, 448), y: rnd(70, 110), a: rnd(0, 7), w: rnd(-1, 1), vx: rnd(-20, 20), vy: rnd(25, 45), c: Math.floor(rnd(0, 6)), st: 'lumen' }); }
+    const z = this.v.Z, mv = this.v.Mv, flatY = 360;
+    const pAbs = Math.max(0.012, 0.9 * this.area() / 168);
+    this.M.forEach(m => {
+      if (m.st === 'lumen') {
+        m.vx = (m.vx + rnd(-70, 70) * dt) * 0.993; m.vy = (m.vy + (rnd(-70, 70) + 18) * dt) * 0.993; m.x += m.vx * dt; m.y += m.vy * dt; m.a += m.w * dt;
+        if (m.x < 222) { m.x = 222; m.vx = Math.abs(m.vx); } if (m.x > 448) { m.x = 448; m.vx = -Math.abs(m.vx); } if (m.y < 60) { m.y = 60; m.vy = Math.abs(m.vy); }
+        if (m.y > 396) { m.y = 396; m.vy = -Math.abs(m.vy) - 5; }
+        const vi = z ? villusAt(m.x, m.y, 5) : -1, touch = z ? vi >= 0 : m.y > flatY - 6;
+        if (touch) {
+          if (Math.random() < pAbs * dt * 8) { m.st = 'cell'; m.tt = 0; m.vi = vi; const fat = m.t === 'fs' || m.t === 'gly'; m.dest = fat ? 'lymph' : 'blut'; this.log.push([T, m.dest]); }
+          else if (z) { const v = VILLI[vi], dy = m.y < v.top ? m.y - v.top : 0, dx = m.x - v.x, d = Math.hypot(dx, dy) || 1; m.vx = dx / d * 35; m.vy = dy / d * 35; m.x += dx / d * 2; m.y += dy / d * 2; }
+          else m.vy = -Math.abs(m.vy) - 10;
+        }
+      } else if (m.st === 'cell') {
+        m.tt += dt;
+        const V = z ? VILLI[m.vi] : null, tx = z ? (m.dest === 'lymph' ? V.x : V.x + (m.x > V.x ? 0.55 : -0.55) * V.w) : m.x, ty = z ? Math.max(m.y, V.top + 10) : flatY + (m.dest === 'lymph' ? 30 : 16);
+        m.x += (tx - m.x) * Math.min(1, dt * 2.5); m.y += (ty - m.y) * Math.min(1, dt * 2.5);
+        if (m.tt > 0.8) { m.st = 'vessel'; if (m.dest === 'lymph' && m.t === 'gly') m.fat = true; }
+      } else {
+        if (z) { const V = VILLI[m.vi]; m.x += ((m.dest === 'lymph' ? V.x : V.x + 0.55 * V.w) - m.x) * Math.min(1, dt * 3); m.y += 90 * dt; }
+        else { m.x += (m.dest === 'lymph' ? -40 : 50) * dt; m.y += ((flatY + (m.dest === 'lymph' ? 30 : 16)) - m.y) * Math.min(1, dt * 3); }
+        if (m.y > 440 || m.x < 214 || m.x > 456) m.dead = true;
+      }
+    });
+    this.M = this.M.filter(m => !m.dead).slice(-140);
+    this.log = this.log.filter(l => T - l[0] < 6);
+  },
+  draw() {
+    const F = this.v.F, Z = this.v.Z, Mv = this.v.Mv;
+    const badge = (x, y, t, on) => { text(t, x, y, { size: 10, weight: 800, align: 'center', color: on ? '#fff' : '#9aa', bg: on ? '#c2410c' : '#eceae6' }); };
+    // --- Querschnitt ---
+    const cx = 108, cy = 250;
+    text('Querschnitt Dünndarm', cx, 30, { size: 11.5, weight: 800, align: 'center' });
+    badge(cx, 50, 'Ringfalten ×3', F);
+    g.fillStyle = '#e9a493'; g.beginPath(); g.arc(cx, cy, 92, 0, 7); g.fill();
+    g.fillStyle = '#d97f6f'; g.beginPath(); g.arc(cx, cy, 86, 0, 7); g.fill();
+    g.strokeStyle = 'rgba(150,60,50,.25)'; g.lineWidth = 1; for (let r0 = 76; r0 < 86; r0 += 3) { g.beginPath(); g.arc(cx, cy, r0, 0, 7); g.stroke(); }
+    g.fillStyle = '#f2c3b2'; g.beginPath(); g.arc(cx, cy, 74, 0, 7); g.fill();
+    const Q = []; for (let i = 0; i < 720; i++) { const th = i / 720 * 2 * Math.PI; let r0 = 66; if (F) r0 -= 26 * Math.pow(Math.max(0, Math.sin(8 * th)), 2); if (Z) r0 -= 3 * Math.abs(Math.sin(110 * th)); Q.push([cx + Math.cos(th) * r0, cy + Math.sin(th) * r0]); }
+    poly(Q, true); g.fillStyle = '#fbefdc'; g.fill(); g.strokeStyle = '#e09a86'; g.lineWidth = 1.5; g.stroke();
+    text('Lumen', cx, cy + 4, { size: 9.5, align: 'center', color: COL.muted });
+    if (labels) { lbl('Muskelschicht', cx - 70, cy + 52, cx - 40, 390, { size: 9.5, align: 'center' }); lbl(F ? 'Ringfalte' : 'Schleimhaut', cx + 40, cy - 8 - (F ? 0 : 10), cx + 40, 380, { size: 9.5, align: 'center' }); }
+    // Zoom-Rahmen
+    const zx = cx + 30, zy = cy - 58; g.strokeStyle = '#c2410c'; g.lineWidth = 1.5; g.strokeRect(zx - 10, zy - 10, 20, 20);
+    g.strokeStyle = 'rgba(194,65,12,.35)'; g.beginPath(); g.moveTo(zx + 10, zy - 10); g.lineTo(214, 62); g.moveTo(zx + 10, zy + 10); g.lineTo(214, 430); g.stroke();
+    // --- Zotte ---
+    g.save(); g.beginPath(); rr(214, 62, 242, 368, 12); g.clip();
+    g.fillStyle = '#fbf2e2'; g.fillRect(214, 62, 242, 368);
+    const villPath = () => { g.beginPath(); g.moveTo(VC.x - VC.w, 440); g.lineTo(VC.x - VC.w, VC.top); g.arc(VC.x, VC.top, VC.w, Math.PI, 0); g.lineTo(VC.x + VC.w, 440); g.closePath(); };
+    if (Z) {
+      // Nachbarzotten angedeutet
+      [[VC.x - 98, 0.75], [VC.x + 98, 0.75]].forEach(([x, s]) => { g.fillStyle = '#f3c2b2'; g.beginPath(); g.moveTo(x - 30, 440); g.lineTo(x - 30, 210); g.arc(x, 210, 30, Math.PI, 0); g.lineTo(x + 30, 440); g.fill(); g.strokeStyle = '#e09a86'; g.stroke(); });
+      g.fillStyle = '#f2c3b2'; g.fillRect(214, VC.base, 242, 40);
+      villPath(); g.fillStyle = '#f9dccf'; g.fill();
+      // Epithel
+      g.save(); villPath(); g.clip(); g.strokeStyle = '#f0b7a4'; g.lineWidth = 16; villPath(); g.stroke();
+      g.strokeStyle = 'rgba(190,100,85,.45)'; g.lineWidth = 1; for (let y = VC.top; y < 440; y += 12) { [-1, 1].forEach(sd => { g.beginPath(); g.moveTo(VC.x + sd * VC.w, y); g.lineTo(VC.x + sd * (VC.w - 8), y); g.stroke(); }); }
+      for (let a = Math.PI; a <= 2 * Math.PI; a += 0.32) { g.beginPath(); g.moveTo(VC.x + Math.cos(a) * VC.w, VC.top + Math.sin(a) * VC.w); g.lineTo(VC.x + Math.cos(a) * (VC.w - 8), VC.top + Math.sin(a) * (VC.w - 8)); g.stroke(); }
+      g.restore();
+      villPath(); g.strokeStyle = '#d98a74'; g.lineWidth = 1.5; g.stroke();
+      if (Mv) { g.strokeStyle = 'rgba(200,110,95,.8)'; g.lineWidth = 1; for (let y = VC.top; y < VC.base; y += 3.5) [-1, 1].forEach(sd => { g.beginPath(); g.moveTo(VC.x + sd * VC.w, y); g.lineTo(VC.x + sd * (VC.w + 3.5), y); g.stroke(); }); for (let a = Math.PI; a <= 2 * Math.PI; a += 0.09) { g.beginPath(); g.moveTo(VC.x + Math.cos(a) * VC.w, VC.top + Math.sin(a) * VC.w); g.lineTo(VC.x + Math.cos(a) * (VC.w + 3.5), VC.top + Math.sin(a) * (VC.w + 3.5)); g.stroke(); } }
+      // Kapillarnetz und Lymphgefäß
+      g.strokeStyle = '#efe08a'; g.lineWidth = 9; g.lineCap = 'round'; g.beginPath(); g.moveTo(VC.x, 440); g.lineTo(VC.x, VC.top + 6); g.stroke(); g.strokeStyle = '#d9c25a'; g.lineWidth = 1; g.stroke();
+      const cg = g.createLinearGradient(VC.x - 20, 0, VC.x + 20, 0); cg.addColorStop(0, '#d6263d'); cg.addColorStop(1, '#5a4db0');
+      g.strokeStyle = cg; g.lineWidth = 4; g.beginPath(); g.moveTo(VC.x - 20, 440); g.lineTo(VC.x - 20, VC.top + 4); g.arc(VC.x, VC.top + 4, 20, Math.PI, 0); g.lineTo(VC.x + 20, 440); g.stroke();
+      g.lineWidth = 1.5; for (let y = VC.top + 30; y < VC.base; y += 34) { g.beginPath(); g.moveTo(VC.x - 20, y); g.bezierCurveTo(VC.x - 8, y - 8, VC.x + 8, y + 12, VC.x + 20, y + 4); g.stroke(); }
+    } else {
+      g.fillStyle = '#f2c3b2'; g.fillRect(214, 360, 242, 80); g.fillStyle = '#f0b7a4'; g.fillRect(214, 360, 242, 10);
+      if (Mv) { g.strokeStyle = 'rgba(200,110,95,.8)'; g.lineWidth = 1; for (let x = 214; x < 456; x += 3.5) { g.beginPath(); g.moveTo(x, 360); g.lineTo(x, 356); g.stroke(); } }
+      strokePath([[214, 376], [456, 376]], '#c7344b', 4); strokePath([[214, 390], [456, 390]], '#efe08a', 7);
+    }
+    this.M.forEach(m => { drawMol(m, 0.9); });
+    g.restore();
+    g.strokeStyle = '#e2cfc4'; g.lineWidth = 1.5; rr(214, 62, 242, 368, 12); g.stroke();
+    text(Z ? 'Darmzotte' : 'Darmwand ohne Zotten', 335, 30, { size: 11.5, weight: 800, align: 'center' });
+    badge(335, 50, 'Zotten ×10', Z);
+    if (labels) {
+      if (Z) { lbl('Darmzellen', VC.x - VC.w + 2, 250, 250, 300, { size: 9.5 }); lbl('Blutkapillaren', VC.x - 20, 330, 250, 350, { size: 9.5 }); lbl('Lymphgefäß', VC.x, 230, 410, 120, { size: 9.5 }); }
+      text('Lumen mit Bausteinen', 335, 80, { size: 9.5, align: 'center', color: COL.muted });
+      text('→ Pfortader → Leber', 452, 424, { size: 9.5, weight: 700, align: 'right', color: '#5a4db0', bg: 'rgba(255,255,255,.85)' });
+      text('→ Lymphe', 220, 424, { size: 9.5, weight: 700, color: '#a8901a', bg: 'rgba(255,255,255,.85)' });
+    }
+    // --- Darmzellen ---
+    const x0 = 478, y0 = 210;
+    text('Darmzellen', 552, 30, { size: 11.5, weight: 800, align: 'center' });
+    badge(552, 50, 'Mikrovilli ×20', Mv);
+    g.strokeStyle = 'rgba(194,65,12,.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(VC.x + VC.w + 4, 230); g.lineTo(x0, y0 - 20); g.moveTo(VC.x + VC.w + 4, 250); g.lineTo(x0, 400); g.stroke();
+    for (let i = 0; i < 3; i++) {
+      const x = x0 + i * 50;
+      g.fillStyle = '#f6cfc0'; rr(x, y0, 48, 190, 6); g.fill(); g.strokeStyle = '#d98a74'; g.lineWidth = 1.5; g.stroke();
+      g.fillStyle = '#b77a9a'; g.beginPath(); g.ellipse(x + 24, y0 + 130, 11, 16, 0, 0, 7); g.fill();
+      if (Mv) for (let k = 0; k < 9; k++) { g.fillStyle = '#f6cfc0'; rr(x + 3 + k * 5, y0 - 20, 3.6, 22, 1.8); g.fill(); g.strokeStyle = '#d98a74'; g.lineWidth = 0.8; g.stroke(); }
+    }
+    if (labels) { if (Mv) lbl('Mikrovilli (Bürstensaum)', x0 + 75, y0 - 18, 552, y0 - 44, { size: 9.5, align: 'center' }); lbl('Zellkern', x0 + 24, y0 + 130, 552, 432, { size: 9.5, align: 'center' }); }
+  },
+  out() {
+    const A = this.area(), comp = A < 1.5 ? 'etwa eine Tischplatte' : A < 12 ? 'etwa ein kleines Zimmer' : A < 80 ? 'etwa ein Klassenraum' : 'etwa ein Volleyballfeld';
+    const rate = this.log.length / 6, blut = this.log.filter(l => l[1] === 'blut').length / 6, ly = rate - blut;
+    return `<div class="orow t"><span>Oberfläche (Modell)</span><b>${A < 10 ? fmt1(A) : Math.round(A)} m²</b></div><div class="orow t"><span>Vergleich</span><b>${comp}</b></div>` +
+      bar('Oberflächenvergrößerung', Math.log10(A / 0.28) / Math.log10(600), '×' + Math.round(A / 0.28), '#c2410c') +
+      bar('Aufnahme pro Zeit', A / 168, Math.round(A / 1.68) + ' %', '#2f8a3e') +
+      `<div class="orow t"><span>beobachtet: ins Blut</span><b>${fmt1(blut)} / s</b></div><div class="orow t"><span>beobachtet: in die Lymphe</span><b>${fmt1(ly)} / s</b></div>`;
+  }
+};
+
+/* ================= Steuerung ================= */
+const STATIONS = { weg, enz, bed, zot };
+const ORDER = ['weg', 'enz', 'bed', 'zot'];
+let cur = 'weg';
+function setDefaults(st) { st.v = {}; st.controls.forEach(c => { if (c.t === 'range' || c.t === 'seg') st.v[c.id] = c.v; if (c.t === 'toggles') c.items.forEach(([id, , on]) => st.v[id] = on); }); }
+ORDER.forEach(k => { setDefaults(STATIONS[k]); STATIONS[k].init(); });
+$('#stations').innerHTML = ORDER.map((k, i) => `<button data-st="${k}"><span class="n">${i + 1}</span>${STATIONS[k].nav}</button>`).join('');
+function updRange(el) { el.style.setProperty('--p', ((el.value - el.min) / (el.max - el.min) * 100) + '%'); }
+function buildControls() {
+  const st = STATIONS[cur], box = $('#ctrls'); let h = '';
+  st.controls.forEach(c => {
+    if (c.t === 'range') h += `<div class="ctrl"><div class="lab"><b>${c.label}</b><output id="o_${c.id}">${c.fmt(st.v[c.id])}</output></div><input type="range" data-r="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${st.v[c.id]}" aria-label="${c.label}"></div>`;
+    if (c.t === 'seg') h += `<div class="ctrl"><div class="lab"><b>${c.label}</b></div><div class="seg" style="display:grid;grid-template-columns:1fr 1fr">${c.opts.map(([v, l]) => `<button data-seg="${c.id}" data-val="${v}" aria-pressed="${st.v[c.id] === v}" style="white-space:normal;line-height:1.15;padding:4px 6px">${l}</button>`).join('')}</div></div>`;
+    if (c.t === 'toggles') h += `<div class="tgls">${c.items.map(([id, l]) => `<button class="tgl" data-tgl="${id}" aria-pressed="${!!st.v[id]}"><span class="sw"></span>${l}</button>`).join('')}</div>`;
+    if (c.t === 'buttons') h += `<div class="btnRow">${c.items.map(([id, l]) => `<button class="btn" data-act="${id}">${l}</button>`).join('')}</div>`;
+  });
+  box.innerHTML = h; $$('#ctrls input[type=range]').forEach(updRange);
+  if (st.sync) st.sync();
+}
+function renderStation() {
+  const st = STATIONS[cur];
+  $$('#stations button').forEach(b => b.setAttribute('aria-pressed', b.dataset.st === cur));
+  $('#stTitle').textContent = st.title; $('#stLead').textContent = st.lead;
+  setInfo('was');
+  buildControls(); $('#out').innerHTML = st.out();
+  try { localStorage.setItem('verdauung-labor-st', cur); } catch (e) {}
+}
+function setInfo(k) {
+  const st = STATIONS[cur]; $('#info').dataset.i = k;
+  $$('.infoTabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.i === k));
+  $('#infoText').textContent = st[k];
+}
+$('.infoTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setInfo(b.dataset.i); });
+$('#stations').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cur = b.dataset.st; renderStation(); });
+$('#ctrls').addEventListener('input', e => {
+  const el = e.target.closest('input[type=range]'); if (!el) return;
+  const st = STATIONS[cur], id = el.dataset.r, c = st.controls.find(c => c.id === id);
+  st.v[id] = Number(el.value); updRange(el); $('#o_' + id).textContent = c.fmt(st.v[id]);
+  if (st.onChange) st.onChange(id); $('#out').innerHTML = st.out();
+});
+$('#ctrls').addEventListener('click', e => {
+  const st = STATIONS[cur], b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.seg) { st.v[b.dataset.seg] = b.dataset.val; $$(`[data-seg="${b.dataset.seg}"]`).forEach(x => x.setAttribute('aria-pressed', x === b)); if (st.onChange) st.onChange(b.dataset.seg); }
+  if (b.dataset.tgl) { st.v[b.dataset.tgl] = !st.v[b.dataset.tgl]; b.setAttribute('aria-pressed', st.v[b.dataset.tgl]); if (st.onChange) st.onChange(b.dataset.tgl); }
+  if (b.dataset.act && st.onChange) st.onChange(b.dataset.act);
+  $('#out').innerHTML = st.out();
+});
+$('#resetBtn').addEventListener('click', () => { const st = STATIONS[cur]; setDefaults(st); st.init(); renderStation(); toast('Station zurückgesetzt'); });
+$('#labelsChk').addEventListener('change', e => { labels = e.target.checked; });
+$('#pauseBtn').addEventListener('click', () => { paused = !paused; $('#pauseBtn').textContent = paused ? '▶ Weiter' : '⏸ Pause'; $('#pauseBtn').setAttribute('aria-label', paused ? 'Animation fortsetzen' : 'Animation anhalten'); });
+
+let tt;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2400); }
+
+/* Schrift */
+function applyFont() { document.documentElement.style.setProperty('--fs', FS_STEPS[fsIdx]); $('#fontDown').disabled = fsIdx === 0; $('#fontUp').disabled = fsIdx === FS_STEPS.length - 1; }
+function changeFont(d) { const n = clamp(fsIdx + d, 0, FS_STEPS.length - 1); if (n === fsIdx) return; fsIdx = n; try { localStorage.setItem('verdauung-labor-fs', fsIdx); } catch (e) {} applyFont(); toast('Schriftgröße ' + Math.round(FS_STEPS[fsIdx] * 100) + ' %'); }
+$('#fontDown').addEventListener('click', () => changeFont(-1));
+$('#fontUp').addEventListener('click', () => changeFont(1));
+
+/* Vollbild */
+const root = document.documentElement;
+const fsReq = root.requestFullscreen || root.webkitRequestFullscreen, fsExit = document.exitFullscreen || document.webkitExitFullscreen;
+const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+function updFs() { const on = fsOn(); $('#fsIn').style.display = on ? 'none' : ''; $('#fsOut').style.display = on ? '' : 'none'; $('#fsBtn').title = on ? 'Vollbild beenden' : 'Vollbild'; $('#fsBtn').setAttribute('aria-label', $('#fsBtn').title); }
+$('#fsBtn').addEventListener('click', () => {
+  if (fsOn()) { try { fsExit && fsExit.call(document); } catch (e) {} return; }
+  if (standalone) { toast('Die App läuft bereits im Vollbild.'); return; }
+  if (!fsReq) { toast('Vollbild: Teilen → „Zum Home-Bildschirm“ und von dort öffnen.'); return; }
+  try { const r = fsReq.call(root); if (r && r.catch) r.catch(() => toast('Vollbild nicht möglich. Öffne die Seite in einem eigenen Tab.')); } catch (e) { toast('Vollbild nicht möglich.'); }
+});
+document.addEventListener('fullscreenchange', updFs); document.addEventListener('webkitfullscreenchange', updFs);
+
+const dlg = $('#infoDlg');
+$('#infoBtn').addEventListener('click', () => dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', ''));
+$('#closeInfo').addEventListener('click', () => dlg.close ? dlg.close() : dlg.removeAttribute('open'));
+
+/* Animation */
+let last = performance.now(), outT = 0;
+function frame(now) {
+  const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+  const st = STATIONS[cur];
+  if (!paused) { T += dt; st.step(dt); }
+  fit(st.bg); st.draw();
+  outT += dt; if (outT > 0.3) { outT = 0; $('#out').innerHTML = st.out(); }
+  requestAnimationFrame(frame);
+}
+try { const s = localStorage.getItem('verdauung-labor-st'); if (STATIONS[s]) cur = s; const fr = localStorage.getItem('verdauung-labor-fs'), f = Number(fr); if (fr !== null && Number.isInteger(f) && f >= 0 && f < FS_STEPS.length) fsIdx = f; } catch (e) {}
+applyFont(); updFs(); renderStation(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
