@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gasaustausch">
+<title>Gasaustausch-Labor</title>
+<style>
+:root{
+  --bg:#f6f0f1;--panel:#ffffff;--panel2:#f3f7f6;--text:#1b2a27;--muted:#5a6b67;--line:#d2dedb;
+  --accent:#c2415d;--accent2:#962f47;--accentSoft:#fbe7eb;
+  --water:#2f7fe0;--ion:#e3a21a;--adh:#e0742a;--ok:#2f8a3e;--okSoft:#e2f2e3;--warn:#b8650f;--warnSoft:#fdf0df;--bad:#c0392b;--badSoft:#fbe5e2;
+  --shadow:0 6px 20px rgba(20,50,50,.08);
+}
+*{box-sizing:border-box}
+html{font-size:calc(15px * var(--fs,1));background:var(--bg)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:1rem/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%;touch-action:manipulation}
+button,select{font:inherit;color:inherit}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px 6px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:24px;height:24px}
+h1{font-size:1.3rem;margin:0;line-height:1.15}
+.sub{margin:0;color:var(--muted);font-size:.85rem}
+.head-actions{display:flex;gap:8px;align-items:center}
+.btn{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow)}
+.btn:hover{border-color:var(--accent)}
+.btn.icon{min-width:44px;padding:0}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{min-height:38px;border:0;background:transparent;border-radius:9px;padding:0 12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.15);color:var(--accent2);font-weight:700}
+.seg button:disabled{opacity:.45}
+#fontUp{font-size:1.15em;font-weight:700}#fontDown{font-size:.92em;font-weight:700}
+.seg button small{font-size:.8em;margin-left:1px}
+/* Stationen */
+.stations{display:flex;gap:6px;padding:4px 14px 10px;overflow-x:auto;scrollbar-width:none}
+.stations::-webkit-scrollbar{display:none}
+.stations button{flex:1 0 auto;min-height:46px;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:14px;border:2px solid var(--line);background:var(--panel);cursor:pointer;font-weight:600;white-space:nowrap}
+.stations button .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);font-size:.85rem;font-weight:800;flex:none}
+.stations button[aria-pressed="true"]{border-color:var(--accent);background:var(--accentSoft);color:var(--accent2)}
+.stations button[aria-pressed="true"] .n{background:var(--accent);border-color:var(--accent);color:#fff}
+/* Layout (Handy zuerst) */
+main{display:flex;flex-direction:column;gap:10px;padding:0 10px 12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.stage{position:sticky;top:0;z-index:5;overflow:hidden;padding:0}
+.stage canvas{display:block;width:100%;aspect-ratio:640/440}
+.hud{position:absolute;top:8px;left:8px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:99px;padding:0 12px;min-height:32px;font-size:.85rem;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.pill input{width:18px;height:18px;accent-color:var(--accent)}
+.side{display:flex;flex-direction:column;padding:0}
+.sideScroll{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.side h2{font-size:1.1rem;margin:0;line-height:1.25}
+.lead{margin:-4px 0 0;color:var(--muted);font-size:.9rem}
+#ctrls{display:flex;flex-direction:column;gap:8px}
+.ctrl{display:flex;flex-direction:column}
+.ctrl .lab{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctrl .lab b{font-weight:600}
+.ctrl output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent2);text-align:right;white-space:nowrap}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:38px;background:transparent;margin:0;cursor:pointer}
+input[type=range]:focus{outline:none}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--line) var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid var(--accent);margin-top:-10px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:8px;border-radius:99px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--accent)}
+.tgls{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tgl{min-height:44px;display:flex;align-items:center;gap:8px;padding:0 10px;border-radius:12px;border:2px solid var(--line);background:var(--panel);cursor:pointer;text-align:left;font-weight:600;font-size:.9rem}
+.tgl .sw{width:34px;height:20px;border-radius:99px;background:var(--line);position:relative;flex:none;transition:background .2s}
+.tgl .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.tgl[aria-pressed="true"]{border-color:var(--accent)}
+.tgl[aria-pressed="true"] .sw{background:var(--accent)}
+.tgl[aria-pressed="true"] .sw::after{left:16px}
+.tgl:disabled{opacity:.45;cursor:not-allowed}
+.btnRow{display:flex;gap:6px;flex-wrap:wrap}
+.btnRow .btn{flex:1 1 auto;box-shadow:none;font-weight:600}
+.out{background:var(--panel2);border-radius:12px;padding:8px 12px;display:grid;gap:5px;font-size:.9rem}
+.out:empty{display:none}
+.orow{display:grid;grid-template-columns:8.5em 1fr auto;align-items:center;gap:8px}
+.obar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.obar i{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .25s}
+.orow b{font-variant-numeric:tabular-nums;text-align:right}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.info{border-radius:12px;background:var(--accentSoft);padding:6px 12px 10px;font-size:.92rem}
+.info[data-i="merke"]{background:var(--okSoft)}.info[data-i="frage"]{background:var(--warnSoft)}
+.info p{margin:6px 0 0}
+.infoTabs{display:flex;gap:4px;border-bottom:1px solid rgba(0,0,0,.08)}
+.infoTabs button{border:0;background:transparent;padding:6px 8px;min-height:36px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer}
+.infoTabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.orow.t{grid-template-columns:1fr auto}
+.box{border-radius:12px;padding:9px 12px;font-size:.92rem}
+.box p{margin:4px 0 0}
+.box.was{background:var(--accentSoft)}
+.box.merke{background:var(--okSoft);border-left:4px solid var(--ok)}
+.box.frage{background:var(--warnSoft)}
+.box.frage summary{cursor:pointer;font-weight:700}
+#toast{position:fixed;left:50%;bottom:24px;max-width:calc(100% - 32px);text-align:center;transform:translate(-50%,30px);opacity:0;pointer-events:none;background:var(--text);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;transition:.3s;z-index:20}
+#toast.show{transform:translate(-50%,0);opacity:1}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);max-width:660px;width:calc(100% - 32px);padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{font-size:1.2rem;margin-top:0}
+dialog h3{font-size:1rem;margin:14px 0 4px}
+dialog p,dialog li{font-size:.93rem}
+dialog ul{padding-left:20px;margin:4px 0}
+/* App-Layout: alles auf einem Bildschirm */
+@media (min-width:760px), (orientation:landscape) and (min-width:640px){
+  html,body{height:100%}
+  body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+  header,.stations{flex:none}
+  main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(310px,34vw,430px);gap:12px;padding:0 14px 14px}
+  .lead{display:none}
+  .sideScroll{gap:8px}
+  input[type=range]{height:34px}
+  .info{font-size:.87rem}
+  .out{font-size:.86rem;gap:3px;padding:6px 12px}
+  .tgl,.btnRow .btn{min-height:40px}
+  .stage{position:relative;top:auto;min-height:0}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto}
+  .side{min-height:0}
+  .sideScroll{flex:1;min-height:0;overflow:auto}
+}
+@media (max-width:1100px){.stations button .t2{display:none}}
+@media (orientation:landscape) and (max-height:520px){
+  header{padding:4px 10px}.sub{display:none}.logo{width:30px;height:30px}h1{font-size:1rem}
+  .btn{min-height:36px}.btn.icon{min-width:38px}
+  .stations{padding:2px 10px 6px}.stations button{min-height:36px;padding:0 10px}
+  main{gap:8px;padding:0 8px 8px}
+  .sideScroll{padding:8px 10px;gap:7px}
+}
+@media (max-width:620px){
+  header{padding:8px 10px 4px}.sub{display:none}h1{font-size:1.1rem}.logo{width:34px;height:34px}
+  .head-actions{gap:4px}.btn.icon{min-width:40px;width:40px}
+  .stations{padding:2px 10px 8px}.stations button{padding:0 10px}
+  .pill{font-size:.75rem;min-height:28px;padding:0 9px}
+  .orow{grid-template-columns:7em 1fr auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v8"/><path d="M12 11c-1 0-2 1-3 1"/><path d="M12 11c1 0 2 1 3 1"/><path d="M9 7C6 7 3 11 3 16c0 3 1 5 3 5s3-2 3-4V7z"/><path d="M15 7c3 0 6 4 6 9 0 3-1 5-3 5s-3-2-3-4V7z"/></svg></div>
+    <div><h1>Gasaustausch-Labor</h1><p class="sub">Atmung und Gasaustausch in den Lungenbläschen</p></div>
+  </div>
+  <div class="head-actions">
+    <div class="seg" role="group" aria-label="Schriftgröße">
+      <button id="fontDown" title="Schrift kleiner" aria-label="Schrift kleiner">A<small>−</small></button>
+      <button id="fontUp" title="Schrift größer" aria-label="Schrift größer">A<small>+</small></button>
+    </div>
+    <button class="btn icon" id="fsBtn" title="Vollbild" aria-label="Vollbild">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g id="fsIn"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></g><g id="fsOut" style="display:none"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></g></svg>
+    </button>
+    <button class="btn icon" id="resetBtn" title="Station zurücksetzen" aria-label="Station zurücksetzen">↺</button>
+    <button class="btn icon" id="infoBtn" title="Hinweise" aria-label="Hinweise">ⓘ</button>
+  </div>
+</header>
+<nav class="stations" id="stations" aria-label="Stationen"></nav>
+
+<main>
+  <section class="card stage" aria-label="Animation">
+    <canvas id="stage" role="img" aria-label="Animation zum Wassertransport"></canvas>
+    <div class="hud">
+      <label class="pill"><input type="checkbox" id="labelsChk" checked> Beschriftung</label>
+      <button class="pill" id="pauseBtn" aria-label="Animation anhalten">⏸ Pause</button>
+    </div>
+  </section>
+  <aside class="card side" aria-label="Steuerung und Erklärung">
+    <div class="sideScroll">
+      <h2 id="stTitle"></h2>
+      <p class="lead" id="stLead"></p>
+      <div id="ctrls"></div>
+      <div class="out" id="out" aria-live="polite"></div>
+      <div class="info" id="info">
+        <div class="infoTabs" role="tablist">
+          <button role="tab" data-i="was" aria-selected="true">Was passiert?</button>
+          <button role="tab" data-i="merke">Merke</button>
+          <button role="tab" data-i="frage">Denkfrage</button>
+        </div>
+        <p id="infoText"></p>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div id="toast" role="status"></div>
+
+<dialog id="infoDlg">
+  <h2>Hinweise zum Gasaustausch-Labor</h2>
+  <p>Die vier Stationen zeigen, wie Sauerstoff aus der Luft ins Blut gelangt und Kohlenstoffdioxid den Körper verlässt. Jede Station hat eigene Regler; die Animation reagiert sofort.</p>
+  <h3>Die Stationen</h3>
+  <ul>
+    <li><b>Weg der Luft:</b> Zwerchfell, Luftröhre, Bronchien und Lungenbläschen beim Ein- und Ausatmen; Ruhe und Sport im Vergleich.</li>
+    <li><b>Diffusion:</b> Das Prinzip hinter dem Gasaustausch – Teilchen wandern von viel zu wenig. Wanddicke und Fläche lassen sich verändern.</li>
+    <li><b>Im Lungenbläschen:</b> O₂ wandert durch die dünne Wand zu den roten Blutkörperchen, CO₂ in die Gegenrichtung. Atmung, Blutfluss, Wanddicke und Höhenluft lassen sich verändern.</li>
+    <li><b>Große Oberfläche:</b> Warum viele kleine Bläschen besser sind als ein großer Sack – und was bei einem Lungenemphysem passiert.</li>
+  </ul>
+  <h3>Kugelmodell</h3>
+  <p><b>O₂</b>: zwei rote Kugeln · <b>CO₂</b>: zwei rote Kugeln mit dunkler Mitte (Kohlenstoff) · <b>Stickstoff</b>: zwei graue Kugeln. Die Mengenverhältnisse in der Atemluft sind zur besseren Sichtbarkeit vereinfacht.</p>
+  <h3>Zum Modell</h3>
+  <p>Teilchen und Zellen sind stark vergrößert. Die Werte (z. B. „O₂-Beladung des Blutes“) sind Modellwerte und keine medizinischen Messwerte. Richtwerte: Wand zwischen Luft und Blut weniger als 1 µm dick, etwa 300 Millionen Lungenbläschen mit zusammen etwa 70–100 m² Fläche, in Ruhe etwa 0,5 l Luft pro Atemzug und 12–16 Atemzüge pro Minute.</p>
+  <p style="text-align:right;margin:16px 0 0"><button class="btn" id="closeInfo">Schließen</button></p>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const fmt1 = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
+
+/* ================= Zeichnen: Grundlagen ================= */
+const cv = $('#stage'), g = cv.getContext('2d');
+const SW = 640, SH = 440;
+let K = 1, VX0 = 0, VX1 = SW, VY0 = 0, VY1 = SH, labels = true, paused = false, T = 0;
+const FS_STEPS = [0.85, 0.925, 1, 1.1, 1.2, 1.32, 1.45];
+let fsIdx = 2;
+const COL = { water: '#2f7fe0', waterSoft: 'rgba(80,150,235,.35)', ion: '#e3a21a', adh: '#e0742a', text: '#1b2a27', muted: '#5a6b67', leaf: '#5aa646', leafD: '#3f8a35', wood: '#8b6b3e', soil: '#7a5a3c' };
+function fit(bg) {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  const sc = Math.min(w / SW, h / SH), ox = (w - SW * sc) / 2, oy = (h - SH * sc) / 2;
+  g.setTransform(sc, 0, 0, sc, ox, oy);
+  VX0 = -ox / sc; VX1 = SW + ox / sc; VY0 = -oy / sc; VY1 = SH + oy / sc;
+  K = clamp(Math.max(1, 10 / Math.max(12 * sc / dpr, 1)) * FS_STEPS[fsIdx], 0.85, 1.9);
+}
+const font = (s, w) => `${w || 600} ${s * K}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif`;
+function text(t, x, y, o = {}) {
+  g.font = font(o.size || 12, o.weight); g.fillStyle = o.color || COL.text; g.textAlign = o.align || 'left'; g.textBaseline = o.base || 'alphabetic';
+  if (o.bg) { const m = g.measureText(t), w = m.width + 10, hh = (o.size || 12) * K + 8; let bx = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w + 5 : x - 5;
+    g.fillStyle = o.bg; rr(bx, y - hh + 5, w, hh, 6); g.fill(); g.fillStyle = o.color || COL.text; }
+  g.fillText(t, x, y); g.textBaseline = 'alphabetic';
+}
+function lbl(t, x1, y1, x2, y2, o = {}) {
+  if (!labels) return;
+  g.strokeStyle = o.line || 'rgba(40,50,50,.55)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2 - 4); g.stroke();
+  g.fillStyle = o.line || 'rgba(40,50,50,.7)'; g.beginPath(); g.arc(x1, y1, 2, 0, 7); g.fill();
+  text(t, x2 + (o.align === 'right' ? -2 : o.align === 'center' ? 0 : 2), y2, { align: o.align || 'left', size: o.size || 12, bg: 'rgba(255,255,255,.82)', color: o.color });
+}
+function rr(x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+function ball(x, y, r, c, stroke) { g.fillStyle = c; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = 1; g.stroke(); } }
+function arrow(x1, y1, x2, y2, c, w = 3) {
+  const a = Math.atan2(y2 - y1, x2 - x1), hl = 8 + w * 2;
+  g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - Math.cos(a) * hl * 0.6, y2 - Math.sin(a) * hl * 0.6); g.stroke();
+  g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - hl * Math.cos(a - 0.45), y2 - hl * Math.sin(a - 0.45)); g.lineTo(x2 - hl * Math.cos(a + 0.45), y2 - hl * Math.sin(a + 0.45)); g.closePath(); g.fill();
+}
+function seeded(n) { let s = n; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; }
+const bar = (label, v, txt, color) => `<div class="orow"><span>${label}</span><div class="obar"><i style="width:${clamp(v, 0, 1) * 100}%;${color ? 'background:' + color : ''}"></i></div><b>${txt}</b></div>`;
+
+/* ================= Farben Gase ================= */
+const O2C = '#e0483a', CO2C = '#3d4650', N2C = '#b9c2cc';
+function mol(x, y, type, a = 1, s = 1) {
+  g.globalAlpha = a; g.lineWidth = 0.8; g.strokeStyle = 'rgba(255,255,255,.9)';
+  if (type === 'o2') { ball(x - 2.4 * s, y, 2.8 * s, O2C, 'rgba(255,255,255,.9)'); ball(x + 2.4 * s, y, 2.8 * s, O2C, 'rgba(255,255,255,.9)'); }
+  else if (type === 'n2') { ball(x - 2.4 * s, y, 2.6 * s, N2C, 'rgba(255,255,255,.9)'); ball(x + 2.4 * s, y, 2.6 * s, N2C, 'rgba(255,255,255,.9)'); }
+  else { ball(x - 4.4 * s, y, 2.5 * s, O2C, 'rgba(255,255,255,.9)'); ball(x + 4.4 * s, y, 2.5 * s, O2C, 'rgba(255,255,255,.9)'); ball(x, y, 3.1 * s, CO2C, 'rgba(255,255,255,.9)'); }
+  g.globalAlpha = 1;
+}
+function legend(x, y) {
+  if (!labels) return;
+  g.fillStyle = 'rgba(255,255,255,.85)'; rr(x - 6, y - 14, 172, 22, 8); g.fill();
+  mol(x + 6, y - 3, 'o2'); text('O₂', x + 15, y + 1, { size: 11, color: COL.muted });
+  mol(x + 50, y - 3, 'co2'); text('CO₂', x + 61, y + 1, { size: 11, color: COL.muted });
+  mol(x + 104, y - 3, 'n2'); text('Stickstoff', x + 113, y + 1, { size: 10, color: COL.muted });
+}
+const mixRGB = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * clamp(t, 0, 1))).join(',')})`;
+
+/* ================= Station 1: Weg der Luft ================= */
+const weg = {
+  nav: 'Weg der Luft', bg: '#eef4f8',
+  title: 'Atmung – der Weg der Luft',
+  lead: 'Das Zwerchfell senkt sich, die Lunge dehnt sich – Luft strömt ein. Beim Ausatmen kehrt sich alles um.',
+  controls: [
+    { t: 'range', id: 'f', label: 'Atemzüge pro Minute', min: 8, max: 40, step: 1, v: 12, fmt: v => v + ' / min' },
+    { t: 'range', id: 'd', label: 'Atemtiefe', min: 0, max: 100, step: 5, v: 20, fmt: v => fmt1(weg.vt(v)) + ' l pro Atemzug' },
+    { t: 'buttons', items: [['ruhe', '😌 Ruhe'], ['sport', '🏃 Sport']] }
+  ],
+  was: 'Beim Einatmen zieht sich das Zwerchfell zusammen und senkt sich, der Brustkorb weitet sich. Die Lunge dehnt sich und Luft strömt durch Mund oder Nase, Luftröhre und Bronchien bis in die feinsten Verzweigungen. Dort enden die Atemwege in Millionen winziger Lungenbläschen – wie Trauben an einem Stiel. Beim Ausatmen entspannt sich das Zwerchfell und die Luft strömt wieder hinaus – jetzt mit mehr Kohlenstoffdioxid und weniger Sauerstoff.',
+  merke: 'Weg der Luft: Nase/Mund → Rachen → Luftröhre → Bronchien → Bronchiolen → Lungenbläschen. Ausgeatmete Luft enthält weniger Sauerstoff und mehr Kohlenstoffdioxid als eingeatmete Luft.',
+  frage: 'Vergleiche Ruhe und Sport: Wie verändern sich Atemzüge und Luftmenge pro Minute? Warum braucht der Körper beim Sport mehr Luft?',
+  vt(d) { return 0.3 + 2.2 * d / 100; },
+  init() { this.P = []; this.acc = 0; this.ph = 0; },
+  onChange(id) {
+    if (id === 'ruhe') { this.v.f = 12; this.v.d = 20; buildControls(); }
+    if (id === 'sport') { this.v.f = 34; this.v.d = 85; buildControls(); }
+  },
+  path(side) { const sx = side < 0 ? 132 : 268; return [[200, 66], [200, 190], [200 + side * 50, 222], [sx + rnd(-26, 26), 262 + rnd(-55, 55)]]; },
+  step(dt) {
+    const d = this.v.d / 100;
+    this.ph += dt * this.v.f / 60;
+    const s = (1 - Math.cos(2 * Math.PI * this.ph)) / 2, ds = Math.sin(2 * Math.PI * this.ph);
+    this.s = s; this.inh = ds > 0;
+    this.acc += dt * Math.abs(ds) * (4 + 14 * d) * (this.v.f / 12);
+    while (this.acc >= 1) {
+      this.acc -= 1;
+      const side = Math.random() < 0.5 ? -1 : 1, pts = this.path(side);
+      if (this.inh) { const r = Math.random(); this.P.push({ pts, u: 0, dir: 1, type: r < 0.3 ? 'o2' : 'n2', a: 1 }); }
+      else { const r = Math.random(); this.P.push({ pts: pts.slice().reverse().concat([[200, 8]]), u: 0, dir: 1, type: r < 0.18 ? 'o2' : r < 0.36 ? 'co2' : 'n2', a: 1 }); }
+    }
+    const sp = (0.25 + 0.9 * Math.abs(ds)) * (this.v.f / 12) * dt * 1.1;
+    this.P.forEach(p => { p.u += sp; if (p.u > p.pts.length - 1) p.a -= dt * 2; });
+    this.P = this.P.filter(p => p.a > 0 && this.P.length < 400);
+  },
+  pos(p) { const i = Math.min(Math.floor(p.u), p.pts.length - 2), t = Math.min(1, p.u - i), a = p.pts[i], b = p.pts[i + 1]; return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; },
+  draw() {
+    const s = this.s || 0, d = this.v.d / 100, sc = 1 + 0.12 * (0.3 + d) * s;
+    // Körper
+    g.fillStyle = '#f6d9c6'; g.strokeStyle = '#d9a98c'; g.lineWidth = 2;
+    rr(64, 98, 272, 322, 50); g.fill(); g.stroke();
+    g.fillRect(186, 72, 28, 30);
+    g.beginPath(); g.arc(200, 44, 32, 0, 7); g.fill(); g.stroke();
+    g.fillStyle = '#b5524a'; g.beginPath(); g.ellipse(200, 62, 7, this.inh ? 3 : 4, 0, 0, 7); g.fill();
+    // Rippen
+    g.strokeStyle = 'rgba(200,160,130,.45)'; g.lineWidth = 3;
+    for (let i = 0; i < 6; i++) { const y = 150 + i * 32; g.beginPath(); g.moveTo(80, y + 10); g.quadraticCurveTo(200, y - 12 - s * 6 * d, 320, y + 10); g.stroke(); }
+    // Lungen
+    [[-1, 132], [1, 268]].forEach(([side, cx]) => {
+      g.fillStyle = 'rgba(240,150,160,.85)'; g.beginPath(); g.ellipse(cx, 262, 58 * sc, 98 * sc, side * 0.06, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(190,80,95,.6)'; g.lineWidth = 3; g.beginPath(); g.moveTo(200 + side * 50, 222);
+      [[cx, 250], [cx + side * 18, 300], [cx - side * 14, 320]].forEach(([x, y]) => { g.moveTo(200 + side * 50, 222); g.quadraticCurveTo(cx, 225, x, y); });
+      g.stroke();
+    });
+    // Herz
+    g.fillStyle = '#c0392b'; g.beginPath(); g.ellipse(214, 312, 22, 26, 0.4, 0, 7); g.fill();
+    // Luftröhre, Bronchien
+    g.strokeStyle = '#e8a3a0'; g.lineWidth = 14; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(200, 70); g.lineTo(200, 190); g.lineTo(150, 222); g.moveTo(200, 190); g.lineTo(250, 222); g.stroke();
+    g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 2; for (let y = 82; y < 186; y += 9) { g.beginPath(); g.moveTo(194, y); g.lineTo(206, y); g.stroke(); }
+    // Zwerchfell
+    const dy = 34 * (0.3 + d) * s;
+    g.strokeStyle = '#a2463e'; g.lineWidth = 6; g.beginPath(); g.moveTo(68, 380); g.quadraticCurveTo(200, 312 + dy * 1.6, 332, 380); g.stroke();
+    if (labels) arrow(350, 330, 350, 330 + (this.inh ? 26 : -26), this.inh ? '#a2463e' : 'rgba(162,70,62,.6)', 3);
+    // Teilchen
+    this.P.forEach(p => { const [x, y] = this.pos(p); mol(x, y, p.type, Math.max(0, Math.min(1, p.a))); });
+    // Phase
+    text(this.inh ? '⬇ Einatmen' : '⬆ Ausatmen', 200, 448 - 10, { size: 14, weight: 800, align: 'center', color: this.inh ? '#1f7a8c' : '#a2463e', bg: 'rgba(255,255,255,.9)' });
+    // Lupe
+    const cx = 528, cy = 250, R = 104;
+    g.setLineDash([5, 5]); g.strokeStyle = 'rgba(80,90,100,.55)'; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(170, 330); g.lineTo(cx - R * 0.7, cy - R * 0.7); g.moveTo(170, 340); g.lineTo(cx - R * 0.7, cy + R * 0.7); g.stroke(); g.setLineDash([]);
+    g.save(); g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fillStyle = '#fff7f6'; g.fill(); g.clip();
+    const k = 1 + 0.1 * (0.3 + d) * s;
+    g.strokeStyle = '#e8a3a0'; g.lineWidth = 10; g.beginPath(); g.moveTo(cx, cy - R); g.lineTo(cx, cy - 22); g.stroke();
+    const cl = [[0, 0], [-30, 8], [30, 8], [-16, 34], [16, 34], [-40, 38], [40, 38], [0, 58], [-24, -14], [24, -14]];
+    cl.forEach(([x, y]) => { g.fillStyle = '#f4b6bb'; g.beginPath(); g.arc(cx + x * k, cy + 12 + y * k, 19 * k, 0, 7); g.fill(); g.strokeStyle = '#d27d86'; g.lineWidth = 1.5; g.stroke(); });
+    g.lineWidth = 2.2;
+    for (let i = 0; i < 5; i++) { g.strokeStyle = i % 2 ? 'rgba(200,40,60,.75)' : 'rgba(90,70,170,.7)'; g.beginPath(); g.moveTo(cx - 70, cy + 10 + i * 16); g.bezierCurveTo(cx - 20, cy - 20 + i * 22, cx + 20, cy + 50 + i * 4, cx + 70, cy + 4 + i * 18); g.stroke(); }
+    g.restore(); g.strokeStyle = '#555'; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke();
+    text('Lupe: Lungenbläschen', cx, cy - R - 12, { size: 12, weight: 800, align: 'center' });
+    if (labels) {
+      lbl('Luftröhre', 206, 130, 236, 110, { size: 11 });
+      lbl('Bronchien', 236, 214, 300, 186, { size: 11 });
+      lbl('Lunge', 110, 300, 18, 300, { size: 11 });
+      lbl('Zwerchfell', 300, 368, 300, 418, { size: 11 });
+      lbl('Herz', 214, 320, 232, 350, { size: 11 });
+      text('Blutgefäße umspinnen', cx, cy + R + 18, { size: 11, align: 'center', color: COL.muted });
+      text('jedes Bläschen', cx, cy + R + 32, { size: 11, align: 'center', color: COL.muted });
+      legend(430, 30);
+    }
+  },
+  out() {
+    const vt = this.vt(this.v.d), mv = vt * this.v.f;
+    return bar('Atemzüge', this.v.f / 40, this.v.f + ' / min') + bar('Luft pro Atemzug', vt / 2.5, fmt1(vt) + ' l') + bar('Luft pro Minute', mv / 90, Math.round(mv) + ' l');
+  }
+};
+
+/* ================= Station 2: Diffusion ================= */
+const dif = {
+  nav: 'Diffusion', bg: '#f3f6fa',
+  title: 'Diffusion – von viel zu wenig',
+  lead: 'Teilchen bewegen sich ständig und zufällig. Dadurch wandern sie dorthin, wo weniger von ihnen sind.',
+  controls: [
+    { t: 'range', id: 'n', label: 'Sauerstoff links', min: 10, max: 80, step: 5, v: 60, fmt: v => v + ' Teilchen' },
+    { t: 'range', id: 'th', label: 'Dicke der Trennwand', min: 0, max: 100, step: 5, v: 15, fmt: v => v < 25 ? 'dünn' : v < 65 ? 'mittel' : 'dick' },
+    { t: 'range', id: 'po', label: 'Fläche (Durchlässe)', min: 1, max: 12, step: 1, v: 6, fmt: v => v + ' Durchlässe' },
+    { t: 'toggles', items: [['co2', 'CO₂ in Gegenrichtung', false]] },
+    { t: 'buttons', items: [['go', '↺ Neu starten']] }
+  ],
+  was: 'Alle Teilchen bewegen sich ständig zufällig hin und her. Links sind viele Sauerstoffteilchen, rechts wenige. Deshalb springen mehr Teilchen von links nach rechts als umgekehrt – bis überall gleich viele sind. Diesen Vorgang nennt man Diffusion. Er geht schneller, je dünner die Trennwand, je größer die Fläche und je größer der Unterschied ist.',
+  merke: 'Diffusion: Teilchen wandern von Orten hoher Konzentration zu Orten niedriger Konzentration, bis sie gleichmäßig verteilt sind. Dafür braucht es keine Energie und keine Pumpe.',
+  frage: 'Stelle eine dicke Wand mit wenigen Durchlässen ein und vergleiche mit einer dünnen Wand mit vielen Durchlässen. Was bedeutet das für den Bau der Lungenbläschen?',
+  init() {
+    this.P = []; this.H = []; this.ht = 0; this.flows = [];
+    const add = (n, side, type) => { for (let i = 0; i < n; i++) { const a = rnd(0, 6.28), sp = rnd(55, 95); this.P.push({ x: side < 0 ? rnd(50, 300) : rnd(340, 590), y: rnd(70, 310), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, type }); } };
+    add(this.v.n, -1, 'o2'); add(4, 1, 'o2');
+    if (this.v.co2) { add(4, -1, 'co2'); add(Math.round(this.v.n * 0.7), 1, 'co2'); }
+  },
+  onChange(id) { if (['go', 'n', 'co2'].includes(id)) this.init(); },
+  mw() { return 4 + this.v.th / 100 * 16; },
+  pores() { const n = this.v.po, a = []; for (let i = 0; i < n; i++) a.push(70 + (i + 0.5) * 240 / n); return a; },
+  step(dt) {
+    const mw = this.mw(), m0 = 320 - mw / 2, m1 = 320 + mw / 2, pores = this.pores(), pass = 0.95 / (1 + this.v.th / 18);
+    const now = T;
+    this.P.forEach(p => {
+      const ox = p.x; p.x += p.vx * dt; p.y += p.vy * dt;
+      if (p.y < 66 || p.y > 314) { p.vy *= -1; p.y = clamp(p.y, 66, 314); }
+      if (p.x < 46 || p.x > 594) { p.vx *= -1; p.x = clamp(p.x, 46, 594); }
+      const crossing = (ox <= m0 && p.x > m0) || (ox >= m1 && p.x < m1);
+      if (crossing && !p.inWall) {
+        const inPore = pores.some(y => Math.abs(p.y - y) < 9);
+        if (inPore && Math.random() < pass) { p.inWall = true; p.dir = ox <= m0 ? 1 : -1; }
+        else { p.vx *= -1; p.x = ox; }
+      }
+      if (p.inWall) { p.y += (pores.reduce((b, y) => Math.abs(y - p.y) < Math.abs(b - p.y) ? y : b, pores[0]) - p.y) * 0.3; if ((p.dir > 0 && p.x > m1) || (p.dir < 0 && p.x < m0)) { p.inWall = false; this.flows.push([now, p.type, p.dir]); } if (Math.sign(p.vx) !== p.dir) p.vx *= -1; }
+    });
+    this.flows = this.flows.filter(f => now - f[0] < 5);
+    this.ht += dt; if (this.ht > 0.25) { this.ht = 0; const c = this.count(); this.H.push(c); if (this.H.length > 160) this.H.shift(); }
+  },
+  count() { const r = { lo: 0, ro: 0, lc: 0, rc: 0 }; this.P.forEach(p => { const L = p.x < 320; if (p.type === 'o2') L ? r.lo++ : r.ro++; else L ? r.lc++ : r.rc++; }); return r; },
+  draw() {
+    const mw = this.mw(), pores = this.pores();
+    g.fillStyle = '#fff'; rr(40, 60, 560, 260, 14); g.fill(); g.strokeStyle = '#9aa7b3'; g.lineWidth = 2; rr(40, 60, 560, 260, 14); g.stroke();
+    g.fillStyle = '#d9b9a7'; g.fillRect(320 - mw / 2, 62, mw, 256);
+    g.fillStyle = '#fff'; pores.forEach(y => g.fillRect(320 - mw / 2 - 1, y - 9, mw + 2, 18));
+    this.P.forEach(p => mol(p.x, p.y, p.type));
+    const c = this.count();
+    text(`links: ${c.lo} O₂${this.v.co2 ? ' · ' + c.lc + ' CO₂' : ''}`, 180, 48, { size: 13, weight: 800, align: 'center' });
+    text(`rechts: ${c.ro} O₂${this.v.co2 ? ' · ' + c.rc + ' CO₂' : ''}`, 460, 48, { size: 13, weight: 800, align: 'center' });
+    // Verlauf
+    const x0 = 60, x1 = 590, y0 = 340, y1 = 425, max = Math.max(10, this.v.n + 4);
+    g.fillStyle = 'rgba(255,255,255,.7)'; rr(40, 332, 560, 102, 10); g.fill();
+    const line = (key, col) => { g.strokeStyle = col; g.lineWidth = 2.5; g.beginPath(); this.H.forEach((h, i) => { const x = x0 + (x1 - x0) * i / 159, y = y1 - (y1 - y0) * h[key] / max; i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); };
+    line('lo', O2C); g.setLineDash([5, 4]); line('ro', '#e88a7f'); g.setLineDash([]);
+    if (this.v.co2) { line('rc', CO2C); g.setLineDash([5, 4]); line('lc', '#8b939b'); g.setLineDash([]); }
+    if (labels) {
+      text('Verlauf:  O₂ links ━   O₂ rechts ┅' + (this.v.co2 ? '   CO₂ rechts ━   CO₂ links ┅' : ''), 594, 430, { size: 10, align: 'right', color: COL.muted, bg: 'rgba(255,255,255,.9)' });
+      lbl('Trennwand mit Durchlässen', 320, pores[0], 360, 30, { size: 11 });
+    }
+  },
+  out() {
+    const c = this.count(), tot = c.lo + c.ro, nf = this.flows.filter(f => f[1] === 'o2').reduce((a, f) => a + f[2], 0);
+    const eq = tot ? 1 - Math.abs(c.lo - c.ro) / tot : 1;
+    return bar('O₂ links', c.lo / (tot || 1), c.lo + '', O2C) + bar('O₂ rechts', c.ro / (tot || 1), c.ro + '', O2C) +
+      `<div class="orow t"><span>O₂-Strom (letzte 5 s)</span><b>${nf > 0 ? nf + ' nach rechts' : nf < 0 ? -nf + ' nach links' : 'ausgeglichen'}</b></div>` + bar('Ausgleich', eq, Math.round(eq * 100) + ' %');
+  }
+};
+
+/* ================= Station 3: Im Lungenbläschen ================= */
+const AX = 320, AY = 262, ARX = 250, ARY = 205, ZX0 = 100, ZX1 = 540;
+const alv = {
+  nav: 'Im Lungenbläschen', bg: '#fbf1ef',
+  title: 'Gasaustausch im Lungenbläschen',
+  lead: 'Sauerstoff wandert aus der Luft ins Blut, Kohlenstoffdioxid aus dem Blut in die Luft.',
+  controls: [
+    { t: 'range', id: 'vent', label: 'Atmung', min: 10, max: 100, step: 5, v: 60, fmt: v => v < 35 ? 'flach' : v < 75 ? 'normal' : 'tief' },
+    { t: 'range', id: 'flow', label: 'Blutfluss', min: 10, max: 100, step: 5, v: 35, fmt: v => v < 40 ? 'Ruhe' : v < 75 ? 'zügig' : 'Sport' },
+    { t: 'range', id: 'wall', label: 'Wanddicke', min: 0, max: 100, step: 5, v: 0, fmt: v => v < 15 ? 'dünn (gesund)' : v < 60 ? 'verdickt' : 'stark verdickt' },
+    { t: 'seg', id: 'air', label: 'Atemluft', opts: [['meer', '🌊 Meereshöhe'], ['berg', '🏔 Hochgebirge']], v: 'meer' }
+  ],
+  was: 'In den Lungenbläschen ist viel Sauerstoff, im ankommenden Blut wenig. Der Sauerstoff wandert deshalb durch die hauchdünne Wand ins Blut und wird an die roten Blutkörperchen gebunden – das Blut wird hellrot. Beim Kohlenstoffdioxid ist es umgekehrt: Im Blut ist viel davon, in der Luft wenig. Es wandert in das Lungenbläschen und wird ausgeatmet. Beide Gase wandern durch Diffusion.',
+  merke: 'Gasaustausch: O₂ diffundiert von den Lungenbläschen ins Blut, CO₂ vom Blut in die Lungenbläschen. Er gelingt so gut, weil die Wand sehr dünn ist (weniger als 1 µm), die Fläche riesig ist und die Atmung ständig frische Luft bringt.',
+  frage: 'Stelle eine verdickte Wand und „Sport“ ein. Warum bekommen die roten Blutkörperchen jetzt nicht mehr genug Sauerstoff? Was merkt ein Mensch mit einer solchen Lungenerkrankung?',
+  init() { this.O = []; this.C = []; this.R = []; this.sat = []; this.acc = 0; this.co2out = []; for (let x = -20; x < 680; x += 46) this.R.push(this.rbc(x)); for (let i = 0; i < 30; i++) this.O.push(this.inAir()); for (let i = 0; i < 4; i++) this.C.push({ ...this.inAir(), m: 'air' }); for (let i = 0; i < 240; i++) this.step(0.05); },
+  rbc(x) { return { x, y: 0, o2: 6, co2: 3, ph: rnd(0, 6) }; },
+  inAir() { let x, y; do { x = rnd(AX - ARX + 20, AX + ARX - 20); y = rnd(AY - ARY + 20, AY - 10); } while (((x - AX) / ARX) ** 2 + ((y - AY) / ARY) ** 2 > 0.85); return { x, y, m: 'air' }; },
+  geo() { const th = 3 + this.v.wall / 100 * 14; return { th, ct: AY + th, cb: AY + th + 64 }; },
+  inside(x, y) { return ((x - AX) / ARX) ** 2 + ((y - AY) / ARY) ** 2 < 1 && y < AY; },
+  step(dt) {
+    const v = this.v, { th, ct, cb } = this.geo(), vent = v.vent / 100, speed = 20 + 120 * v.flow / 100;
+    const target = v.air === 'meer' ? 42 : 30;
+    // frische Luft
+    const oAir = this.O.filter(p => p.m === 'air').length;
+    this.acc += dt * vent * 1.4 * Math.max(0, target - oAir) * 0.35;
+    while (this.acc >= 1) { this.acc -= 1; this.O.push({ x: AX + rnd(-12, 12), y: AY - ARY + 6, m: 'air' }); }
+    // Blut
+    this.R.forEach(r => { r.x += speed * dt; r.y = (ct + cb) / 2 + Math.sin(r.ph + T * 2) * 6; });
+    this.R = this.R.filter(r => { if (r.x > VX1 + 30) { this.sat.push(r.o2 / 8); if (this.sat.length > 24) this.sat.shift(); return false; } return true; });
+    const minX = Math.min(...this.R.map(r => r.x));
+    if (minX > VX0 - 20 + 46) this.R.push(this.rbc(minX - 46));
+    // Sauerstoff
+    this.O.forEach(p => {
+      if (p.m === 'air') {
+        const nx = p.x + rnd(-1, 1) * 75 * dt, ny = p.y + rnd(-1, 1) * 75 * dt + 10 * dt;
+        if (this.inside(nx, ny)) { p.x = nx; p.y = ny; }
+      } else if (p.m === 'x') {
+        const r = p.r, tx = r.x, ty = r.y, dx = tx - p.x, dy = ty - p.y, dd = Math.hypot(dx, dy), sp = (160 / (1 + v.wall / 30)) * dt;
+        if (dd < sp + 2 || r.x > VX1 + 20) { r.o2 = Math.min(8, r.o2 + 1); r.pend--; p.m = 'done'; }
+        else { p.x += dx / dd * sp + speed * dt * 0.6; p.y += dy / dd * sp; }
+      }
+    });
+    this.O = this.O.filter(p => p.m !== 'done' && p.y > -20);
+    // Diffusion O₂: Antrieb = Unterschied zwischen Luft und Blut, gebremst durch die Wanddicke
+    const sEq = clamp(oAir / 34, 0, 1);
+    this.R.forEach(r => {
+      if (r.x < ZX0 || r.x > ZX1) return;
+      const load = (r.o2 + (r.pend || 0)) / 8, rate = 2.0 * Math.max(0, sEq - load) * 8 / (1 + v.wall / 7);
+      if (Math.random() < rate * dt) {
+        let best = null, bd = 1e9;
+        this.O.forEach(p => { if (p.m === 'air' && p.y > AY - 170) { const d = Math.abs(p.x - r.x) + (AY - p.y) * 0.5; if (d < bd) { bd = d; best = p; } } });
+        if (best) { best.m = 'x'; best.r = r; r.pend = (r.pend || 0) + 1; }
+      }
+    });
+    // Kohlenstoffdioxid
+    const cAir = this.C.filter(p => p.m === 'air' || p.m === 'leave').length;
+    this.R.forEach(r => { if (r.x > ZX0 && r.x < ZX1 && r.co2 > 0 && Math.random() < dt * 1.3 / (1 + v.wall / 18) * (1 - cAir / 40)) { r.co2--; this.C.push({ x: r.x, y: ct - 2, m: 'up', ty: AY - rnd(20, 90) }); } });
+    this.C.forEach(p => {
+      if (p.m === 'up') { p.y -= (55 / (1 + v.wall / 30)) * dt; if (p.y < AY - 6) p.m = 'air'; }
+      else if (p.m === 'air') {
+        const nx = p.x + (rnd(-1, 1) * 75 + (AX - p.x) * 0.3 * vent) * dt, ny = p.y + (rnd(-1, 1) * 75 - 35 * vent) * dt;
+        if (Math.random() < dt * vent * 0.55) { p.m = 'leave'; return; }
+        if (this.inside(nx, ny)) { p.x = nx; p.y = ny; }
+      } else if (p.m === 'leave') {
+        const tx = AX, ty = AY - ARY + 4, dx = tx - p.x, dy = ty - p.y, dd = Math.hypot(dx, dy);
+        if (dd < 6) { p.m = 'out'; p.a = 1; this.co2out.push(T); return; }
+        p.x += dx / dd * 110 * dt; p.y += dy / dd * 110 * dt;
+      } else { p.y -= 60 * dt; p.a -= dt; }
+    });
+    this.C = this.C.filter(p => p.m !== 'out' || p.a > 0);
+    this.co2out = this.co2out.filter(t => T - t < 6);
+  },
+  draw() {
+    const { th, ct, cb } = this.geo(), v = this.v;
+    // Gewebe
+    g.fillStyle = '#f6dcd6'; g.fillRect(VX0, cb + 6, VX1 - VX0, VY1 - cb - 6);
+    // Kapillare
+    g.fillStyle = '#f7c9c4'; g.fillRect(VX0, ct, VX1 - VX0, cb - ct);
+    g.strokeStyle = '#d98b85'; g.lineWidth = 3; g.beginPath(); g.moveTo(VX0, cb); g.lineTo(VX1, cb); g.stroke();
+    // Blutkörperchen
+    this.R.forEach(r => {
+      const t = clamp((r.o2 - 5) / 3, 0, 1);
+      g.fillStyle = mixRGB([118, 64, 140], [214, 38, 61], t); g.beginPath(); g.ellipse(r.x, r.y, 17, 10, 0, 0, 7); g.fill();
+      g.fillStyle = 'rgba(0,0,0,.15)'; g.beginPath(); g.ellipse(r.x, r.y, 8, 4, 0, 0, 7); g.fill();
+      for (let i = 0; i < r.co2; i++) mol(r.x - 9 + i * 9, r.y - 15, 'co2', 0.9, 0.7);
+    });
+    // Wand
+    g.fillStyle = v.wall > 15 ? '#c99a8f' : '#e3aaa2'; g.fillRect(VX0, AY, VX1 - VX0, th);
+    // Lungenbläschen
+    g.fillStyle = '#eef7fd'; g.beginPath(); g.ellipse(AX, AY, ARX, ARY, 0, Math.PI, 2 * Math.PI); g.closePath(); g.fill();
+    g.strokeStyle = '#e3aaa2'; g.lineWidth = Math.max(3, th); g.beginPath(); g.ellipse(AX, AY, ARX, ARY, 0, Math.PI, 2 * Math.PI); g.stroke();
+    g.fillStyle = '#eef7fd'; g.fillRect(AX - 16, VY0, 32, AY - ARY + 8 - VY0);
+    g.strokeStyle = '#e3aaa2'; g.lineWidth = 4; g.beginPath(); g.moveTo(AX - 18, VY0); g.lineTo(AX - 18, AY - ARY + 6); g.moveTo(AX + 18, VY0); g.lineTo(AX + 18, AY - ARY + 6); g.stroke();
+    // Atemluft-Pfeil
+    const inh = Math.sin(T * 1.5) > 0;
+    g.globalAlpha = 0.35 + 0.5 * v.vent / 100; arrow(AX + 34, inh ? 8 : 50, AX + 34, inh ? 50 : 8, '#1f7a8c', 3); g.globalAlpha = 1;
+    // Teilchen
+    this.O.forEach(p => mol(p.x, p.y, 'o2'));
+    this.C.forEach(p => mol(p.x, p.y, 'co2', p.m === 'out' ? Math.max(0, p.a) : 1));
+    // große Pfeile
+    g.globalAlpha = 0.28; arrow(200, AY - 60, 200, ct + 20, O2C, 7); arrow(440, ct + 20, 440, AY - 60, CO2C, 7); g.globalAlpha = 1;
+    if (labels) {
+      text('O₂ ins Blut', 192, AY - 70, { size: 12, weight: 800, align: 'right', color: O2C, bg: 'rgba(255,255,255,.85)' });
+      text('CO₂ in die Luft', 448, AY - 70, { size: 12, weight: 800, color: CO2C, bg: 'rgba(255,255,255,.85)' });
+      text('Luft im Lungenbläschen', AX, AY - ARY + 50, { size: 12, weight: 700, align: 'center', color: COL.muted });
+      text('Bronchiole', AX + 24, 74, { size: 11, color: COL.muted });
+      lbl(v.wall > 15 ? 'Wand – verdickt!' : 'Wand – hauchdünn', 80, AY + th / 2, 22, AY - 40, { size: 11, color: v.wall > 15 ? '#c0392b' : undefined });
+      lbl('rotes Blutkörperchen', this.R[Math.floor(this.R.length / 2)]?.x || 300, (ct + cb) / 2 + 8, 260, cb + 34, { size: 11 });
+      text('Kapillare →', 20, cb + 34, { size: 11, color: COL.muted });
+      text('vom Herzen: O₂-arm', 12, ct - 8, { size: 11, weight: 700, color: '#76408c', bg: 'rgba(255,255,255,.85)' });
+      text('zum Herzen: O₂-reich', 628, ct - 8, { size: 11, weight: 700, align: 'right', color: '#c81e3c', bg: 'rgba(255,255,255,.85)' });
+      legend(16, 28);
+    }
+  },
+  satv() { return this.sat.length ? this.sat.reduce((a, b) => a + b, 0) / this.sat.length : 0.75; },
+  out() {
+    const s = this.satv(), oAir = this.O.filter(p => p.m === 'air').length, cAir = this.C.filter(p => p.m === 'air').length;
+    return bar('O₂ im Bläschen', oAir / 44, oAir + '', O2C) + bar('CO₂ im Bläschen', cAir / 30, cAir + '', CO2C) +
+      bar('O₂-Beladung des Blutes', s, Math.round(s * 100) + ' %', s > 0.93 ? '#2f8a3e' : s > 0.85 ? '#d39b1e' : '#c0392b') +
+      `<div class="orow t"><span>Ergebnis</span>${s > 0.93 ? '<b class="ok">Blut voll beladen ✓</b>' : s > 0.85 ? '<b>knapp</b>' : '<b class="bad">zu wenig O₂ ✗</b>'}</div>` +
+      (cAir > 24 ? `<div class="orow t"><span>Kohlenstoffdioxid</span><b class="bad">staut sich ✗</b></div>` : '');
+  }
+};
+
+/* ================= Station 4: Große Oberfläche ================= */
+const ober = {
+  nav: 'Große Oberfläche', bg: '#f5f3fb',
+  title: 'Große Oberfläche – viele kleine Bläschen',
+  lead: 'Gleich viel Luft – aber aufgeteilt in viele kleine Bläschen ergibt eine viel größere Wandfläche.',
+  controls: [
+    { t: 'range', id: 'k', label: 'Aufteilen in …', min: 1, max: 8, step: 1, v: 1, fmt: v => (v ** 3) + ' Bläschen' },
+    { t: 'toggles', items: [['emph', 'Lungenemphysem', false]] }
+  ],
+  was: 'Links ist ein einziger großer Luftsack, rechts dieselbe Luftmenge in vielen kleinen Bläschen (die Zeichnung zeigt einen Schnitt). Je mehr Bläschen, desto größer die gesamte Wandfläche – und an der Wand findet der Gasaustausch statt. Bei einem Lungenemphysem (z. B. durch langjähriges Rauchen) gehen Wände zwischen den Bläschen kaputt: Aus vielen kleinen werden wenige große Blasen, die Fläche schrumpft.',
+  merke: 'Die Lunge hat etwa 300 Millionen Lungenbläschen. Zusammen ergeben sie eine Fläche von etwa 70 bis 100 m² – größer als ein Klassenzimmer. Große Oberfläche + dünne Wand = schneller Gasaustausch.',
+  frage: 'Erkläre mit der Animation, warum Menschen mit einem Lungenemphysem schon bei kleinen Anstrengungen außer Atem geraten.',
+  init() { this.D = []; },
+  layout() {
+    const k = this.v.k, size = 300, cell = size / k, x0 = 315, y0 = 70, cells = [];
+    const merged = new Set();
+    if (this.v.emph && k >= 2) { const r = seeded(11); for (let i = 0; i + 1 < k; i += 2) for (let j = 0; j + 1 < k; j += 2) if (r() < 0.6) merged.add(i + ',' + j); }
+    for (let i = 0; i < k; i++) for (let j = 0; j < k; j++) {
+      const bi = i - (i % 2), bj = j - (j % 2);
+      if (merged.has(bi + ',' + bj)) { if (i === bi && j === bj) cells.push({ x: x0 + (i + 1) * cell, y: y0 + (j + 1) * cell, r: cell * 0.98, big: true }); }
+      else cells.push({ x: x0 + (i + 0.5) * cell, y: y0 + (j + 0.5) * cell, r: cell * 0.47 });
+    }
+    return cells;
+  },
+  factor(cells) { const R = 150 * 0.94; return cells.reduce((a, c) => a + c.r, 0) / R; },
+  step(dt) {
+    const cells = this.layout(), f = this.factor(cells);
+    if (Math.random() < dt * 4 * f) { const c = cells[(Math.random() * cells.length) | 0], a = rnd(0, 6.28); this.D.push({ x: c.x + Math.cos(a) * c.r, y: c.y + Math.sin(a) * c.r, vx: Math.cos(a) * 20, vy: Math.sin(a) * 20, a: 1 }); }
+    if (Math.random() < dt * 4) { const a = rnd(0, 6.28); this.D.push({ x: 150 + Math.cos(a) * 141, y: 220 + Math.sin(a) * 141, vx: Math.cos(a) * 20, vy: Math.sin(a) * 20, a: 1 }); }
+    this.D.forEach(d => { d.x += d.vx * dt; d.y += d.vy * dt; d.a -= dt * 0.8; }); this.D = this.D.filter(d => d.a > 0);
+  },
+  draw() {
+    const cells = this.layout(), f = this.factor(cells);
+    text('1 großer Luftsack', 150, 50, { size: 13, weight: 800, align: 'center' });
+    g.fillStyle = '#eef7fd'; g.beginPath(); g.arc(150, 220, 141, 0, 7); g.fill(); g.strokeStyle = '#e07b86'; g.lineWidth = 4; g.stroke();
+    text(`${this.v.k ** 3} kleine Bläschen${this.v.emph ? ' (Emphysem)' : ''}`, 465, 50, { size: 13, weight: 800, align: 'center' });
+    g.strokeStyle = '#d6cfe8'; g.lineWidth = 1; g.strokeRect(315, 70, 300, 300);
+    cells.forEach(c => { g.fillStyle = c.big ? '#f3eef9' : '#eef7fd'; g.beginPath(); g.arc(c.x, c.y, c.r, 0, 7); g.fill(); g.strokeStyle = c.big ? '#b88' : '#e07b86'; g.lineWidth = Math.max(1.2, 4 / Math.sqrt(this.v.k)); g.stroke(); });
+    this.D.forEach(d => mol(d.x, d.y, 'o2', d.a, 0.8));
+    // Balken
+    const bx = 40, by = 396;
+    text('Wandfläche', bx, by, { size: 12, weight: 700 });
+    g.fillStyle = '#e8e3f3'; rr(bx + 90, by - 12, 480, 14, 7); g.fill();
+    g.fillStyle = '#7c3aed'; rr(bx + 90, by - 12, 480 * Math.min(1, f / 8), 14, 7); g.fill();
+    text(`${fmt1(f)}-mal so groß`, bx + 576, by - 18, { size: 12, weight: 800, align: 'right', color: '#5b21b6' });
+    text('In der echten Lunge: etwa 300 Millionen Bläschen, 70–100 m² Fläche', 320, 428, { size: 11, align: 'center', color: COL.muted });
+  },
+  out() {
+    const f = this.factor(this.layout());
+    return bar('Wandfläche', f / 8, fmt1(f) + '×', '#7c3aed') + bar('Gasaustausch', f / 8, fmt1(f) + '×', O2C) +
+      `<div class="orow t"><span>Lungenbläschen</span><b>${this.v.k ** 3}${this.v.emph ? ' (teils zerstört)' : ''}</b></div>`;
+  }
+};
+
+/* ================= Steuerung ================= */
+const STATIONS = { weg, dif, alv, ober };
+const ORDER = ['weg', 'dif', 'alv', 'ober'];
+let cur = 'alv';
+function setDefaults(st) { st.v = {}; st.controls.forEach(c => { if (c.t === 'range' || c.t === 'seg') st.v[c.id] = c.v; if (c.t === 'toggles') c.items.forEach(([id, , on]) => st.v[id] = on); }); }
+ORDER.forEach(k => { setDefaults(STATIONS[k]); STATIONS[k].init(); });
+$('#stations').innerHTML = ORDER.map((k, i) => `<button data-st="${k}"><span class="n">${i + 1}</span>${STATIONS[k].nav}</button>`).join('');
+function updRange(el) { el.style.setProperty('--p', ((el.value - el.min) / (el.max - el.min) * 100) + '%'); }
+function buildControls() {
+  const st = STATIONS[cur], box = $('#ctrls'); let h = '';
+  st.controls.forEach(c => {
+    if (c.t === 'range') h += `<div class="ctrl"><div class="lab"><b>${c.label}</b><output id="o_${c.id}">${c.fmt(st.v[c.id])}</output></div><input type="range" data-r="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${st.v[c.id]}" aria-label="${c.label}"></div>`;
+    if (c.t === 'seg') h += `<div class="ctrl"><div class="lab"><b>${c.label}</b></div><div class="seg" style="display:grid;grid-template-columns:1fr 1fr">${c.opts.map(([v, l]) => `<button data-seg="${c.id}" data-val="${v}" aria-pressed="${st.v[c.id] === v}" style="white-space:normal;line-height:1.15;padding:4px 6px">${l}</button>`).join('')}</div></div>`;
+    if (c.t === 'toggles') h += `<div class="tgls">${c.items.map(([id, l]) => `<button class="tgl" data-tgl="${id}" aria-pressed="${!!st.v[id]}"><span class="sw"></span>${l}</button>`).join('')}</div>`;
+    if (c.t === 'buttons') h += `<div class="btnRow">${c.items.map(([id, l]) => `<button class="btn" data-act="${id}">${l}</button>`).join('')}</div>`;
+  });
+  box.innerHTML = h; $$('#ctrls input[type=range]').forEach(updRange);
+  if (st.sync) st.sync();
+}
+function renderStation() {
+  const st = STATIONS[cur];
+  $$('#stations button').forEach(b => b.setAttribute('aria-pressed', b.dataset.st === cur));
+  $('#stTitle').textContent = st.title; $('#stLead').textContent = st.lead;
+  setInfo('was');
+  buildControls(); $('#out').innerHTML = st.out();
+  try { localStorage.setItem('lungen-labor-st', cur); } catch (e) {}
+}
+function setInfo(k) {
+  const st = STATIONS[cur]; $('#info').dataset.i = k;
+  $$('.infoTabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.i === k));
+  $('#infoText').textContent = st[k];
+}
+$('.infoTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setInfo(b.dataset.i); });
+$('#stations').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cur = b.dataset.st; renderStation(); });
+$('#ctrls').addEventListener('input', e => {
+  const el = e.target.closest('input[type=range]'); if (!el) return;
+  const st = STATIONS[cur], id = el.dataset.r, c = st.controls.find(c => c.id === id);
+  st.v[id] = Number(el.value); updRange(el); $('#o_' + id).textContent = c.fmt(st.v[id]);
+  if (st.onChange) st.onChange(id); $('#out').innerHTML = st.out();
+});
+$('#ctrls').addEventListener('click', e => {
+  const st = STATIONS[cur], b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.seg) { st.v[b.dataset.seg] = b.dataset.val; $$(`[data-seg="${b.dataset.seg}"]`).forEach(x => x.setAttribute('aria-pressed', x === b)); if (st.onChange) st.onChange(b.dataset.seg); }
+  if (b.dataset.tgl) { st.v[b.dataset.tgl] = !st.v[b.dataset.tgl]; b.setAttribute('aria-pressed', st.v[b.dataset.tgl]); if (st.onChange) st.onChange(b.dataset.tgl); }
+  if (b.dataset.act && st.onChange) st.onChange(b.dataset.act);
+  $('#out').innerHTML = st.out();
+});
+$('#resetBtn').addEventListener('click', () => { const st = STATIONS[cur]; setDefaults(st); st.init(); renderStation(); toast('Station zurückgesetzt'); });
+$('#labelsChk').addEventListener('change', e => { labels = e.target.checked; });
+$('#pauseBtn').addEventListener('click', () => { paused = !paused; $('#pauseBtn').textContent = paused ? '▶ Weiter' : '⏸ Pause'; $('#pauseBtn').setAttribute('aria-label', paused ? 'Animation fortsetzen' : 'Animation anhalten'); });
+
+let tt;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2400); }
+
+/* Schrift */
+function applyFont() { document.documentElement.style.setProperty('--fs', FS_STEPS[fsIdx]); $('#fontDown').disabled = fsIdx === 0; $('#fontUp').disabled = fsIdx === FS_STEPS.length - 1; }
+function changeFont(d) { const n = clamp(fsIdx + d, 0, FS_STEPS.length - 1); if (n === fsIdx) return; fsIdx = n; try { localStorage.setItem('lungen-labor-fs', fsIdx); } catch (e) {} applyFont(); toast('Schriftgröße ' + Math.round(FS_STEPS[fsIdx] * 100) + ' %'); }
+$('#fontDown').addEventListener('click', () => changeFont(-1));
+$('#fontUp').addEventListener('click', () => changeFont(1));
+
+/* Vollbild */
+const root = document.documentElement;
+const fsReq = root.requestFullscreen || root.webkitRequestFullscreen, fsExit = document.exitFullscreen || document.webkitExitFullscreen;
+const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+function updFs() { const on = fsOn(); $('#fsIn').style.display = on ? 'none' : ''; $('#fsOut').style.display = on ? '' : 'none'; $('#fsBtn').title = on ? 'Vollbild beenden' : 'Vollbild'; $('#fsBtn').setAttribute('aria-label', $('#fsBtn').title); }
+$('#fsBtn').addEventListener('click', () => {
+  if (fsOn()) { try { fsExit && fsExit.call(document); } catch (e) {} return; }
+  if (standalone) { toast('Die App läuft bereits im Vollbild.'); return; }
+  if (!fsReq) { toast('Vollbild: Teilen → „Zum Home-Bildschirm“ und von dort öffnen.'); return; }
+  try { const r = fsReq.call(root); if (r && r.catch) r.catch(() => toast('Vollbild nicht möglich. Öffne die Seite in einem eigenen Tab.')); } catch (e) { toast('Vollbild nicht möglich.'); }
+});
+document.addEventListener('fullscreenchange', updFs); document.addEventListener('webkitfullscreenchange', updFs);
+
+const dlg = $('#infoDlg');
+$('#infoBtn').addEventListener('click', () => dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', ''));
+$('#closeInfo').addEventListener('click', () => dlg.close ? dlg.close() : dlg.removeAttribute('open'));
+
+/* Animation */
+let last = performance.now(), outT = 0;
+function frame(now) {
+  const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+  const st = STATIONS[cur];
+  if (!paused) { T += dt; st.step(dt); }
+  fit(st.bg); st.draw();
+  outT += dt; if (outT > 0.3) { outT = 0; $('#out').innerHTML = st.out(); }
+  requestAnimationFrame(frame);
+}
+try { const s = localStorage.getItem('lungen-labor-st'); if (STATIONS[s]) cur = s; const fr = localStorage.getItem('lungen-labor-fs'), f = Number(fr); if (fr !== null && Number.isInteger(f) && f >= 0 && f < FS_STEPS.length) fsIdx = f; } catch (e) {}
+applyFont(); updFs(); renderStation(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
