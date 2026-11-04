@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" role="img" aria-labelledby="t d">
+<title id="t">Mitose und Meiose</title><desc id="d">Schematischer Vergleich: Aus einer Zelle entstehen bei Mitose zwei und bei Meiose vier Tochterzellen.</desc>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#eff8f2"/><stop offset="1" stop-color="#e5f1f5"/></linearGradient><radialGradient id="cell"><stop stop-color="#fff"/><stop offset="1" stop-color="#cbe5db"/></radialGradient><g id="chrom"><path d="M-13 -20 L13 20 M13 -20 L-13 20" stroke="#7a4fc3" stroke-width="9" stroke-linecap="round"/></g><g id="chrom2"><path d="M-13 -20 L13 20 M13 -20 L-13 20" stroke="#e07c63" stroke-width="9" stroke-linecap="round"/></g></defs>
+<rect width="900" height="560" rx="32" fill="url(#bg)"/>
+<text x="225" y="68" font-size="34" font-family="Arial,sans-serif" fill="#245c49" font-weight="700" text-anchor="middle">Mitose</text><text x="675" y="68" font-size="34" font-family="Arial,sans-serif" fill="#245c49" font-weight="700" text-anchor="middle">Meiose</text>
+<path d="M450 45 V525" stroke="#bdd5cb" stroke-width="3" stroke-dasharray="10 12"/>
+<g fill="url(#cell)" stroke="#70a89c" stroke-width="5"><circle cx="225" cy="170" r="73"/><circle cx="675" cy="170" r="73"/><circle cx="140" cy="405" r="63"/><circle cx="310" cy="405" r="63"/><circle cx="555" cy="415" r="48"/><circle cx="635" cy="415" r="48"/><circle cx="715" cy="415" r="48"/><circle cx="795" cy="415" r="48"/></g>
+<g transform="translate(203 165)"><use href="#chrom"/></g><g transform="translate(244 165)"><use href="#chrom2"/></g><g transform="translate(653 165)"><use href="#chrom"/></g><g transform="translate(696 165)"><use href="#chrom2"/></g>
+<g fill="none" stroke="#679e8b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M225 252 V301 L140 339 M225 301 L310 339"/><path d="M675 252 V298 L595 336 M675 298 L755 336 M595 336 L555 360 M595 336 L635 360 M755 336 L715 360 M755 336 L795 360"/></g>
+<g transform="translate(140 405) scale(.7)"><use href="#chrom"/><use href="#chrom2" x="27"/></g><g transform="translate(310 405) scale(.7)"><use href="#chrom"/><use href="#chrom2" x="27"/></g>
+<g transform="translate(555 415) scale(.65)"><use href="#chrom"/></g><g transform="translate(635 415) scale(.65)"><use href="#chrom2"/></g><g transform="translate(715 415) scale(.65)"><use href="#chrom"/></g><g transform="translate(795 415) scale(.65)"><use href="#chrom2"/></g>
+<text x="225" y="515" font-size="23" font-family="Arial,sans-serif" fill="#386857" text-anchor="middle">2 Tochterzellen</text><text x="675" y="515" font-size="23" font-family="Arial,sans-serif" fill="#386857" text-anchor="middle">4 Tochterzellen</text>
+</svg>

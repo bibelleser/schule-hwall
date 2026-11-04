@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Zellteilung">
+<title>Zellteilungs</title>
+<style>
+:root{
+  --bg:#f6f1f0;--panel:#ffffff;--panel2:#f3f7f6;--text:#1b2a27;--muted:#5a6b67;--line:#d2dedb;
+  --accent:#6d28d9;--accent2:#5b21b6;--accentSoft:#efe7fb;
+  --water:#2f7fe0;--ion:#e3a21a;--adh:#e0742a;--ok:#2f8a3e;--okSoft:#e2f2e3;--warn:#b8650f;--warnSoft:#fdf0df;--bad:#c0392b;--badSoft:#fbe5e2;
+  --shadow:0 6px 20px rgba(20,50,50,.08);
+}
+*{box-sizing:border-box}
+html{font-size:calc(15px * var(--fs,1));background:var(--bg)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:1rem/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%;touch-action:manipulation}
+button,select{font:inherit;color:inherit}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px 6px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:24px;height:24px}
+h1{font-size:1.3rem;margin:0;line-height:1.15}
+.sub{margin:0;color:var(--muted);font-size:.85rem}
+.head-actions{display:flex;gap:8px;align-items:center}
+.btn{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow)}
+.btn:hover{border-color:var(--accent)}
+.btn.icon{min-width:44px;padding:0}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{min-height:38px;border:0;background:transparent;border-radius:9px;padding:0 12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.15);color:var(--accent2);font-weight:700}
+.seg button:disabled{opacity:.45}
+#fontUp{font-size:1.15em;font-weight:700}#fontDown{font-size:.92em;font-weight:700}
+.seg button small{font-size:.8em;margin-left:1px}
+/* Stationen */
+.stations{display:flex;gap:6px;padding:4px 14px 10px;overflow-x:auto;scrollbar-width:none}
+.stations::-webkit-scrollbar{display:none}
+.stations button{flex:1 0 auto;min-height:46px;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:14px;border:2px solid var(--line);background:var(--panel);cursor:pointer;font-weight:600;white-space:nowrap}
+.stations button .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);font-size:.85rem;font-weight:800;flex:none}
+.stations button[aria-pressed="true"]{border-color:var(--accent);background:var(--accentSoft);color:var(--accent2)}
+.stations button[aria-pressed="true"] .n{background:var(--accent);border-color:var(--accent);color:#fff}
+/* Layout (Handy zuerst) */
+main{display:flex;flex-direction:column;gap:10px;padding:0 10px 12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.stage{position:sticky;top:0;z-index:5;overflow:hidden;padding:0}
+.stage canvas{display:block;width:100%;aspect-ratio:640/440}
+.hud{position:absolute;top:8px;left:8px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:99px;padding:0 12px;min-height:32px;font-size:.85rem;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.pill input{width:18px;height:18px;accent-color:var(--accent)}
+.side{display:flex;flex-direction:column;padding:0}
+.sideScroll{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.side h2{font-size:1.1rem;margin:0;line-height:1.25}
+.lead{margin:-4px 0 0;color:var(--muted);font-size:.9rem}
+#ctrls{display:flex;flex-direction:column;gap:8px}
+.ctrl{display:flex;flex-direction:column}
+.ctrl .lab{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctrl .lab b{font-weight:600}
+.ctrl output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent2);text-align:right;white-space:nowrap}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:38px;background:transparent;margin:0;cursor:pointer}
+input[type=range]:focus{outline:none}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--line) var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid var(--accent);margin-top:-10px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:8px;border-radius:99px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--accent)}
+.tgls{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tgl{min-height:44px;display:flex;align-items:center;gap:8px;padding:0 10px;border-radius:12px;border:2px solid var(--line);background:var(--panel);cursor:pointer;text-align:left;font-weight:600;font-size:.9rem}
+.tgl .sw{width:34px;height:20px;border-radius:99px;background:var(--line);position:relative;flex:none;transition:background .2s}
+.tgl .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.tgl[aria-pressed="true"]{border-color:var(--accent)}
+.tgl[aria-pressed="true"] .sw{background:var(--accent)}
+.tgl[aria-pressed="true"] .sw::after{left:16px}
+.tgl:disabled{opacity:.45;cursor:not-allowed}
+.btnRow{display:flex;gap:6px;flex-wrap:wrap}
+.btnRow .btn{flex:1 1 auto;box-shadow:none;font-weight:600}
+.out{background:var(--panel2);border-radius:12px;padding:8px 12px;display:grid;gap:5px;font-size:.9rem}
+.out:empty{display:none}
+.orow{display:grid;grid-template-columns:8.5em 1fr auto;align-items:center;gap:8px}
+.obar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.obar i{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .25s}
+.orow b{font-variant-numeric:tabular-nums;text-align:right}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.info{border-radius:12px;background:var(--accentSoft);padding:6px 12px 10px;font-size:.92rem}
+.info[data-i="merke"]{background:var(--okSoft)}.info[data-i="frage"]{background:var(--warnSoft)}
+.info p{margin:6px 0 0}
+.infoTabs{display:flex;gap:4px;border-bottom:1px solid rgba(0,0,0,.08)}
+.infoTabs button{border:0;background:transparent;padding:6px 8px;min-height:36px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer}
+.infoTabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.orow.t{grid-template-columns:1fr auto}
+.orow.b{grid-template-columns:minmax(0,1fr) auto;row-gap:3px}.orow.b .obar{grid-column:1/-1}.orow span{min-width:0}
+.box{border-radius:12px;padding:9px 12px;font-size:.92rem}
+.box p{margin:4px 0 0}
+.box.was{background:var(--accentSoft)}
+.box.merke{background:var(--okSoft);border-left:4px solid var(--ok)}
+.box.frage{background:var(--warnSoft)}
+.box.frage summary{cursor:pointer;font-weight:700}
+#toast{position:fixed;left:50%;bottom:24px;max-width:calc(100% - 32px);text-align:center;transform:translate(-50%,30px);opacity:0;pointer-events:none;background:var(--text);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;transition:.3s;z-index:20}
+#toast.show{transform:translate(-50%,0);opacity:1}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);max-width:660px;width:calc(100% - 32px);padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{font-size:1.2rem;margin-top:0}
+dialog h3{font-size:1rem;margin:14px 0 4px}
+dialog p,dialog li{font-size:.93rem}
+dialog ul{padding-left:20px;margin:4px 0}
+/* App-Layout: alles auf einem Bildschirm */
+@media (min-width:760px), (orientation:landscape) and (min-width:640px){
+  html,body{height:100%}
+  body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+  header,.stations{flex:none}
+  main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(310px,34vw,430px);gap:12px;padding:0 14px 14px}
+  .lead{display:none}
+  .sideScroll{gap:8px}
+  input[type=range]{height:34px}
+  .info{font-size:.87rem}
+  .out{font-size:.86rem;gap:3px;padding:6px 12px}
+  .tgl,.btnRow .btn{min-height:40px}
+  .stage{position:relative;top:auto;min-height:0}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto}
+  .side{min-height:0}
+  .sideScroll{flex:1;min-height:0;overflow:auto}
+}
+@media (max-width:1100px){.stations button .t2{display:none}}
+@media (orientation:landscape) and (max-height:520px){
+  header{padding:4px 10px}.sub{display:none}.logo{width:30px;height:30px}h1{font-size:1rem}
+  .btn{min-height:36px}.btn.icon{min-width:38px}
+  .stations{padding:2px 10px 6px}.stations button{min-height:36px;padding:0 10px}
+  main{gap:8px;padding:0 8px 8px}
+  .sideScroll{padding:8px 10px;gap:7px}
+}
+@media (max-width:620px){
+  header{padding:8px 10px 4px}.sub{display:none}h1{font-size:1.1rem}.logo{width:34px;height:34px}
+  .head-actions{gap:4px}.btn.icon{min-width:40px;width:40px}
+  .stations{padding:2px 10px 8px}.stations button{padding:0 10px}
+  .pill{font-size:.75rem;min-height:28px;padding:0 9px}
+  .orow{grid-template-columns:7em 1fr auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="12" r="6"/><circle cx="16" cy="12" r="6"/><path d="M6 10l4 4M10 10l-4 4M16 9v6"/></svg></div>
+    <div><h1>Zellteilungs</h1><p class="sub">Chromosomen, Mitose und Meiose</p></div>
+  </div>
+  <div class="head-actions">
+    <div class="seg" role="group" aria-label="Schriftgröße">
+      <button id="fontDown" title="Schrift kleiner" aria-label="Schrift kleiner">A<small>−</small></button>
+      <button id="fontUp" title="Schrift größer" aria-label="Schrift größer">A<small>+</small></button>
+    </div>
+    <button class="btn icon" id="fsBtn" title="Vollbild" aria-label="Vollbild">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g id="fsIn"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></g><g id="fsOut" style="display:none"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></g></svg>
+    </button>
+    <button class="btn icon" id="resetBtn" title="Station zurücksetzen" aria-label="Station zurücksetzen">↺</button>
+    <button class="btn icon" id="infoBtn" title="Hinweise" aria-label="Hinweise">ⓘ</button>
+  </div>
+</header>
+<nav class="stations" id="stations" aria-label="Stationen"></nav>
+
+<main>
+  <section class="card stage" aria-label="Animation">
+    <canvas id="stage" role="img" aria-label="Animation zur Zellteilung"></canvas>
+    <div class="hud">
+      <label class="pill"><input type="checkbox" id="labelsChk" checked> Beschriftung</label>
+      <button class="pill" id="pauseBtn" aria-label="Animation anhalten">⏸ Pause</button>
+    </div>
+  </section>
+  <aside class="card side" aria-label="Steuerung und Erklärung">
+    <div class="sideScroll">
+      <h2 id="stTitle"></h2>
+      <p class="lead" id="stLead"></p>
+      <div id="ctrls"></div>
+      <div class="out" id="out" aria-live="polite"></div>
+      <div class="info" id="info">
+        <div class="infoTabs" role="tablist">
+          <button role="tab" data-i="was" aria-selected="true">Was passiert?</button>
+          <button role="tab" data-i="merke">Merke</button>
+          <button role="tab" data-i="frage">Denkfrage</button>
+        </div>
+        <p id="infoText"></p>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div id="toast" role="status"></div>
+
+<dialog id="infoDlg">
+  <h2>Hinweise zum Zellteilungs-Labor</h2>
+  <p>Die vier Stationen zeigen den Bau der Chromosomen und die beiden Arten der Kernteilung. Mitose und Meiose lassen sich automatisch abspielen oder Phase für Phase durchgehen.</p>
+  <h3>Die Stationen</h3>
+  <ul>
+    <li><b>Chromosomen:</b> Ein- und Zwei-Chromatid-Chromosom, homologe Chromosomen mit Allelen, Verpackung der DNA.</li>
+    <li><b>Mitose:</b> Interphase, Prophase, Metaphase, Anaphase, Telophase und Cytokinese mit DNA-Mengen-Diagramm.</li>
+    <li><b>Meiose:</b> Meiose I und II mit Paarung der Homologen, Crossing-over und zufälliger Verteilung.</li>
+    <li><b>Vielfalt:</b> Wie viele verschiedene Keimzellen sind möglich? (2ⁿ)</li>
+  </ul>
+  <h3>Zum Modell</h3>
+  <p>Die Modellzelle hat 2n = 4 Chromosomen: ein langes und ein kurzes Paar. <b style="color:#e0525c">Rot</b> = von der Mutter, <b style="color:#4a78de">Blau</b> = vom Vater. Gezeigt ist eine tierische Zelle mit Centrosomen. Die Phasen sind zeitlich stark verkürzt; die Prometaphase ist in Pro- und Metaphase enthalten.</p>
+  <h3>Mitose und Meiose im Vergleich</h3>
+  <p>Mitose: 1 Teilung → 2 identische diploide Zellen (2n → 2n). Meiose: 2 Teilungen → 4 verschiedene haploide Zellen (2n → n).</p>
+  <p style="text-align:right;margin:16px 0 0"><button class="btn" id="closeInfo">Schließen</button></p>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const fmt1 = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
+
+/* ================= Zeichnen: Grundlagen ================= */
+const cv = $('#stage'), g = cv.getContext('2d');
+const SW = 640, SH = 440;
+let K = 1, VX0 = 0, VX1 = SW, VY0 = 0, VY1 = SH, labels = true, paused = false, T = 0;
+const FS_STEPS = [0.85, 0.925, 1, 1.1, 1.2, 1.32, 1.45];
+let fsIdx = 2;
+const COL = { water: '#2f7fe0', waterSoft: 'rgba(80,150,235,.35)', ion: '#e3a21a', adh: '#e0742a', text: '#1b2a27', muted: '#5a6b67', leaf: '#5aa646', leafD: '#3f8a35', wood: '#8b6b3e', soil: '#7a5a3c' };
+function fit(bg) {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  const sc = Math.min(w / SW, h / SH), ox = (w - SW * sc) / 2, oy = (h - SH * sc) / 2;
+  g.setTransform(sc, 0, 0, sc, ox, oy);
+  VX0 = -ox / sc; VX1 = SW + ox / sc; VY0 = -oy / sc; VY1 = SH + oy / sc;
+  K = clamp(Math.max(1, 10 / Math.max(12 * sc / dpr, 1)) * FS_STEPS[fsIdx], 0.85, 1.9);
+}
+const font = (s, w) => `${w || 600} ${s * K}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif`;
+function text(t, x, y, o = {}) {
+  g.font = font(o.size || 12, o.weight); g.fillStyle = o.color || COL.text; g.textAlign = o.align || 'left'; g.textBaseline = o.base || 'alphabetic';
+  if (o.bg) { const m = g.measureText(t), w = m.width + 10, hh = (o.size || 12) * K + 8; let bx = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w + 5 : x - 5;
+    g.fillStyle = o.bg; rr(bx, y - hh + 5, w, hh, 6); g.fill(); g.fillStyle = o.color || COL.text; }
+  g.fillText(t, x, y); g.textBaseline = 'alphabetic';
+}
+function lbl(t, x1, y1, x2, y2, o = {}) {
+  if (!labels) return;
+  g.strokeStyle = o.line || 'rgba(40,50,50,.55)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2 - 4); g.stroke();
+  g.fillStyle = o.line || 'rgba(40,50,50,.7)'; g.beginPath(); g.arc(x1, y1, 2, 0, 7); g.fill();
+  text(t, x2 + (o.align === 'right' ? -2 : o.align === 'center' ? 0 : 2), y2, { align: o.align || 'left', size: o.size || 12, bg: 'rgba(255,255,255,.82)', color: o.color });
+}
+function rr(x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+function ball(x, y, r, c, stroke) { g.fillStyle = c; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = 1; g.stroke(); } }
+function arrow(x1, y1, x2, y2, c, w = 3) {
+  const a = Math.atan2(y2 - y1, x2 - x1), hl = 8 + w * 2;
+  g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - Math.cos(a) * hl * 0.6, y2 - Math.sin(a) * hl * 0.6); g.stroke();
+  g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - hl * Math.cos(a - 0.45), y2 - hl * Math.sin(a - 0.45)); g.lineTo(x2 - hl * Math.cos(a + 0.45), y2 - hl * Math.sin(a + 0.45)); g.closePath(); g.fill();
+}
+function seeded(n) { let s = n; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; }
+const bar = (label, v, txt, color) => `<div class="orow b"><span>${label}</span><b>${txt}</b><div class="obar"><i style="width:${clamp(v, 0, 1) * 100}%;${color ? 'background:' + color : ''}"></i></div></div>`;
+
+/* ================= Hilfen ================= */
+const RED = [214, 38, 61], BLUE = [86, 74, 170];
+const mixRGB = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * clamp(t, 0, 1))).join(',')})`;
+const bloodCol = o => mixRGB(BLUE, RED, o);
+function mkPath(pts) { const L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, L, len: L[L.length - 1] }; }
+function ptAt(P, d, loop) {
+  if (loop) d = ((d % P.len) + P.len) % P.len; else d = clamp(d, 0, P.len);
+  let i = 1; while (i < P.L.length - 1 && P.L[i] < d) i++;
+  const a = P.pts[i - 1], b = P.pts[i], t = (d - P.L[i - 1]) / Math.max(1e-6, P.L[i] - P.L[i - 1]);
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, i - 1, t];
+}
+function strokePath(pts, col, w) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); }
+function rbc(x, y, o, s = 1) { g.fillStyle = bloodCol(o); g.beginPath(); g.ellipse(x, y, 6.5 * s, 4.2 * s, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.2; g.stroke(); g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(x, y, 2.6 * s, 1.5 * s, 0, 0, 7); g.fill(); }
+const pulseOf = v => v;
+
+/* ================= Gemeinsam: Chromosomen, Zellen, Diagramme ================= */
+const CM = { m: '#e0525c', p: '#4a78de' };
+const PAIRS = { A: { L: 46, c: 0.36 }, B: { L: 30, c: 0.42 } };
+const ease = t => t * t * (3 - 2 * t), segU = (u, a, b) => clamp((u - a) / (b - a), 0, 1);
+const lerp = (a, b, t) => a + (b - a) * t, lerpP = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
+const lerpA = (a1, a2, t) => { const d = (((a2 - a1) % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI) - Math.PI; return a1 + d * t; };
+const ACC = '#6d28d9';
+function seg2(a, b, col, w) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
+function chromatid(x, y, a, pair, col, o = {}) {
+  const P = PAIRS[pair], s = o.s || 1, L = (o.L || P.L) * s, p = L * P.c, q = L - p, w = 7 * s, side = o.side || 0, bend = o.bend || 0, back = o.back || 0;
+  const d1 = lerpA(a, back - 0.5, bend), d2 = lerpA(a + Math.PI, back + 0.5, bend);
+  const nx = -Math.sin(a), ny = Math.cos(a), c0 = [x + nx * side * 1.9 * s, y + ny * side * 1.9 * s];
+  g.save(); g.globalAlpha *= (o.alpha === undefined ? 1 : o.alpha); g.lineCap = 'round';
+  const arms = [[d1, p, null], [d2, q, o.tip]].map(([d, len, tip]) => [[x + Math.cos(d) * len + nx * side * 4.8 * s, y + Math.sin(d) * len + ny * side * 4.8 * s], tip]);
+  arms.forEach(([e]) => seg2(c0, e, 'rgba(30,20,45,.38)', w + 2.2));
+  arms.forEach(([e, tip], i) => {
+    seg2(c0, e, col, w);
+    if (tip) seg2(lerpP(c0, e, 0.5), e, tip, w);
+    if (i === 1 && o.gene) { const m = lerpP(c0, e, 0.62), dx = e[0] - c0[0], dy = e[1] - c0[1], dl = Math.hypot(dx, dy) || 1, px = -dy / dl * (w * 0.62), py = dx / dl * (w * 0.62); seg2([m[0] - px, m[1] - py], [m[0] + px, m[1] + py], o.gene, 3.2 * s); }
+    g.save(); g.translate(-w * 0.16, -w * 0.16); seg2(c0, e, 'rgba(255,255,255,.28)', w * 0.28); g.restore();
+  });
+  ball(c0[0], c0[1], w * 0.36, 'rgba(40,25,45,.65)');
+  g.restore();
+}
+function chromosome(x, y, a, pair, col, o = {}) {
+  const k = o.k === undefined ? 1 : o.k, tips = o.tips || [null, null];
+  chromatid(x, y, a, pair, col, Object.assign({}, o, { side: -k, tip: tips[0] }));
+  chromatid(x, y, a, pair, col, Object.assign({}, o, { side: k, tip: tips[1] }));
+}
+function cells(list) {
+  list.forEach(([x, y, r]) => { g.fillStyle = 'rgba(80,50,30,.07)'; g.beginPath(); g.arc(x, y + 5, r + 2, 0, 7); g.fill(); });
+  list.forEach(([x, y, r]) => { g.strokeStyle = '#c99a62'; g.lineWidth = 5; g.beginPath(); g.arc(x, y, r, 0, 7); g.stroke(); });
+  list.forEach(([x, y, r]) => { const cg = g.createRadialGradient(x - r * 0.3, y - r * 0.35, r * 0.1, x, y, r); cg.addColorStop(0, '#fffbf5'); cg.addColorStop(1, '#fbe8cf'); g.fillStyle = cg; g.beginPath(); g.arc(x, y, r - 1.5, 0, 7); g.fill(); });
+}
+function nucleus(x, y, r, env = 1) {
+  if (env <= 0.02) return;
+  g.save(); g.globalAlpha *= env; g.fillStyle = 'rgba(205,190,235,.55)'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+  g.strokeStyle = '#8f78c4'; g.lineWidth = 2.5; if (env < 0.98) g.setLineDash([9 * env + 1, 12 * (1 - env) + 1]); g.beginPath(); g.arc(x, y, r, 0, 7); g.stroke(); g.setLineDash([]);
+  g.restore();
+}
+function centro(x, y, alpha = 1) {
+  if (alpha <= 0.02) return;
+  g.save(); g.globalAlpha *= alpha;
+  g.strokeStyle = 'rgba(100,120,145,.45)'; g.lineWidth = 1; for (let i = 0; i < 14; i++) { const a = i / 14 * 2 * Math.PI; seg2([x + Math.cos(a) * 7, y + Math.sin(a) * 7], [x + Math.cos(a) * 17, y + Math.sin(a) * 17], 'rgba(100,120,145,.45)', 1); }
+  g.fillStyle = '#56657a'; rr(x - 6, y - 2, 8, 4, 1.5); g.fill(); rr(x + 1, y - 6, 4, 8, 1.5); g.fill();
+  g.restore();
+}
+function fibers(pole, targets, alpha) { if (alpha <= 0.02) return; targets.forEach(t => seg2(pole, t, `rgba(85,105,130,${0.55 * alpha})`, 1.2)); }
+function polar(p1, p2, alpha, bow = 26) { if (alpha <= 0.02) return; g.strokeStyle = `rgba(85,105,130,${0.3 * alpha})`; g.lineWidth = 1; [-2, -1, 1, 2].forEach(k => { const mx = (p1[0] + p2[0]) / 2, my = (p1[1] + p2[1]) / 2, dx = p2[0] - p1[0], dy = p2[1] - p1[1], dl = Math.hypot(dx, dy); g.beginPath(); g.moveTo(p1[0], p1[1]); g.quadraticCurveTo(mx - dy / dl * k * bow, my + dx / dl * k * bow, p2[0], p2[1]); g.stroke(); }); }
+// Chromatin: jedes Chromosom liegt locker aufgeknäuelt in seinem eigenen Bereich ("Chromosomenterritorium")
+const TERR = { Am: [-0.4, -0.26, 0.31, 5, 0.4, 0.3], Ap: [-0.32, 0.36, 0.31, 5, 2.1, -0.5], Bm: [0.4, 0.36, 0.25, 4, 1.2, 1.1], Bp: [0.36, -0.4, 0.25, 4, 3.0, -1.2] };
+function chromatinPts(key, x, y, r) {
+  const [cx, cy, R, k, ph, rot] = TERR[key], N = 150, pts = [], w = Math.sin(T * 0.7 + ph) * 0.12;
+  for (let i = 0; i <= N; i++) {
+    const t = i / N * 1.85 * Math.PI, a = 0.58 * Math.cos(t) + 0.42 * Math.cos(k * t + ph + w), b = 0.58 * Math.sin(t) + 0.42 * Math.sin(k * t + ph * 0.7 - w);
+    let px = cx + R * (a * Math.cos(rot) - b * Math.sin(rot)), py = cy + R * (a * Math.sin(rot) + b * Math.cos(rot));
+    const d = Math.hypot(px, py); if (d > 0.84) { px *= 0.84 / d; py *= 0.84 / d; }
+    pts.push([x + px * r, y + py * r]);
+  }
+  return pts;
+}
+function threads(x, y, r, keys, alpha, dup = 0) {
+  if (alpha <= 0.02) return;
+  g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+  const path = P => { g.beginPath(); P.forEach(([px, py], i) => i ? g.lineTo(px, py) : g.moveTo(px, py)); };
+  keys.forEach(key => {
+    const col = CM[key[1]], P = chromatinPts(key, x, y, r);
+    // Kopie nach der Verdopplung läuft dicht daneben
+    const Q = P.map(([px, py], i) => { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], dl = Math.hypot(dx, dy) || 1; return [px - dy / dl * 2.6, py + dx / dl * 2.6]; });
+    [[P, 1], [Q, dup]].forEach(([L, al]) => {
+      if (al <= 0.02) return;
+      g.globalAlpha = alpha * al * 0.25; g.strokeStyle = col; g.lineWidth = 5; path(L); g.stroke();
+      g.globalAlpha = alpha * al * 0.95; g.lineWidth = 1.9; path(L); g.stroke();
+      g.globalAlpha = alpha * al * 0.5; g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 0.6; path(L); g.stroke();
+    });
+  });
+  g.restore();
+}
+function phaseBar(PH, i, u) {
+  const x0 = 14, w = (626 - x0) / PH.length, y = 404;
+  PH.forEach((p, j) => { const x = x0 + j * w, t = p.s || p.n; g.fillStyle = j === i ? ACC : '#ebe5f6'; rr(x + 2, y, w - 4, 26, 7); g.fill(); let sz = 9.5; g.font = font(sz, 800); while (g.measureText(t).width > w - 8 && sz > 4) { sz -= 0.5; g.font = font(sz, 800); } text(t, x + w / 2, y + 17, { size: sz, weight: 800, align: 'center', color: j === i ? '#fff' : '#5b5470' }); });
+  g.fillStyle = 'rgba(255,255,255,.75)'; rr(x0 + i * w + 6, y + 21, (w - 12) * clamp(u, 0, 1), 3, 1.5); g.fill();
+}
+function dnaGraph(PH, i, u, fn, maxC) {
+  const bx = 450, by = 14, bw = 178, bh = 166, px0 = 478, px1 = 618, py0 = 150, py1 = 48;
+  g.fillStyle = '#fff'; rr(bx, by, bw, bh, 12); g.fill(); g.strokeStyle = '#e1dcef'; g.lineWidth = 1; g.stroke();
+  text('DNA-Menge pro Zelle', bx + 10, by + 18, { size: 10.5, weight: 800 });
+  const Y = c => py0 - (c / maxC) * (py0 - py1);
+  [1, 2, 4].filter(c => c <= maxC).forEach(c => { g.strokeStyle = '#efecf5'; g.beginPath(); g.moveTo(px0, Y(c)); g.lineTo(px1, Y(c)); g.stroke(); text(c + 'c', px0 - 5, Y(c) + 3, { size: 8.5, align: 'right', color: COL.muted }); });
+  g.strokeStyle = '#c9c2da'; g.beginPath(); g.moveTo(px0, py1 - 6); g.lineTo(px0, py0); g.lineTo(px1, py0); g.stroke();
+  const N = PH.length, W = (px1 - px0) / N;
+  g.strokeStyle = ACC; g.lineWidth = 2.4; g.beginPath();
+  for (let j = 0; j < N; j++) for (let k = 0; k <= 20; k++) { const X = px0 + (j + k / 20) * W, V = fn(j, k / 20); (j || k) ? g.lineTo(X, Y(V)) : g.moveTo(X, Y(V)); }
+  g.stroke();
+  for (let j = 1; j < N; j++) { g.strokeStyle = '#efecf5'; g.beginPath(); g.moveTo(px0 + j * W, py0); g.lineTo(px0 + j * W, py0 + 4); g.stroke(); }
+  const cx = px0 + (i + clamp(u, 0, 1)) * W; ball(cx, Y(fn(i, clamp(u, 0, 1))), 5, '#c0392b', '#fff');
+  text('Zeit →', px1, py0 + 14, { size: 8.5, align: 'right', color: COL.muted });
+  text('c = DNA-Menge eines einfachen Satzes', bx + 10, by + bh - 4, { size: 8, color: COL.muted });
+}
+function infoBox(lines) {
+  const bx = 450, by = 190, bw = 178, bh = 204;
+  g.fillStyle = '#fff'; rr(bx, by, bw, bh, 12); g.fill(); g.strokeStyle = '#e1dcef'; g.lineWidth = 1; g.stroke();
+  lines.forEach(([a, b], j) => { text(a, bx + 10, by + 22 + j * 34, { size: 9, color: COL.muted }); text(b, bx + 10, by + 37 + j * 34, { size: 11, weight: 800 }); });
+  const ly = by + bh - 14; chromatid(bx + 16, ly, 0, 'B', CM.m, { s: 0.55 }); text('mütterlich', bx + 30, ly + 3.5, { size: 9 }); chromatid(bx + 98, ly, 0, 'B', CM.p, { s: 0.55 }); text('väterlich', bx + 112, ly + 3.5, { size: 9 });
+}
+function note(t) { text(t, 240, 52, { size: 11, weight: 800, align: 'center', bg: 'rgba(255,255,255,.92)', color: '#5b21b6' }); }
+function stepPhase(st, PH, id) { if (id === 'prev' || id === 'next') { st.i = (st.i + (id === 'next' ? 1 : PH.length - 1)) % PH.length; st.u = 0; if (st.v.auto) { st.v.auto = false; buildControls(); } } }
+function advance(st, PH, dt) { st.u += dt * st.v.speed / PH[st.i].d; if (st.u >= 1) { if (st.v.auto) { st.u = 0; st.i = (st.i + 1) % PH.length; } else st.u = 1; } }
+const phaseControls = extra => [
+  { t: 'buttons', items: [['prev', '◀ Phase zurück'], ['next', 'Nächste Phase ▶']] },
+  { t: 'toggles', items: [['auto', 'Automatisch ablaufen', true]].concat(extra || []) },
+  { t: 'range', id: 'speed', label: 'Tempo', min: 0.5, max: 2, step: 0.25, v: 1, fmt: v => v === 1 ? 'normal' : fmt1(v) + ' ×' }
+];
+
+/* ================= Station 1: Chromosomen ================= */
+const chr = {
+  nav: 'Chromosomen', bg: '#f6f4fa',
+  title: 'Bau der Chromosomen',
+  lead: 'Chromosomen tragen die Erbinformation. Vor jeder Teilung wird ihre DNA verdoppelt.',
+  controls: [
+    { t: 'seg', id: 'zust', label: 'Zustand', opts: [['ein', 'Ein-Chromatid-Chromosom'], ['zwei', 'Zwei-Chromatid-Chromosom']], v: 'zwei' },
+    { t: 'toggles', items: [['gene', 'Gen-Ort (Allele) zeigen', true]] }
+  ],
+  was: 'Ein Chromosom besteht aus einem sehr langen DNA-Faden. Er ist um Proteine (Histone) gewickelt und wird vor einer Zellteilung stark verdichtet. Vor jeder Teilung wird die DNA verdoppelt: Aus dem Ein-Chromatid-Chromosom wird ein Zwei-Chromatid-Chromosom. Die beiden Schwesterchromatiden sind identisch und am Centromer miteinander verbunden.',
+  merke: 'Körperzellen sind diploid (2n): Sie enthalten jedes Chromosom zweimal – eins von der Mutter, eins vom Vater. Diese homologen Chromosomen tragen dieselben Gene an denselben Orten, können aber unterschiedliche Allele haben. Mensch: 2n = 46 (23 Paare). Keimzellen sind haploid (n = 23).',
+  frage: 'Worin unterscheiden sich Schwesterchromatiden von homologen Chromosomen? Begründe mithilfe der Farben im Modell.',
+  init() { this.k = this.v.zust === 'zwei' ? 1 : 0; },
+  step(dt) { const t = this.v.zust === 'zwei' ? 1 : 0; this.k += (t - this.k) * Math.min(1, dt * 2.2); },
+  draw() {
+    const k = this.k, gene = this.v.gene;
+    // großes Chromosom
+    g.fillStyle = '#fff'; rr(14, 14, 278, 266, 14); g.fill(); g.strokeStyle = '#e1dcef'; g.lineWidth = 1; g.stroke();
+    text(k > 0.5 ? 'Zwei-Chromatid-Chromosom' : 'Ein-Chromatid-Chromosom', 153, 36, { size: 12.5, weight: 800, align: 'center' });
+    text(k > 0.5 ? 'nach der DNA-Verdopplung' : 'nach der Teilung (vor der Verdopplung)', 153, 52, { size: 9.5, align: 'center', color: COL.muted });
+    const X = 160, Y = 120, s = 3;
+    chromosome(X, Y + 30, -Math.PI / 2, 'A', CM.m, { s, k, gene: gene ? '#f2c230' : null });
+    if (labels) {
+      lbl('Centromer', X, Y + 30, 64, 120, { size: 10, align: 'right' });
+      if (k > 0.5) { lbl('Chromatid', X - 12, Y + 110, 64, 196, { size: 10, align: 'right' }); lbl('Chromatid', X + 12, Y + 110, 250, 196, { size: 10, align: 'left' }); text('Schwesterchromatiden', 153, 270, { size: 10, weight: 700, align: 'center', color: '#5b21b6' }); text('identische Kopien', 153, 256, { size: 9, align: 'center', color: COL.muted }); }
+      else { lbl('ein Chromatid = eine DNA-Doppelhelix', X, Y + 110, 153, 262, { size: 9.5, align: 'center' }); }
+      if (gene) lbl('Gen-Ort', X + 9, Y + 30 + 92 * 0.62 * 1.08, 250, 236, { size: 10 });
+      lbl('kurzer Arm', X, Y + 8, 250, 92, { size: 10 });
+    }
+    // homologe Chromosomen
+    g.fillStyle = '#fff'; rr(304, 14, 322, 266, 14); g.fill(); g.strokeStyle = '#e1dcef'; g.stroke();
+    text('Homologe Chromosomen', 465, 36, { size: 12.5, weight: 800, align: 'center' });
+    text('Modellzelle mit 2n = 4 Chromosomen', 465, 52, { size: 9.5, align: 'center', color: COL.muted });
+    const hs = 1.7;
+    [[370, 'A', 'm', '#2e7d32'], [410, 'A', 'p', '#9ccc65'], [510, 'B', 'm', null], [550, 'B', 'p', null]].forEach(([x, pr, o, gc]) => chromosome(x, 150, -Math.PI / 2, pr, CM[o], { s: hs, k, gene: gene ? gc : null }));
+    g.strokeStyle = '#b8afd0'; g.lineWidth = 1.5; [[350, 430], [492, 568]].forEach(([a, b]) => { g.beginPath(); g.moveTo(a, 236); g.lineTo(a, 242); g.lineTo(b, 242); g.lineTo(b, 236); g.stroke(); });
+    text('homologes Paar 1', 390, 258, { size: 10, weight: 700, align: 'center' }); text('homologes Paar 2', 530, 258, { size: 10, weight: 700, align: 'center' });
+    if (gene && labels) { text('Allel A', 344, 186, { size: 9, weight: 700, align: 'right', color: '#2e7d32' }); text('Allel a', 436, 186, { size: 9, weight: 700, color: '#6a9a2f' }); }
+    chromatid(330, 272, 0, 'B', CM.m, { s: 0.5 }); text('von der Mutter', 342, 275, { size: 9 }); chromatid(460, 272, 0, 'B', CM.p, { s: 0.5 }); text('vom Vater', 472, 275, { size: 9 });
+    // Verpackung der DNA
+    g.fillStyle = '#fff'; rr(14, 292, 612, 140, 14); g.fill(); g.strokeStyle = '#e1dcef'; g.stroke();
+    text('Verpackung der DNA', 26, 312, { size: 11.5, weight: 800 });
+    const cy = 362;
+    g.lineWidth = 2; for (let sgn of [1, -1]) { g.strokeStyle = sgn > 0 ? '#5b8def' : '#e07a5f'; g.beginPath(); for (let x = 40; x <= 140; x += 2) g.lineTo(x, cy + sgn * 11 * Math.sin((x - 40) / 100 * 4 * Math.PI)); g.stroke(); }
+    g.strokeStyle = '#b9b2c9'; g.lineWidth = 1.2; for (let x = 44; x <= 136; x += 6) { const a = 11 * Math.sin((x - 40) / 100 * 4 * Math.PI); g.beginPath(); g.moveTo(x, cy + a); g.lineTo(x, cy - a); g.stroke(); }
+    g.strokeStyle = '#6d6185'; g.lineWidth = 1.6; g.beginPath(); for (let x = 190; x <= 296; x += 2) g.lineTo(x, cy + 3 * Math.sin(x / 5)); g.stroke();
+    [204, 232, 260, 288].forEach(x => { ball(x, cy, 9, '#c8b5ea', '#9b86c9'); g.strokeStyle = '#6d6185'; g.lineWidth = 1.6; g.beginPath(); g.ellipse(x, cy, 10.5, 6, 0.4, 0, 7); g.stroke(); });
+    g.strokeStyle = '#8b6bc9'; g.lineWidth = 2.2; for (let i = 0; i < 13; i++) { g.beginPath(); g.ellipse(344 + i * 7, cy, 6, 15, 0.25, 0, 7); g.stroke(); }
+    chromosome(540, cy, -Math.PI / 2, 'A', CM.m, { s: 1.1, k: 1 });
+    [150, 310, 460].forEach(x => text('→', x + 10, cy + 5, { size: 16, weight: 800, align: 'center', color: '#b0a8c4' }));
+    [[90, 'DNA-Doppelhelix'], [245, 'um Histone gewickelt'], [388, 'Chromatinfaser'], [540, 'Chromosom (verdichtet)']].forEach(([x, t]) => text(t, x, 420, { size: 9.5, weight: 700, align: 'center' }));
+  },
+  out() {
+    const two = this.v.zust === 'zwei';
+    return `<div class="orow t"><span>Chromatiden pro Chromosom</span><b>${two ? 2 : 1}</b></div><div class="orow t"><span>DNA-Doppelhelices pro Chromosom</span><b>${two ? 2 : 1}</b></div>` +
+      `<div class="orow t"><span>Modellzelle</span><b>2n = 4 (2 Paare)</b></div><div class="orow t"><span>Mensch</span><b>2n = 46 (23 Paare)</b></div>`;
+  }
+};
+
+/* ================= Station 2: Mitose ================= */
+const MPH = [{ k: 'inter', n: 'Interphase', d: 5 }, { k: 'pro', n: 'Prophase', d: 4.5 }, { k: 'meta', n: 'Metaphase', d: 4.5 }, { k: 'ana', n: 'Anaphase', d: 3.5 }, { k: 'telo', n: 'Telophase', d: 3.5 }, { k: 'zyto', n: 'Cytokinese', d: 4 }];
+const MCH = [{ key: 'Am', pair: 'A', org: 'm', py: 146, pro: [210, 194, 0.5] }, { key: 'Bp', pair: 'B', org: 'p', py: 194, pro: [267, 186, -0.6] }, { key: 'Ap', pair: 'A', org: 'p', py: 242, pro: [214, 242, 2.3] }, { key: 'Bm', pair: 'B', org: 'm', py: 290, pro: [269, 242, 1.1] }];
+const ALLK = ['Am', 'Ap', 'Bm', 'Bp'];
+const PL = [128, 215], PR = [352, 215];
+const MTXT = {
+  inter: 'Die Zelle wächst und verdoppelt ihre DNA (S-Phase). Danach besteht jedes Chromosom aus zwei identischen Chromatiden.',
+  pro: 'Die Chromosomen verdichten sich und werden sichtbar. Die Kernhülle löst sich auf, die Centrosomen wandern zu den Zellpolen, der Spindelapparat entsteht.',
+  meta: 'Spindelfasern setzen an den Centromeren an und ordnen die Chromosomen in der Äquatorialebene an.',
+  ana: 'Die Schwesterchromatiden jedes Chromosoms werden getrennt und zu den entgegengesetzten Polen gezogen.',
+  telo: 'An jedem Pol liegt ein vollständiger Chromosomensatz. Die Chromosomen entspiralisieren sich, neue Kernhüllen entstehen.',
+  zyto: 'Die Zellmembran schnürt sich ein. Es entstehen zwei genetisch identische Tochterzellen mit je 2n = 4 Chromosomen.'
+};
+const mitDNA = (j, u) => { const k = MPH[j].k; if (k === 'inter') return u < 0.3 ? 2 : u < 0.7 ? 2 + 2 * (u - 0.3) / 0.4 : 4; if (k === 'zyto') return u < 0.5 ? 4 : 2; return 4; };
+const mit = {
+  nav: 'Mitose', bg: '#f6f4fa',
+  title: 'Mitose: aus einer Zelle werden zwei',
+  lead: 'Die Mitose erzeugt zwei Tochterzellen mit genau denselben Chromosomen wie die Mutterzelle.',
+  controls: phaseControls([['spindel', 'Spindelapparat zeigen', true]]),
+  was: 'Vor der Mitose wird in der Interphase die DNA verdoppelt. In der Prophase verdichten sich die Chromosomen, in der Metaphase liegen sie in der Äquatorialebene. In der Anaphase werden die Schwesterchromatiden zu den Polen gezogen, in der Telophase bilden sich neue Zellkerne. Bei der Cytokinese teilt sich das Zellplasma.',
+  merke: 'Mitose = Kernteilung, bei der zwei genetisch identische Tochterkerne entstehen. Phasen: Prophase → Metaphase → Anaphase → Telophase, danach Cytokinese. Die Chromosomenzahl bleibt gleich (2n → 2n). Mitosen dienen dem Wachstum, der Erneuerung von Gewebe und der Wundheilung.',
+  frage: 'Warum muss die DNA vor der Mitose verdoppelt werden? Was würde passieren, wenn in der Anaphase beide Chromatiden eines Chromosoms zum selben Pol wandern?',
+  init() { this.i = 0; this.u = 0; },
+  onChange(id) { stepPhase(this, MPH, id); },
+  step(dt) { advance(this, MPH, dt); },
+  draw() {
+    const k = MPH[this.i].k, u = this.u, sp = this.v.spindel;
+    let fadeA = 1; if (k === 'zyto' && this.v.auto) fadeA = 1 - segU(u, 0.9, 1); if (k === 'inter' && this.v.auto) fadeA = Math.max(0.15, segU(u, 0, 0.1));
+    g.save(); g.globalAlpha = fadeA;
+    let cl;
+    if (k === 'ana') { const d = ease(u) * 10; cl = [[240 - d, 215, 150 - d * 0.4], [240 + d, 215, 150 - d * 0.4]]; }
+    else if (k === 'telo') { const e = ease(u), d = 10 + e * 35, r = 146 - e * 22; cl = [[240 - d, 215, r], [240 + d, 215, r]]; }
+    else if (k === 'zyto') { const e = ease(segU(u, 0, 0.8)), d = 45 + e * 52, r = 124 - e * 27; cl = [[240 - d, 215, r], [240 + d, 215, r]]; }
+    else cl = [[240, 215, 150]];
+    cells(cl);
+    const chrAt = (c, x, y, a, o) => chromosome(x, y, a, c.pair, CM[c.org], o);
+    if (k === 'inter') {
+      nucleus(240, 215, 74, 1); ball(242, 216, 11, 'rgba(130,100,175,.5)');
+      threads(240, 215, 74, ALLK, 1, segU(u, 0.3, 0.7));
+      centro(240, 116); if (u > 0.7) centro(258, 120, segU(u, 0.7, 0.8));
+      const sub = u < 0.3 ? 'G1-Phase: Zellwachstum' : u < 0.7 ? 'S-Phase: DNA wird verdoppelt' : 'G2-Phase: Vorbereitung der Teilung';
+      note(sub);
+      if (labels) { const L = { size: 10, align: 'right' }; lbl('Zellkern', 180, 175, 86, 120, L); lbl('Kernkörperchen', 236, 214, 86, 160, L); lbl('Chromatin', 226, 236, 86, 290, L); lbl('Zellmembran', 136, 322, 86, 372, L); lbl('Centrosom', 240, 116, 392, 80, { size: 10 }); }
+    }
+    if (k === 'pro') {
+      const env = 1 - segU(u, 0.55, 1), e = ease(segU(u, 0.1, 1));
+      nucleus(240, 215, 74, env); if (env > 0.5) ball(242, 216, 11 * env, 'rgba(130,100,175,.5)');
+      threads(240, 215, 74, ALLK, 1 - segU(u, 0, 0.55), 1);
+      const L = lerpP([240, 116], PL, e), R = lerpP([258, 120], PR, e);
+      if (sp) polar(L, R, e, 16 + 12 * e);
+      centro(L[0], L[1]); centro(R[0], R[1]);
+      MCH.forEach(c => chrAt(c, c.pro[0], c.pro[1], c.pro[2], { alpha: segU(u, 0.15, 0.6), s: 0.7 + 0.3 * segU(u, 0.15, 0.7) }));
+      note(u < 0.55 ? 'Chromosomen verdichten sich' : 'Kernhülle löst sich auf');
+      if (labels) { lbl('Centrosom', L[0], L[1], 86, 120, { size: 10, align: 'right' }); if (u > 0.4) lbl('Kernhülle', 312, 190, 392, 120, { size: 10 }); }
+    }
+    if (k === 'meta') {
+      const e = ease(segU(u, 0, 0.55)), pos = MCH.map(c => [lerp(c.pro[0], 240, e), lerp(c.pro[1], c.py, e), lerpA(c.pro[2], -Math.PI / 2, e)]);
+      if (sp) { polar(PL, PR, 1, 30); MCH.forEach((c, j) => { fibers(PL, [[pos[j][0] - 3, pos[j][1]]], 1); fibers(PR, [[pos[j][0] + 3, pos[j][1]]], 1); }); }
+      centro(PL[0], PL[1]); centro(PR[0], PR[1]);
+      if (e > 0.9) { g.strokeStyle = 'rgba(109,40,217,.45)'; g.setLineDash([5, 5]); g.lineWidth = 1.5; g.beginPath(); g.moveTo(240, 92); g.lineTo(240, 338); g.stroke(); g.setLineDash([]); }
+      MCH.forEach((c, j) => chrAt(c, pos[j][0], pos[j][1], pos[j][2], {}));
+      note(e > 0.9 ? 'Chromosomen in der Äquatorialebene' : 'Chromosomen wandern zur Mitte');
+      if (labels) { if (e > 0.9) text('Äquatorialebene', 240, 388, { size: 10, weight: 700, align: 'center', color: '#5b21b6' }); if (sp) lbl('Spindelfasern', 180, 182, 86, 150, { size: 10, align: 'right' }); lbl('Zellpol', PR[0], PR[1], 392, 270, { size: 10 }); }
+    }
+    if (k === 'ana' || k === 'telo' || k === 'zyto') {
+      const e = k === 'ana' ? ease(u) : 1, bend = k === 'ana' ? Math.min(1, u * 2.5) : 1;
+      const shift = k === 'zyto' ? ease(segU(u, 0, 0.8)) : 0;
+      const lx = lerp(150, 143, shift), rx = lerp(330, 337, shift);
+      const chAlpha = k === 'telo' ? 1 - segU(u, 0.3, 1) : k === 'zyto' ? 0 : 1;
+      if (sp && k === 'ana') { polar(PL, PR, 1, 30); }
+      MCH.forEach(c => {
+        const yy = lerp(c.py, 215 + (c.py - 215) * 0.72, e);
+        const xl = lerp(238, lx, e), xr = lerp(242, rx, e);
+        if (sp && k === 'ana') { fibers(PL, [[xl, yy]], 1); fibers(PR, [[xr, yy]], 1); }
+        chromatid(xl, yy, -Math.PI / 2, c.pair, CM[c.org], { bend, back: 0, alpha: chAlpha });
+        chromatid(xr, yy, -Math.PI / 2, c.pair, CM[c.org], { bend, back: Math.PI, alpha: chAlpha });
+      });
+      if (k === 'ana' || k === 'telo') { centro(PL[0] + (k === 'telo' ? -4 : 0), PL[1]); centro(PR[0], PR[1]); }
+      if (k === 'telo' || k === 'zyto') {
+        const env = k === 'telo' ? segU(u, 0.2, 1) : 1;
+        [[lx, 215], [rx, 215]].forEach(([x, y]) => { nucleus(x, y, 46, env); threads(x, y, 46, ALLK, k === 'telo' ? segU(u, 0.3, 1) : 1, 0); });
+      }
+      if (labels) {
+        if (k === 'ana') note('Schwesterchromatiden werden getrennt');
+        if (k === 'telo') { note('Neue Zellkerne entstehen'); lbl('Kernhülle', rx + 32, 196, 392, 120, { size: 10 }); }
+        if (k === 'zyto') { note('Das Zellplasma wird geteilt'); lbl('Einschnürung', 240, 150, 300, 80, { size: 10 }); text('2 genetisch identische Tochterzellen (je 2n = 4)', 240, 388, { size: 10.5, weight: 800, align: 'center', bg: 'rgba(255,255,255,.9)' }); }
+      }
+    }
+    g.restore();
+    phaseBar(MPH, this.i, u);
+    dnaGraph(MPH, this.i, u, mitDNA, 4);
+    const cellsN = k === 'zyto' && u > 0.5 ? 2 : 1, chrd = k === 'inter' ? (u < 0.3 ? '1' : u < 0.7 ? '1 → 2' : '2') : (k === 'pro' || k === 'meta') ? '2' : '1';
+    infoBox([['Zellen', String(cellsN)], ['Chromosomen pro Zellkern', k === 'ana' ? '8 Chromatiden wandern' : '4 (2n)'], ['Chromatiden pro Chromosom', chrd], ['Erbinformation der Tochterzellen', 'identisch']]);
+  },
+  out() { const p = MPH[this.i]; return `<div class="orow t"><span>Phase</span><b>${p.n}</b></div><div class="orow t" style="grid-template-columns:1fr"><span>${MTXT[p.k]}</span></div>`; }
+};
+
+/* ================= Station 3: Meiose ================= */
+const EPH = [{ k: 'inter', n: 'Interphase', d: 4 }, { k: 'pro1', n: 'Prophase I', d: 6 }, { k: 'meta1', n: 'Metaphase I', d: 4 }, { k: 'ana1', n: 'Anaphase I', d: 3.5 }, { k: 'telo1', n: 'Telophase I + Cytokinese', s: 'Telophase I', d: 4 }, { k: 'meta2', n: 'Prophase II + Metaphase II', s: 'Metaphase II', d: 4 }, { k: 'ana2', n: 'Anaphase II', d: 3.5 }, { k: 'telo2', n: 'Telophase II + Cytokinese', s: 'Telophase II', d: 4.5 }];
+const ETXT = {
+  inter: 'Wie vor der Mitose wird die DNA verdoppelt. Jedes Chromosom besteht danach aus zwei Chromatiden.',
+  pro1: 'Die Chromosomen verdichten sich. Homologe Chromosomen (eins von der Mutter, eins vom Vater) legen sich paarweise aneinander. Dabei können Nicht-Schwesterchromatiden Stücke austauschen (Crossing-over).',
+  meta1: 'Die homologen Paare ordnen sich in der Äquatorialebene an. Welches Homolog zu welchem Pol zeigt, ist Zufall.',
+  ana1: 'Die homologen Chromosomen werden getrennt – nicht die Chromatiden! Jeder Pol erhält von jedem Paar ein Zwei-Chromatid-Chromosom.',
+  telo1: 'Die Zelle teilt sich. Jede Tochterzelle ist haploid (n = 2), ihre Chromosomen bestehen aber noch aus zwei Chromatiden.',
+  meta2: 'In beiden Zellen bildet sich ein neuer Spindelapparat – ohne erneute DNA-Verdopplung. Die Chromosomen ordnen sich in der Äquatorialebene an.',
+  ana2: 'Wie bei der Mitose werden jetzt die Schwesterchromatiden getrennt und zu den Polen gezogen.',
+  telo2: 'Es entstehen vier haploide Keimzellen (n = 2) mit Ein-Chromatid-Chromosomen. Sie sind genetisch verschieden.'
+};
+const meiDNA = (j, u) => { const k = EPH[j].k; if (k === 'inter') return u < 0.3 ? 2 : u < 0.7 ? 2 + 2 * (u - 0.3) / 0.4 : 4; if (k === 'telo1') return u < 0.5 ? 4 : 2; if (k === 'meta2' || k === 'ana2') return 2; if (k === 'telo2') return u < 0.5 ? 2 : 1; return 4; };
+const SYN = { Am: [220, 196], Ap: [238, 196], Bm: [260, 254], Bp: [278, 254] };
+const mei = {
+  nav: 'Meiose', bg: '#f6f4fa',
+  title: 'Meiose: Bildung der Keimzellen',
+  lead: 'In zwei Teilungen entstehen aus einer diploiden Zelle vier haploide, genetisch verschiedene Keimzellen.',
+  controls: phaseControls([['co', 'Crossing-over', true]]).concat([{ t: 'buttons', items: [['ori', 'Neue Zufallsanordnung']] }]),
+  was: 'Meiose I (Reduktionsteilung): Homologe Chromosomen paaren sich, tauschen beim Crossing-over Stücke aus und werden dann auf zwei Zellen verteilt. Meiose II (Äquationsteilung): Wie bei einer Mitose werden die Schwesterchromatiden getrennt. Aus einer diploiden Zelle (2n) entstehen so vier haploide Zellen (n).',
+  merke: 'Meiose = Reifeteilung zur Bildung von Keimzellen (Eizellen, Spermien). Meiose I trennt die homologen Chromosomen (2n → n), Meiose II trennt die Chromatiden. Ergebnis: 4 haploide, genetisch verschiedene Zellen. Neukombination durch zufällige Verteilung der Homologen und durch Crossing-over.',
+  frage: 'Warum müssen Keimzellen haploid sein? Drücke mehrmals auf „Neue Zufallsanordnung“ (ohne Crossing-over): Wie viele verschiedene Keimzellen sind bei 2n = 4 möglich?',
+  init() { this.i = 0; this.u = 0; this.ori = { A: true, B: false }; },
+  onChange(id) { stepPhase(this, EPH, id); if (id === 'ori') { this.ori = { A: Math.random() < 0.5, B: Math.random() < 0.5 }; if (EPH[this.i].k !== 'inter' && EPH[this.i].k !== 'pro1') { this.i = 2; this.u = 0; } } },
+  step(dt) { advance(this, EPH, dt); },
+  tips(key, showCo) { if (!this.v.co || !showCo) return [null, null]; if (key === 'Am') return [null, CM.p]; if (key === 'Ap') return [CM.m, null]; return [null, null]; },
+  draw() {
+    const k = EPH[this.i].k, u = this.u, co = this.v.co, idx = this.i;
+    let fadeA = 1; if (k === 'telo2' && this.v.auto) fadeA = 1 - segU(u, 0.92, 1); if (k === 'inter' && this.v.auto) fadeA = Math.max(0.15, segU(u, 0, 0.1));
+    g.save(); g.globalAlpha = fadeA;
+    const showCo = idx > 1 || (k === 'pro1' && u > 0.72);
+    const side = c => { const left = this.ori[c.pair] ? c.org === 'm' : c.org === 'p'; return left ? 0 : 1; }; // 0 = linke Zelle
+    const CX = [135, 345];
+    // Zellen
+    let cl;
+    if (idx <= 2) cl = [[240, 215, 150]];
+    else if (k === 'ana1') { const d = ease(u) * 10; cl = [[240 - d, 215, 150 - d * 0.4], [240 + d, 215, 150 - d * 0.4]]; }
+    else if (k === 'telo1') { const e = ease(u), d = 10 + e * 95, r = 146 - e * 51; cl = [[240 - d, 215, r], [240 + d, 215, r]]; }
+    else if (k === 'telo2') { const e = ease(segU(u, 0, 0.8)), d = e * 54, r = 95 - e * 40; cl = []; CX.forEach(x => { cl.push([x, 215 - d, r], [x, 215 + d, r]); }); }
+    else cl = [[135, 215, 95], [345, 215, 95]];
+    cells(cl);
+    const C = MCH; // gleiche vier Chromosomen
+    if (k === 'inter') {
+      nucleus(240, 215, 74, 1); ball(242, 216, 11, 'rgba(130,100,175,.5)'); threads(240, 215, 74, ALLK, 1, segU(u, 0.3, 0.7)); centro(240, 116); if (u > 0.7) centro(258, 120, segU(u, 0.7, 0.8));
+      note(u < 0.3 ? 'G1-Phase: Zellwachstum' : u < 0.7 ? 'S-Phase: DNA wird verdoppelt' : 'G2-Phase');
+    }
+    if (k === 'pro1') {
+      const env = 1 - segU(u, 0.8, 1), e = ease(segU(u, 0.45, 1));
+      nucleus(240, 215, 74, env); threads(240, 215, 74, ALLK, 1 - segU(u, 0, 0.35), 1);
+      const L = lerpP([240, 116], PL, e), R = lerpP([258, 120], PR, e); centro(L[0], L[1]); centro(R[0], R[1]);
+      const pe = ease(segU(u, 0.3, 0.55));
+      C.forEach(c => { const p = lerpP([c.pro[0], c.pro[1]], SYN[c.key], pe), a = lerpA(c.pro[2], -Math.PI / 2, pe); chromosome(p[0], p[1], a, c.pair, CM[c.org], { alpha: segU(u, 0.08, 0.35), s: 0.7 + 0.3 * segU(u, 0.08, 0.4), tips: this.tips(c.key, showCo) }); });
+      if (co && u > 0.58 && u < 0.85) { const al = Math.sin(segU(u, 0.58, 0.85) * Math.PI); g.save(); g.globalAlpha = al; g.strokeStyle = '#f2b705'; g.lineWidth = 3; g.beginPath(); g.arc(229, 196 + 30 * 0.64 * 1.0 + 6, 13, 0, 7); g.stroke(); g.restore(); }
+      note(u < 0.3 ? 'Chromosomen verdichten sich' : u < 0.58 || !co ? 'Homologe Chromosomen legen sich aneinander' : 'Crossing-over: Stücke werden ausgetauscht');
+      if (labels) { if (u > 0.45) lbl('homologes Paar', 212, 196, 86, 170, { size: 10, align: 'right' }); if (co && u > 0.58) lbl('Crossing-over', 230, 222, 86, 300, { size: 10, align: 'right', color: '#a16207' }); }
+    }
+    if (k === 'meta1' || k === 'ana1' || k === 'telo1' || k === 'meta2') {
+      const pY = { A: 166, B: 262 };
+      C.forEach(c => {
+        const sd = side(c), plateX = sd === 0 ? 229 : 251, py = pY[c.pair];
+        let x, y, a = -Math.PI / 2, bend = 0, back = sd === 0 ? 0 : Math.PI, s = 1;
+        if (k === 'meta1') { const e = ease(segU(u, 0, 0.55)); [x, y] = lerpP(SYN[c.key], [plateX, py], e); }
+        if (k === 'ana1') { const e = ease(u); x = lerp(plateX, sd === 0 ? 142 : 338, e); y = lerp(py, 215 + (py - 215) * 0.5, e); bend = Math.min(1, u * 2.5); }
+        if (k === 'telo1') { const e = ease(u); x = lerp(sd === 0 ? 142 : 338, CX[sd] + (sd === 0 ? 0 : 0), e); y = 215 + (py - 215) * 0.5; bend = 1 - 0.6 * e; }
+        if (k === 'meta2') { const e = ease(segU(u, 0.15, 0.7)), tx = CX[sd] + (c.pair === 'A' ? -20 : 24); x = lerp(CX[sd], tx, e); y = lerp(215 + (py - 215) * 0.5, 215, e); a = lerpA(-Math.PI / 2, 0, e); bend = 0.4 * (1 - e); }
+        if (k === 'meta1' && this.v.auto !== null) { fibers(sd === 0 ? PL : PR, [[x + (sd === 0 ? -3 : 3), y]], segU(u, 0, 0.3)); }
+        if (k === 'ana1') fibers(sd === 0 ? PL : PR, [[x, y]], 1);
+        if (k === 'meta2') { const pa = CX[sd], e2 = segU(u, 0.3, 0.7); fibers([pa, 147], [[x, y - 3]], e2); fibers([pa, 283], [[x, y + 3]], e2); }
+        chromosome(x, y, a, c.pair, CM[c.org], { bend, back, tips: this.tips(c.key, showCo) });
+      });
+      if (k === 'meta1' || k === 'ana1') { polar(PL, PR, 1, 30); centro(PL[0], PL[1]); centro(PR[0], PR[1]); }
+      if (k === 'meta2') CX.forEach(x => { const al = segU(u, 0, 0.3); polar([x, 147], [x, 283], al, 22); centro(x, 147, al); centro(x, 283, al); });
+      if (k === 'meta1' && u > 0.5) { g.strokeStyle = 'rgba(109,40,217,.45)'; g.setLineDash([5, 5]); g.lineWidth = 1.5; g.beginPath(); g.moveTo(240, 92); g.lineTo(240, 338); g.stroke(); g.setLineDash([]); }
+      if (labels) {
+        if (k === 'meta1') { note('Homologe Paare in der Äquatorialebene'); if (u > 0.5) text('Äquatorialebene', 240, 388, { size: 10, weight: 700, align: 'center', color: '#5b21b6' }); }
+        if (k === 'ana1') { note('Homologe Chromosomen werden getrennt'); text('Die Chromatiden bleiben zusammen!', 240, 388, { size: 10.5, weight: 700, align: 'center', bg: 'rgba(255,255,255,.9)' }); }
+        if (k === 'telo1') text('2 Zellen, je n = 2 (Zwei-Chromatid-Chromosomen)', 240, 388, { size: 10.5, weight: 800, align: 'center', bg: 'rgba(255,255,255,.9)' });
+        if (k === 'telo1') note('Erste Teilung: 2 haploide Zellen');
+        if (k === 'meta2') note('Meiose II: wie eine Mitose');
+      }
+    }
+    if (k === 'ana2' || k === 'telo2') {
+      const e = k === 'ana2' ? ease(u) : 1, bend = k === 'ana2' ? Math.min(1, u * 2.5) : 1 - 0.7 * segU(u, 0, 0.8);
+      if (k === 'telo2') { CX.forEach(x => [161, 269].forEach(y => nucleus(x + 2, y, 38, segU(u, 0.3, 0.9)))); }
+      const sh = k === 'telo2' ? ease(segU(u, 0, 0.8)) : 0;
+      C.forEach(c => {
+        const sd = side(c), x = CX[sd] + (c.pair === 'A' ? -20 : 24), tp = this.tips(c.key, true);
+        const yU = lerp(212, lerp(159, 161, sh), e), yD = lerp(218, lerp(271, 269, sh), e);
+        const xx = lerp(x, CX[sd] + (c.pair === 'A' ? -11 : 13), sh), ang = lerpA(0, -Math.PI / 2, sh);
+        if (k === 'ana2') { fibers([CX[sd], 147], [[xx, yU]], 1); fibers([CX[sd], 283], [[xx, yD]], 1); }
+        chromatid(xx, yU, ang, c.pair, CM[c.org], { bend, back: Math.PI / 2, tip: tp[0] });
+        chromatid(xx, yD, ang, c.pair, CM[c.org], { bend, back: -Math.PI / 2, tip: tp[1] });
+      });
+      if (k === 'ana2') CX.forEach(x => { polar([x, 147], [x, 283], 1, 22); centro(x, 147); centro(x, 283); });
+      if (labels && k === 'telo2' && u > 0.5) text('4 Keimzellen: haploid (n = 2), genetisch verschieden', 240, 392, { size: 10.5, weight: 800, align: 'center', bg: 'rgba(255,255,255,.9)' });
+      if (k === 'ana2') note('Schwesterchromatiden werden getrennt');
+      if (k === 'telo2') note('Zweite Teilung: 4 Keimzellen');
+    }
+    g.restore();
+    phaseBar(EPH, this.i, u);
+    dnaGraph(EPH, this.i, u, meiDNA, 4);
+    const after1 = idx > 4 || (k === 'telo1' && u > 0.5), after2 = k === 'telo2' && u > 0.5;
+    const chrd = k === 'inter' ? (u < 0.3 ? '1' : u < 0.7 ? '1 → 2' : '2') : (idx >= 6 ? '1' : '2');
+    infoBox([['Zellen', after2 ? '4' : after1 ? '2' : '1'], ['Chromosomen pro Zelle', after1 ? '2 (n, haploid)' : '4 (2n, diploid)'], ['Chromatiden pro Chromosom', chrd], ['Meiose', idx <= 4 ? 'I: Reduktionsteilung' : 'II: Äquationsteilung']]);
+  },
+  out() { const p = EPH[this.i]; return `<div class="orow t"><span>Phase</span><b>${p.n}</b></div><div class="orow t" style="grid-template-columns:1fr"><span>${ETXT[p.k]}</span></div>`; }
+};
+
+/* ================= Station 4: Genetische Vielfalt ================= */
+const VLEN = [46, 36, 28, 20];
+const vielfalt = {
+  nav: 'Vielfalt', bg: '#f6f4fa',
+  title: 'Genetische Vielfalt durch Meiose',
+  lead: 'Wie viele verschiedene Keimzellen kann ein Mensch bilden?',
+  controls: [
+    { t: 'range', id: 'n', label: 'Chromosomenpaare (n)', min: 1, max: 4, step: 1, v: 2, fmt: v => v + ' (2n = ' + 2 * v + ')' },
+    { t: 'toggles', items: [['co', 'Crossing-over zusätzlich', false]] },
+    { t: 'buttons', items: [['pick', 'Zufällige Keimzelle']] }
+  ],
+  was: 'In der Metaphase I ordnen sich die homologen Paare zufällig an. Jedes Paar kann auf zwei Arten liegen: das mütterliche Chromosom links oder rechts. Bei n Chromosomenpaaren gibt es deshalb 2ⁿ verschiedene Keimzellen – ganz ohne Crossing-over.',
+  merke: 'Zahl der möglichen Keimzellen = 2ⁿ. Mensch (n = 23): 2²³ ≈ 8,4 Millionen pro Elternteil. Bei der Befruchtung ergeben sich 2²³ · 2²³ ≈ 70 Billionen Kombinationen. Crossing-over erhöht die Vielfalt zusätzlich enorm.',
+  frage: 'Berechne die Zahl möglicher Keimzellen für n = 3 und n = 4 und überprüfe mit dem Regler. Warum sind Geschwister (außer eineiige Zwillinge) genetisch verschieden?',
+  init() { this.pick = -1; this.flash = 0; },
+  onChange(id) { if (id === 'pick') { this.pick = Math.floor(Math.random() * Math.pow(2, this.v.n)); this.flash = 1; } if (id === 'n') this.pick = -1; },
+  step(dt) { this.flash = Math.max(0, this.flash - dt * 0.6); },
+  draw() {
+    const n = this.v.n, N = Math.pow(2, n), co = this.v.co;
+    // Körperzelle
+    cells([[112, 186, 92]]); nucleus(112, 186, 64, 1);
+    for (let j = 0; j < n; j++) { const x = 112 + (j - (n - 1) / 2) * 30; ['m', 'p'].forEach((o, t) => chromatid(x + (t ? 7 : -7), 186, -Math.PI / 2, 'A', CM[o], { L: VLEN[j], s: 0.95 })); }
+    text('Körperzelle', 112, 300, { size: 11.5, weight: 800, align: 'center' }); text(`diploid: 2n = ${2 * n}`, 112, 316, { size: 10, align: 'center', color: COL.muted });
+    text('Meiose', 238, 186, { size: 10, weight: 800, align: 'center', color: ACC }); text('→', 238, 206, { size: 22, weight: 800, align: 'center', color: ACC });
+    // alle Keimzellen
+    const cols = N <= 2 ? 2 : N <= 4 ? 2 : 4, rows = Math.ceil(N / cols), cw = 368 / cols, ch = 300 / rows, r = Math.min(cw, ch) * 0.4, s = Math.min(0.9, r / 52);
+    text(`${N} mögliche Keimzellen (2${['¹', '²', '³', '⁴'][n - 1]} = ${N})`, 446, 26, { size: 12, weight: 800, align: 'center' });
+    for (let b = 0; b < N; b++) {
+      const cx = 262 + (b % cols + 0.5) * cw, cy = 40 + (Math.floor(b / cols) + 0.5) * ch;
+      if (b === this.pick) { g.fillStyle = `rgba(109,40,217,${0.12 + 0.25 * this.flash})`; g.beginPath(); g.arc(cx, cy, r + 9, 0, 7); g.fill(); g.strokeStyle = ACC; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, r + 6, 0, 7); g.stroke(); }
+      cells([[cx, cy, r]]);
+      for (let j = 0; j < n; j++) {
+        const o = (b >> j) & 1 ? 'p' : 'm', x = cx + (j - (n - 1) / 2) * 15 * s * 1.6;
+        let tip = null; if (co) { const R = seeded(b * 13 + j * 5 + 1); if (R() < 0.6) tip = CM[o === 'm' ? 'p' : 'm']; }
+        chromatid(x, cy + 4 * s, -Math.PI / 2, 'A', CM[o], { L: VLEN[j], s, tip });
+      }
+    }
+    // Rechnung Mensch
+    g.fillStyle = '#fff'; rr(14, 340, 612, 92, 12); g.fill(); g.strokeStyle = '#e1dcef'; g.lineWidth = 1; g.stroke();
+    text('Beim Menschen (n = 23):', 26, 362, { size: 11.5, weight: 800 });
+    text('2²³ = 8 388 608 verschiedene Keimzellen pro Elternteil', 26, 384, { size: 11 });
+    text('Befruchtung: 2²³ · 2²³ ≈ 70 000 000 000 000 (70 Billionen) Kombinationen', 26, 404, { size: 11 });
+    text(co ? 'Mit Crossing-over: praktisch unbegrenzt viele Varianten!' : '… und das noch ohne Crossing-over.', 26, 424, { size: 10.5, weight: 700, color: co ? '#a16207' : COL.muted });
+  },
+  out() {
+    const n = this.v.n, N = Math.pow(2, n);
+    let pickTxt = '–'; if (this.pick >= 0) { pickTxt = Array.from({ length: n }, (_, j) => ((this.pick >> j) & 1) ? 'V' : 'M').join(' · '); }
+    return `<div class="orow t"><span>Chromosomenpaare</span><b>n = ${n}</b></div><div class="orow t"><span>mögliche Keimzellen</span><b>2${['¹', '²', '³', '⁴'][n - 1]} = ${N}${this.v.co ? ' (+ Crossing-over)' : ''}</b></div>` +
+      `<div class="orow t"><span>Zufällige Keimzelle</span><b>${pickTxt}</b></div><div class="orow t"><span>Mensch</span><b>2²³ ≈ 8,4 Mio.</b></div>`;
+  }
+};
+
+/* ================= Steuerung ================= */
+const STATIONS = { chr, mit, mei, vielfalt };
+const ORDER = ['chr', 'mit', 'mei', 'vielfalt'];
+let cur = 'mit';
+function setDefaults(st) { st.v = {}; st.controls.forEach(c => { if (c.t === 'range' || c.t === 'seg') st.v[c.id] = c.v; if (c.t === 'toggles') c.items.forEach(([id, , on]) => st.v[id] = on); }); }
+ORDER.forEach(k => { setDefaults(STATIONS[k]); STATIONS[k].init(); });
+$('#stations').innerHTML = ORDER.map((k, i) => `<button data-st="${k}"><span class="n">${i + 1}</span>${STATIONS[k].nav}</button>`).join('');
+function updRange(el) { el.style.setProperty('--p', ((el.value - el.min) / (el.max - el.min) * 100) + '%'); }
+function buildControls() {
+  const st = STATIONS[cur], box = $('#ctrls'); let h = '';
+  st.controls.forEach(c => {
+    if (c.t === 'range') h += `<div class="ctrl"><div class="lab"><b>${c.label}</b><output id="o_${c.id}">${c.fmt(st.v[c.id])}</output></div><input type="range" data-r="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${st.v[c.id]}" aria-label="${c.label}"></div>`;
+    if (c.t === 'seg') h += `<div class="ctrl"><div class="lab"><b>${c.label}</b></div><div class="seg" style="display:grid;grid-template-columns:1fr 1fr">${c.opts.map(([v, l]) => `<button data-seg="${c.id}" data-val="${v}" aria-pressed="${st.v[c.id] === v}" style="white-space:normal;line-height:1.15;padding:4px 6px">${l}</button>`).join('')}</div></div>`;
+    if (c.t === 'toggles') h += `<div class="tgls">${c.items.map(([id, l]) => `<button class="tgl" data-tgl="${id}" aria-pressed="${!!st.v[id]}"><span class="sw"></span>${l}</button>`).join('')}</div>`;
+    if (c.t === 'buttons') h += `<div class="btnRow">${c.items.map(([id, l]) => `<button class="btn" data-act="${id}">${l}</button>`).join('')}</div>`;
+  });
+  box.innerHTML = h; $$('#ctrls input[type=range]').forEach(updRange);
+  if (st.sync) st.sync();
+}
+function renderStation() {
+  const st = STATIONS[cur];
+  $$('#stations button').forEach(b => b.setAttribute('aria-pressed', b.dataset.st === cur));
+  $('#stTitle').textContent = st.title; $('#stLead').textContent = st.lead;
+  setInfo('was');
+  buildControls(); $('#out').innerHTML = st.out();
+  try { localStorage.setItem('zellteilung-labor-st', cur); } catch (e) {}
+}
+function setInfo(k) {
+  const st = STATIONS[cur]; $('#info').dataset.i = k;
+  $$('.infoTabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.i === k));
+  $('#infoText').textContent = st[k];
+}
+$('.infoTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setInfo(b.dataset.i); });
+$('#stations').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cur = b.dataset.st; renderStation(); });
+$('#ctrls').addEventListener('input', e => {
+  const el = e.target.closest('input[type=range]'); if (!el) return;
+  const st = STATIONS[cur], id = el.dataset.r, c = st.controls.find(c => c.id === id);
+  st.v[id] = Number(el.value); updRange(el); $('#o_' + id).textContent = c.fmt(st.v[id]);
+  if (st.onChange) st.onChange(id); $('#out').innerHTML = st.out();
+});
+$('#ctrls').addEventListener('click', e => {
+  const st = STATIONS[cur], b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.seg) { st.v[b.dataset.seg] = b.dataset.val; $$(`[data-seg="${b.dataset.seg}"]`).forEach(x => x.setAttribute('aria-pressed', x === b)); if (st.onChange) st.onChange(b.dataset.seg); }
+  if (b.dataset.tgl) { st.v[b.dataset.tgl] = !st.v[b.dataset.tgl]; b.setAttribute('aria-pressed', st.v[b.dataset.tgl]); if (st.onChange) st.onChange(b.dataset.tgl); }
+  if (b.dataset.act && st.onChange) st.onChange(b.dataset.act);
+  $('#out').innerHTML = st.out();
+});
+$('#resetBtn').addEventListener('click', () => { const st = STATIONS[cur]; setDefaults(st); st.init(); renderStation(); toast('Station zurückgesetzt'); });
+$('#labelsChk').addEventListener('change', e => { labels = e.target.checked; });
+$('#pauseBtn').addEventListener('click', () => { paused = !paused; $('#pauseBtn').textContent = paused ? '▶ Weiter' : '⏸ Pause'; $('#pauseBtn').setAttribute('aria-label', paused ? 'Animation fortsetzen' : 'Animation anhalten'); });
+
+let tt;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2400); }
+
+/* Schrift */
+function applyFont() { document.documentElement.style.setProperty('--fs', FS_STEPS[fsIdx]); $('#fontDown').disabled = fsIdx === 0; $('#fontUp').disabled = fsIdx === FS_STEPS.length - 1; }
+function changeFont(d) { const n = clamp(fsIdx + d, 0, FS_STEPS.length - 1); if (n === fsIdx) return; fsIdx = n; try { localStorage.setItem('zellteilung-labor-fs', fsIdx); } catch (e) {} applyFont(); toast('Schriftgröße ' + Math.round(FS_STEPS[fsIdx] * 100) + ' %'); }
+$('#fontDown').addEventListener('click', () => changeFont(-1));
+$('#fontUp').addEventListener('click', () => changeFont(1));
+
+/* Vollbild */
+const root = document.documentElement;
+const fsReq = root.requestFullscreen || root.webkitRequestFullscreen, fsExit = document.exitFullscreen || document.webkitExitFullscreen;
+const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+function updFs() { const on = fsOn(); $('#fsIn').style.display = on ? 'none' : ''; $('#fsOut').style.display = on ? '' : 'none'; $('#fsBtn').title = on ? 'Vollbild beenden' : 'Vollbild'; $('#fsBtn').setAttribute('aria-label', $('#fsBtn').title); }
+$('#fsBtn').addEventListener('click', () => {
+  if (fsOn()) { try { fsExit && fsExit.call(document); } catch (e) {} return; }
+  if (standalone) { toast('Die App läuft bereits im Vollbild.'); return; }
+  if (!fsReq) { toast('Vollbild: Teilen → „Zum Home-Bildschirm“ und von dort öffnen.'); return; }
+  try { const r = fsReq.call(root); if (r && r.catch) r.catch(() => toast('Vollbild nicht möglich. Öffne die Seite in einem eigenen Tab.')); } catch (e) { toast('Vollbild nicht möglich.'); }
+});
+document.addEventListener('fullscreenchange', updFs); document.addEventListener('webkitfullscreenchange', updFs);
+
+const dlg = $('#infoDlg');
+$('#infoBtn').addEventListener('click', () => dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', ''));
+$('#closeInfo').addEventListener('click', () => dlg.close ? dlg.close() : dlg.removeAttribute('open'));
+
+/* Animation */
+let last = performance.now(), outT = 0;
+function frame(now) {
+  const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+  const st = STATIONS[cur];
+  if (!paused) { T += dt; st.step(dt); }
+  fit(st.bg); st.draw();
+  outT += dt; if (outT > 0.3) { outT = 0; $('#out').innerHTML = st.out(); }
+  requestAnimationFrame(frame);
+}
+try { const s = localStorage.getItem('zellteilung-labor-st'); if (STATIONS[s]) cur = s; const fr = localStorage.getItem('zellteilung-labor-fs'), f = Number(fr); if (fr !== null && Number.isInteger(f) && f >= 0 && f < FS_STEPS.length) fsIdx = f; } catch (e) {}
+applyFont(); updFs(); renderStation(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
