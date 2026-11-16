@@ -192,8 +192,9 @@ dialog ul{padding-left:20px;margin:4px 0}
 <dialog id="infoDlg">
   <h2>Hinweise zum Zelle-Labor</h2>
   <ul>
-    <li><b>Bau der Zellen:</b> Pflanzen- und Tierzelle einzeln oder im Vergleich; Bestandteile antippen; Feinbau zuschaltbar; Plasmaströmung der Chloroplasten.</li>
+    <li><b>Bau der Zellen:</b> Pflanzen- und Tierzelle einzeln oder im Vergleich; Bestandteile antippen, Nachbarzellen mit Mittellamelle und Tüpfeln; Feinbau zuschaltbar; Plasmaströmung der Chloroplasten.</li>
     <li><b>Vergleichen:</b> Bestandteile selbst den Spalten „nur Pflanzenzelle / beide / nur Tierzelle“ zuordnen oder zuschauen.</li>
+    <li><b>Tabelle:</b> Bestandteile mit Aufgaben – zum Aufdecken; passt zur Aufgabe „Erstelle eine Tabelle“.</li>
     <li><b>Mikroskop:</b> Zwiebelhaut, Mundschleimhaut und Wasserpest bei 40×, 100× und 400×, mit und ohne Färbung, mit Maßstab.</li>
     <li><b>Quiz:</b> zwölf Aufgaben – den richtigen Bestandteil in der Zelle antippen.</li>
   </ul>
@@ -347,21 +348,24 @@ function shuffle(a, seed) { const R = seeded(seed || 7), b = a.slice(); for (let
 const ACC = '#4d7c0f', ACC_SOFT = '#eef6dd';
 /* ================= Zellbestandteile ================= */
 const ORG = {
-  wand: ['Zellwand', 'Feste Hülle aus Cellulose. Sie gibt der Pflanzenzelle Form und Festigkeit.', 'P'],
-  membran: ['Zellmembran', 'Dünnes Häutchen um das Zellplasma. Sie regelt, welche Stoffe in die Zelle hinein- und hinausgelangen.', 'B'],
-  plasma: ['Zellplasma', 'Zähflüssige Grundsubstanz der Zelle. Darin liegen die Zellbestandteile, und hier laufen viele Stoffwechselvorgänge ab.', 'B'],
-  kern: ['Zellkern', 'Enthält die Erbinformation (DNA) und steuert die Vorgänge in der Zelle. Das dunkle Kernkörperchen darin heißt Nucleolus.', 'B'],
-  vakuole: ['Vakuole', 'Großer, mit Zellsaft gefüllter Raum. Sie speichert Wasser und Stoffe und hält die Zelle durch Innendruck prall.', 'P'],
-  chloro: ['Chloroplasten', 'Enthalten den grünen Farbstoff Chlorophyll. Hier findet die Fotosynthese statt: Aus Licht, Wasser und Kohlenstoffdioxid entstehen Traubenzucker und Sauerstoff.', 'P'],
-  mito: ['Mitochondrien', '„Kraftwerke“ der Zelle: Bei der Zellatmung wird aus Traubenzucker und Sauerstoff Energie für die Zelle bereitgestellt.', 'B'],
-  er: ['Endoplasmatisches Retikulum (ER)', 'Netz aus Membranen. Hier werden Stoffe hergestellt und durch die Zelle transportiert.', 'B', 1],
-  golgi: ['Golgi-Apparat', 'Stapel aus Membranen. Er verpackt Stoffe in kleine Bläschen und verschickt sie.', 'B', 1],
+  wand: ['Zellwand', 'Stabile Hülle aus Cellulose. Sie gibt der Pflanzenzelle ihre feste Form. Winzige Öffnungen in der Wand, die Tüpfel, verbinden benachbarte Zellen.', 'P'],
+  tuepfel: ['Tüpfel', 'Winzige Öffnungen in der Zellwand, im Lichtmikroskop nicht zu erkennen. Über sie stehen benachbarte Zellen miteinander in Verbindung und tauschen Stoffe aus.', 'P'],
+  mittel: ['Mittellamelle', 'Dünne Schicht zwischen den Zellwänden zweier benachbarter Zellen. Sie verbindet die Zellen miteinander.', 'P'],
+  membran: ['Zellmembran', 'Dünnes Häutchen, das direkt unter der Zellwand liegt (bei Tierzellen ganz außen). Sie ist nur für bestimmte Stoffe wie Wasser durchlässig und regelt so den Stoffaustausch.', 'B'],
+  plasma: ['Zellplasma', 'Zähflüssige Grundsubstanz, die ständig in Bewegung ist. Mit dieser Plasmaströmung werden Stoffe durch die Zelle transportiert. Hier laufen viele Stoffwechselvorgänge ab.', 'B'],
+  kern: ['Zellkern', 'Enthält die Erbinformation und steuert alle Lebensvorgänge der Zelle. Über Kernporen in der Kernhülle tauscht er Stoffe mit dem übrigen Zellinneren aus. Das dunkle Kernkörperchen heißt Nucleolus.', 'B'],
+  vakuole: ['Vakuole', 'Wasser- und Stoffspeicher, von einer eigenen Membran umschlossen. Sie enthält den Zellsaft aus Wasser und gelösten Stoffen. Mit der Zellwand sorgt sie für Stabilität: Verliert sie Wasser, welkt die Pflanze.', 'PP'],
+  chloro: ['Chloroplasten', 'Kugel- bis linsenförmige Körperchen mit dem grünen Farbstoff Chlorophyll. Mithilfe des Sonnenlichts stellen sie energiereiche Stoffe (Traubenzucker) her – die Fotosynthese.', 'P'],
+  mito: ['Mitochondrien', 'Versorgen die Zelle mit Energie: Sie bauen energiereiche Stoffe zu energiearmen ab und machen so Energie nutzbar (Zellatmung).', 'B'],
+  er: ['Endoplasmatisches Retikulum (ER)', 'Netz aus Kanälen im Zellplasma, oft mit Ribosomen besetzt. Eine der „Produktionsstätten“: Hier werden Stoffe auf- und abgebaut und weitertransportiert.', 'B', 1],
+  golgi: ['Dictyosomen (Golgi-Apparat)', 'Stapel aus flachen Membranräumen. Sie verarbeiten Stoffe weiter, verpacken sie in kleine Bläschen und verschicken sie.', 'B', 1],
   ribo: ['Ribosomen', 'Winzige Körnchen, frei im Plasma oder am ER. Hier werden Eiweiße (Proteine) hergestellt.', 'B', 1],
   zentri: ['Zentriolen', 'Kleine Röhrchenpaare. Sie helfen bei der Zellteilung, die Chromosomen zu verteilen.', 'T', 1]
 };
-const VORK = { P: 'nur in Pflanzenzellen', B: 'in Pflanzen- und Tierzellen', T: 'nur in Tierzellen' };
-const OCOL = { wand: '#7a9a3a', membran: '#c2410c', plasma: '#a3a36b', kern: '#7c3aed', vakuole: '#3b82f6', chloro: '#15803d', mito: '#ea580c', er: '#db2777', golgi: '#0891b2', ribo: '#57534e', zentri: '#b45309' };
-const PKEYS = ['wand', 'membran', 'plasma', 'kern', 'vakuole', 'chloro', 'mito', 'er', 'golgi', 'ribo'];
+const VORK = { P: 'nur in Pflanzenzellen', PP: 'nur in Pflanzen- und Pilzzellen', B: 'in Pflanzen- und Tierzellen', T: 'nur in Tierzellen' };
+const VCOL = c => c === 'T' ? '#be123c' : c === 'B' ? '#6d28d9' : '#15803d';
+const OCOL = { wand: '#7a9a3a', tuepfel: '#65a30d', mittel: '#5b4a1f', membran: '#c2410c', plasma: '#a3a36b', kern: '#7c3aed', vakuole: '#3b82f6', chloro: '#15803d', mito: '#ea580c', er: '#db2777', golgi: '#0891b2', ribo: '#57534e', zentri: '#b45309' };
+const PKEYS = ['wand', 'tuepfel', 'mittel', 'membran', 'plasma', 'kern', 'vakuole', 'chloro', 'mito', 'er', 'golgi', 'ribo'];
 const TKEYS = ['membran', 'plasma', 'kern', 'mito', 'er', 'golgi', 'ribo', 'zentri'];
 // Zeigerposition merken (für Klicks auf Zellbestandteile)
 let LP = [0, 0];
@@ -370,10 +374,12 @@ function glow(fn, sc) { const a = 0.55 + 0.45 * Math.sin(T * 5); g.save(); g.str
 function mitoShape(x, y, rot, s) { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = '#fdba74'; g.strokeStyle = '#c2410c'; g.lineWidth = 1.4; g.beginPath(); g.ellipse(0, 0, 15 * s, 7 * s, 0, 0, 7); g.fill(); g.stroke(); g.lineWidth = 1; g.beginPath(); for (let i = 0; i <= 8; i++) { const xx = -11 * s + i * 2.75 * s; g.lineTo(xx, (i % 2 ? 4 : -4) * s); } g.stroke(); g.restore(); }
 function chloroShape(x, y, rot) { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = '#4ade80'; g.strokeStyle = '#15803d'; g.lineWidth = 1.2; g.beginPath(); g.ellipse(0, 0, 8, 4.2, 0, 0, 7); g.fill(); g.stroke(); g.strokeStyle = '#166534'; g.lineWidth = 1.3; [-4, 0, 4].forEach(dx => { g.beginPath(); g.moveTo(dx, -2); g.lineTo(dx, 2); g.stroke(); }); g.restore(); }
 function golgiShape(x, y, s) { g.save(); g.translate(x, y); g.strokeStyle = '#0891b2'; g.lineCap = 'round'; [0, 1, 2, 3].forEach(i => { g.lineWidth = 3; g.beginPath(); g.arc(0, 20 - i * 5, 18 - i * 1.5, 1.15 * Math.PI, 1.85 * Math.PI); g.stroke(); }); [[-17, -2], [18, 0], [-14, -10]].forEach(([a, b]) => ball(a, b, 2.2, '#a5f3fc', '#0891b2')); g.restore(); }
+function nucleus(x, y, r) { g.fillStyle = '#ddd6fe'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.strokeStyle = '#7c3aed'; g.lineWidth = 1.3; const n = 9; for (let i = 0; i < n; i++) { const a0 = i / n * 2 * Math.PI + 0.12, a1 = (i + 1) / n * 2 * Math.PI - 0.12; [r, r - 3].forEach(rr2 => { g.beginPath(); g.arc(x, y, rr2, a0, a1); g.stroke(); }); } }
 /* ---------- Pflanzenzelle (lokal 340×240) ---------- */
 const PN = [114, -14, 26];
 const PMITO = [[96, -74, 0.5], [104, 58, -0.3], [-60, -97, 0], [-110, 97, 0.05]];
 const PGOL = [134, 82];
+const PITS = [[-170, -40, 0], [-170, 45, 0], [170, -60, 0], [170, 52, 0], [-90, -120, 1], [30, -120, 1], [-40, 120, 1], [70, 120, 1]];
 function chloroPos(i, n) {
   const x0 = -147, x1 = 148, y0 = -97, y1 = 97, W = x1 - x0, H = y1 - y0, P = 2 * (W + H), s = ((i / n) * P + T * 14) % P;
   if (s < W) return [x0 + s, y0, 0]; if (s < W + H) return [x1, y0 + s - W, Math.PI / 2]; if (s < 2 * W + H) return [x1 - (s - W - H), y1, Math.PI]; return [x0, y1 - (s - 2 * W - H), -Math.PI / 2];
@@ -381,9 +387,11 @@ function chloroPos(i, n) {
 function drawPlant(cx, cy, sc, o) {
   const sel = o.sel, det = o.detail, R = seeded(4);
   g.save(); g.translate(cx, cy); g.scale(sc, sc);
-  g.fillStyle = '#c9df9a'; rr(-170, -120, 340, 240, 22); g.fill(); g.strokeStyle = '#6f8f30'; g.lineWidth = 2.5; g.stroke();
+  if (o.nb) { g.fillStyle = '#f2f5e4'; g.fillRect(-300, -200, 600, 400); g.fillStyle = '#c9df9a'; rr(-181, -131, 362, 262, 28); g.fill(); g.strokeStyle = 'rgba(194,65,12,.5)'; g.lineWidth = 1.4; rr(-183, -133, 366, 266, 30); g.stroke(); }
+  g.fillStyle = '#c9df9a'; rr(-170, -120, 340, 240, 22); g.fill(); g.strokeStyle = '#5b4a1f'; g.lineWidth = o.nb ? 1.8 : 2.5; g.stroke();
   g.strokeStyle = 'rgba(111,143,48,.35)'; g.lineWidth = 1; for (let i = 0; i < 26; i++) { const a = -165 + i * 13; g.beginPath(); g.moveTo(a, -118); g.lineTo(a + 6, -111); g.stroke(); g.beginPath(); g.moveTo(a, 118); g.lineTo(a + 6, 111); g.stroke(); }
   g.fillStyle = '#f5f8e6'; rr(-158, -108, 316, 216, 14); g.fill(); g.strokeStyle = '#c2410c'; g.lineWidth = 1.8; g.stroke();
+  PITS.forEach(([x, y, vert]) => { const L = o.nb ? 13 : 3; g.fillStyle = '#eef3d8'; if (vert) g.fillRect(x - 4, y - (y < 0 ? 12 + L : -L - 12), 8, 0); if (vert) { const y0 = y < 0 ? -120 - L : 108, h = 12 + L; g.fillRect(x - 3.5, y0, 7, h); g.strokeStyle = '#c2410c'; g.lineWidth = 1; g.beginPath(); g.moveTo(x - 3.5, y0); g.lineTo(x - 3.5, y0 + h); g.moveTo(x + 3.5, y0); g.lineTo(x + 3.5, y0 + h); g.stroke(); } else { const x0 = x < 0 ? -170 - L : 158, w = 12 + L; g.fillRect(x0, y - 3.5, w, 7); g.strokeStyle = '#c2410c'; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, y - 3.5); g.lineTo(x0 + w, y - 3.5); g.moveTo(x0, y + 3.5); g.lineTo(x0 + w, y + 3.5); g.stroke(); } });
   for (let i = 0; i < 70; i++) { const x = -150 + R() * 300, y = -100 + R() * 200; ball(x, y, 0.9, 'rgba(160,160,110,.35)'); }
   g.fillStyle = 'rgba(191,219,254,.75)'; rr(-138, -86, 208, 172, 30); g.fill(); g.strokeStyle = '#60a5fa'; g.lineWidth = 1.5; g.stroke();
   g.fillStyle = 'rgba(59,130,246,.10)'; rr(-128, -76, 188, 152, 24); g.fill();
@@ -393,13 +401,15 @@ function drawPlant(cx, cy, sc, o) {
     for (let i = 0; i < 30; i++) { const x = 76 + R() * 76, y = -100 + R() * 200; if (Math.hypot(x - PN[0], y - PN[1]) > 52) ball(x, y, 1.2, '#57534e'); }
     golgiShape(PGOL[0], PGOL[1]);
   }
-  g.fillStyle = '#ddd6fe'; g.strokeStyle = '#7c3aed'; g.lineWidth = 2; g.beginPath(); g.arc(PN[0], PN[1], PN[2], 0, 7); g.fill(); g.stroke();
+  nucleus(PN[0], PN[1], PN[2]);
   for (let i = 0; i < 14; i++) { const a = R() * 7, r = R() * 18; ball(PN[0] + Math.cos(a) * r, PN[1] + Math.sin(a) * r, 1.4, 'rgba(124,58,237,.45)'); }
   ball(PN[0] + 6, PN[1] - 5, 8, '#7c3aed');
   PMITO.forEach(([x, y, r]) => mitoShape(x, y, r, 1));
   const n = 16; for (let i = 0; i < n; i++) { const [x, y, a] = chloroPos(i, n); chloroShape(x, y, a); }
   // Hervorhebung
-  if (sel === 'wand') glow(() => { g.beginPath(); g.rect(-170, -120, 340, 240); }, sc);
+  if (sel === 'wand') glow(() => { g.beginPath(); g.rect(-164, -114, 328, 228); }, sc);
+  if (sel === 'mittel') glow(() => rr(-170, -120, 340, 240, 22), sc);
+  if (sel === 'tuepfel') PITS.forEach(([x, y]) => glow(() => { g.beginPath(); g.arc(x, y, 9, 0, 7); }, sc));
   if (sel === 'membran') glow(() => rr(-158, -108, 316, 216, 14), sc);
   if (sel === 'vakuole') glow(() => rr(-138, -86, 208, 172, 30), sc);
   if (sel === 'kern') glow(() => { g.beginPath(); g.arc(PN[0], PN[1], PN[2] + 2, 0, 7); }, sc);
@@ -412,9 +422,11 @@ function drawPlant(cx, cy, sc, o) {
   g.restore();
 }
 function classPlant(u, v, det) {
-  if (Math.abs(u) > 170 || Math.abs(v) > 120) return null;
   const d = Math.min(170 - Math.abs(u), 120 - Math.abs(v));
-  if (d < 9) return 'wand'; if (d < 19) return 'membran';
+  if (d < -13) return null;
+  if (PITS.some(([x, y]) => Math.hypot(u - x, v - y) < 9)) return 'tuepfel';
+  if (d > -3 && d < 3) return 'mittel';
+  if (d < 10) return 'wand'; if (d < 19) return 'membran';
   const n = 16; for (let i = 0; i < n; i++) { const [x, y] = chloroPos(i, n); if (Math.hypot(u - x, v - y) < 11) return 'chloro'; }
   if (PMITO.some(([x, y]) => Math.hypot(u - x, v - y) < 16)) return 'mito';
   if (Math.hypot(u - PN[0], v - PN[1]) < PN[2] + 3) return 'kern';
@@ -441,7 +453,7 @@ function drawAnimal(cx, cy, sc, o) {
     golgiShape(AGOL[0], AGOL[1]);
     g.save(); g.translate(AZEN[0], AZEN[1]); g.fillStyle = '#fcd34d'; g.strokeStyle = '#b45309'; g.lineWidth = 1.2; rr(-8, -3, 16, 6, 2); g.fill(); g.stroke(); rr(4, -2, 6, 14, 2); g.fill(); g.stroke(); g.restore();
   }
-  g.fillStyle = '#ddd6fe'; g.strokeStyle = '#7c3aed'; g.lineWidth = 2; g.beginPath(); g.arc(AN[0], AN[1], AN[2], 0, 7); g.fill(); g.stroke();
+  nucleus(AN[0], AN[1], AN[2]);
   for (let i = 0; i < 20; i++) { const a = R() * 7, r = R() * 28; ball(AN[0] + Math.cos(a) * r, AN[1] + Math.sin(a) * r, 1.5, 'rgba(124,58,237,.45)'); }
   ball(AN[0] + 7, AN[1] - 6, 11, '#7c3aed');
   AMITO.forEach(([x, y, r]) => mitoShape(x, y, r, 1));
@@ -466,19 +478,19 @@ function classAnimal(u, v, det) {
   return 'plasma';
 }
 // Beschriftungs-Anker (lokal) für die Einzelansicht
-const PLBL = { wand: [-168, -40, 30, 70], membran: [-157, 40, 30, 410], vakuole: [-40, -40, 105, 70], plasma: [130, 96, 170, 410], kern: [114, -40, 265, 70], mito: [104, 58, 330, 410], er: [90, 22, 110, 410], golgi: [134, 80, 250, 410], ribo: [140, -60, 330, 70] };
+const PLBL = { wand: [-164, -80, 30, 70], mittel: [-120, -120, 90, 70], vakuole: [-40, -40, 160, 70], kern: [114, -40, 285, 70], ribo: [140, -60, 345, 70], membran: [-157, 70, 30, 410], tuepfel: [-170, 45, 95, 410], plasma: [130, 96, 165, 410], mito: [104, 58, 222, 410], er: [90, 22, 300, 410], golgi: [134, 80, 340, 410] };
 const ALBL = { membran: [-148, 30, 30, 410], plasma: [-60, 60, 120, 410], kern: [-12, -42, 120, 70], mito: [88, -46, 230, 70], er: [40, -20, 220, 410], golgi: [62, 60, 300, 410], zentri: [66, -20, 320, 70], ribo: [-100, 20, 30, 70] };
 function drawLabels(lb, cx, cy, sc, det, sel) {
   if (!labels) return; const chl = chloroPos(2, 16);
-  Object.entries(lb).forEach(([k, [u, v, x, y]]) => { if (ORG[k][3] && !det) return; if (k === 'chloro') return; lbl(k === 'er' ? 'ER' : ORG[k][0].split(' (')[0], cx + u * sc, cy + v * sc, x, y, { size: 9.5, color: k === sel ? OCOL[k] : undefined, weight: k === sel ? 900 : 700 }); });
-  if (lb === PLBL) lbl('Chloroplasten', cx + chl[0] * sc, cy + chl[1] * sc, 175, 70, { size: 9.5, color: sel === 'chloro' ? OCOL.chloro : undefined, weight: sel === 'chloro' ? 900 : 700 });
+  Object.entries(lb).forEach(([k, [u, v, x, y]]) => { if (ORG[k][3] && !det) return; if (k === 'chloro') return; lbl(k === 'er' ? 'ER' : ORG[k][0].split(' (')[0],  cx + u * sc, cy + v * sc, x, y, { size: 9.5, color: k === sel ? OCOL[k] : undefined, weight: k === sel ? 900 : 700 }); });
+  if (lb === PLBL) lbl('Chloroplasten', cx + chl[0] * sc, cy + chl[1] * sc, 212, 70, { size: 9.5, color: sel === 'chloro' ? OCOL.chloro : undefined, weight: sel === 'chloro' ? 900 : 700 });
 }
 function infoPanel(k, x, y, w, h) {
   const O = ORG[k]; panel(x, y, w, h, null);
   g.fillStyle = OCOL[k]; rr(x + 10, y + 12, 6, 34, 3); g.fill();
   let fs = 13; while (tw(O[0], fs, 900) > w - 34 && fs > 9) fs -= 0.5; text(O[0], x + 24, y + 28, { size: fs, weight: 900, color: OCOL[k] });
-  text(VORK[O[2]], x + 24, y + 44, { size: 9, weight: 800, color: O[2] === 'P' ? '#15803d' : O[2] === 'T' ? '#be123c' : '#6d28d9' });
-  return wrap(O[1], x + 14, y + 66, w - 28, { size: 10.2 });
+  text(VORK[O[2]], x + 24, y + 44, { size: 9, weight: 800, color: VCOL(O[2]) });
+  return wrap(O[1], x + 14, y + 64, w - 28, { size: 9.6 });
 }
 /* ================= Station 1: Bau ================= */
 const bau = {
@@ -489,8 +501,8 @@ const bau = {
     { t: 'seg', id: 'z', label: 'Ansicht', opts: [['pflanze', 'Pflanzenzelle'], ['tier', 'Tierzelle'], ['beide', 'Vergleich']], v: 'pflanze' },
     { t: 'toggles', items: [['detail', 'Feinbau (Elektronenmikroskop)', false]] }
   ],
-  was: 'Alle Lebewesen bestehen aus Zellen. Pflanzen- und Tierzellen haben vieles gemeinsam: Zellmembran, Zellplasma, Zellkern und Mitochondrien. Pflanzenzellen besitzen zusätzlich eine feste Zellwand, eine große Vakuole und – in grünen Teilen – Chloroplasten. In der Pflanzenzelle kreisen die Chloroplasten mit dem Zellplasma (Plasmaströmung).',
-  merke: 'Gemeinsam: Zellmembran, Zellplasma, Zellkern, Mitochondrien. Nur Pflanzenzelle: Zellwand, große Vakuole, Chloroplasten. Mit dem Lichtmikroskop sieht man vor allem Zellwand, Zellkern, Vakuole und Chloroplasten; den Feinbau zeigt erst das Elektronenmikroskop.',
+  was: 'Alle Lebewesen bestehen aus Zellen. Pflanzen- und Tierzellen haben vieles gemeinsam: Zellmembran, Zellplasma, Zellkern und Mitochondrien. Pflanzenzellen besitzen zusätzlich eine feste Zellwand, eine große Vakuole und – in grünen Teilen – Chloroplasten. In der Pflanzenzelle kreisen die Chloroplasten mit dem Zellplasma (Plasmaströmung). Die meisten Zellbestandteile sind von einer eigenen Membran umschlossen. So entstehen getrennte Reaktionsräume, in denen verschiedene Stoffwechselvorgänge gleichzeitig ablaufen, ohne sich zu stören.',
+  merke: 'Gemeinsam: Zellmembran, Zellplasma, Zellkern, Mitochondrien. Nur Pflanzenzelle: Zellwand mit Tüpfeln, große Vakuole, Chloroplasten. Mit dem Lichtmikroskop sieht man vor allem Zellwand, Zellkern, Vakuole und Chloroplasten; den Feinbau zeigt erst das Elektronenmikroskop.',
   frage: 'Warum braucht eine Pflanzenzelle eine Zellwand, eine Tierzelle aber nicht? Denke an das Skelett der Tiere.',
   init() { this.sel = 'kern'; },
   onChange(id) { if (id === 'z') { const ok = this.v.z === 'tier' ? TKEYS : this.v.z === 'pflanze' ? PKEYS : PKEYS.concat(TKEYS); if (!ok.includes(this.sel)) this.sel = 'kern'; } if (id === 'detail' && !this.v.detail && ORG[this.sel][3]) this.sel = 'kern'; },
@@ -500,21 +512,21 @@ const bau = {
     const tapCell = (kind, cx, cy, sc, w, h) => hit(cx - w * sc / 2, cy - h * sc / 2, w * sc, h * sc, () => { const u = (LP[0] - cx) / sc, v = (LP[1] - cy) / sc, k = kind === 'p' ? classPlant(u, v, det) : classAnimal(u, v, det); if (k) this.sel = k; });
     if (z !== 'beide') {
       const cx = 215, cy = 240, isP = z === 'pflanze', sc = isP ? 1.12 : 1.18;
-      if (isP) drawPlant(cx, cy, sc, { sel, detail: det }); else drawAnimal(cx, cy, sc, { sel, detail: det });
-      tapCell(isP ? 'p' : 't', cx, cy, sc, isP ? 350 : 340, isP ? 250 : 260);
+      if (isP) { g.save(); g.beginPath(); g.rect(14, 82, 406, 316); g.clip(); drawPlant(cx, cy, sc, { sel, detail: det, nb: true }); g.restore(); } else drawAnimal(cx, cy, sc, { sel, detail: det });
+      tapCell(isP ? 'p' : 't', cx, cy, sc, isP ? 372 : 340, isP ? 272 : 260);
       drawLabels(isP ? PLBL : ALBL, cx, cy, sc, det, sel);
       const keys = (isP ? PKEYS : TKEYS).filter(k => det || !ORG[k][3]);
-      const hh = infoPanel(sel, 430, 40, 196, 200);
-      panel(430, 250, 196, 180, 'Bestandteile');
-      keys.forEach((k, i) => { const x = 440 + (i % 2) * 90, y = 290 + Math.floor(i / 2) * 28, on = k === sel; g.fillStyle = on ? OCOL[k] : '#fff'; rr(x, y - 14, 84, 24, 7); g.fill(); g.strokeStyle = OCOL[k]; g.lineWidth = 1.3; g.stroke();
-        let nm = ORG[k][0].split(' (')[0]; if (nm.length > 13) nm = { 'Endoplasmatisches Retikulum': 'ER' }[nm] || nm; text(nm, x + 42, y + 2, { size: 8.8, weight: 800, align: 'center', color: on ? '#fff' : OCOL[k] }); hit(x, y - 14, 84, 24, () => { this.sel = k; }); });
+      const hh = infoPanel(sel, 430, 40, 196, 214);
+      panel(430, 262, 196, 168, 'Bestandteile');
+      keys.forEach((k, i) => { const x = 440 + (i % 2) * 90, y = 298 + Math.floor(i / 2) * 22, on = k === sel; g.fillStyle = on ? OCOL[k] : '#fff'; rr(x, y - 12, 84, 19, 6); g.fill(); g.strokeStyle = OCOL[k]; g.lineWidth = 1.3; g.stroke();
+        let nm = ORG[k][0].split(' (')[0]; if (nm.length > 13) nm = { 'Endoplasmatisches Retikulum': 'ER' }[nm] || nm; text(nm, x + 42, y + 1.5, { size: 8.6, weight: 800, align: 'center', color: on ? '#fff' : OCOL[k] }); hit(x, y - 12, 84, 20, () => { this.sel = k; }); });
     } else {
       drawPlant(165, 182, 0.84, { sel, detail: det }); drawAnimal(477, 182, 0.88, { sel, detail: det });
       tapCell('p', 165, 182, 0.84, 350, 250); tapCell('t', 477, 182, 0.88, 340, 260);
       text('Pflanzenzelle', 165, 300, { size: 12, weight: 900, align: 'center', color: '#15803d' }); text('Tierzelle', 477, 300, { size: 12, weight: 900, align: 'center', color: '#be123c' });
       const O = ORG[sel]; panel(14, 314, 612, 116, null);
       g.fillStyle = OCOL[sel]; rr(24, 326, 6, 34, 3); g.fill(); text(O[0], 38, 342, { size: 13, weight: 900, color: OCOL[sel] });
-      text(VORK[O[2]], 612, 342, { size: 10, weight: 800, align: 'right', color: O[2] === 'P' ? '#15803d' : O[2] === 'T' ? '#be123c' : '#6d28d9' });
+      text(VORK[O[2]], 612, 342, { size: 10, weight: 800, align: 'right', color: VCOL(O[2]) });
       wrap(O[1], 38, 368, 570, { size: 10.5 });
     }
   },
@@ -525,6 +537,8 @@ const bau = {
 function iconOrg(k, x, y) {
   g.save(); g.translate(x, y);
   if (k === 'wand') { g.strokeStyle = '#6f8f30'; g.lineWidth = 3.5; rr(-9, -8, 18, 16, 3); g.stroke(); }
+  else if (k === 'tuepfel') { g.fillStyle = '#c9df9a'; g.fillRect(-10, -8, 8, 16); g.fillRect(2, -8, 8, 16); g.fillStyle = '#eef3d8'; g.fillRect(-10, -2, 20, 4); g.strokeStyle = '#c2410c'; g.lineWidth = 1; g.strokeRect(-10, -2, 20, 4); }
+  else if (k === 'mittel') { g.fillStyle = '#c9df9a'; g.fillRect(-9, -8, 18, 16); g.strokeStyle = '#5b4a1f'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, -8); g.lineTo(0, 8); g.stroke(); }
   else if (k === 'membran') { g.strokeStyle = '#c2410c'; g.lineWidth = 1.6; g.beginPath(); g.ellipse(0, 0, 10, 8, 0, 0, 7); g.stroke(); }
   else if (k === 'plasma') { g.fillStyle = '#f5e9c8'; g.beginPath(); g.ellipse(0, 0, 10, 8, 0, 0, 7); g.fill(); [[-4, -2], [3, 2], [1, -4], [-2, 4]].forEach(([a, b]) => ball(a, b, 1, '#a3a36b')); }
   else if (k === 'kern') { ball(0, 0, 8, '#ddd6fe', '#7c3aed'); ball(2, -1, 3, '#7c3aed'); }
@@ -537,28 +551,29 @@ function iconOrg(k, x, y) {
   else if (k === 'zentri') { g.fillStyle = '#fcd34d'; g.strokeStyle = '#b45309'; g.lineWidth = 1; rr(-8, -3, 12, 5, 2); g.fill(); g.stroke(); rr(2, -2, 5, 11, 2); g.fill(); g.stroke(); }
   g.restore();
 }
-const CARDS = ['wand', 'chloro', 'vakuole', 'membran', 'plasma', 'kern', 'mito', 'ribo', 'er', 'golgi', 'zentri'];
-const COLX = { P: 114, B: 320, T: 526 }, COLN = { P: 'nur Pflanzenzelle', B: 'beide', T: 'nur Tierzelle' }, COLC = { P: '#15803d', B: '#6d28d9', T: '#be123c' };
+const colOf = k => ORG[k][2] === 'PP' ? 'P' : ORG[k][2];
+const CARDS = ['wand', 'tuepfel', 'chloro', 'vakuole', 'membran', 'plasma', 'kern', 'mito', 'ribo', 'er', 'golgi', 'zentri'];
+const COLX = { P: 114, B: 320, T: 526, PP: 114 }, COLN = { P: 'nur Pflanzenzelle', B: 'beide', T: 'nur Tierzelle' }, COLC = { P: '#15803d', B: '#6d28d9', T: '#be123c' };
 const vergl = {
   nav: 'Vergleichen', bg: '#f6f8f1',
   title: 'Was haben beide Zellen gemeinsam?',
   lead: 'Ordne die Zellbestandteile zu – oder schau zu, wie sie sortiert werden.',
   controls: [{ t: 'seg', id: 'm', label: 'Modus', opts: [['auto', 'Zuschauen'], ['selbst', 'Selbst sortieren']], v: 'selbst' }, { t: 'buttons', items: [['neu', '↺ Neu']] }],
   was: 'Die Grundausstattung ist bei Pflanzen- und Tierzellen gleich: Membran, Plasma, Zellkern, Mitochondrien sowie (im Elektronenmikroskop sichtbar) ER, Golgi-Apparat und Ribosomen. Zellwand, große Vakuole und Chloroplasten hängen mit der Lebensweise der Pflanzen zusammen: Festigkeit ohne Skelett, Wasserspeicherung und Fotosynthese.',
-  merke: 'Nur Pflanzenzelle: Zellwand, große Vakuole, Chloroplasten. Nur Tierzelle: Zentriolen. Alles andere haben beide.',
+  merke: 'Nur Pflanzenzelle: Zellwand mit Tüpfeln, große Vakuole, Chloroplasten. Nur Tierzelle: Zentriolen. Alles andere haben beide.',
   frage: 'Eine Zelle aus einer Zwiebel hat eine Zellwand und eine Vakuole, aber keine Chloroplasten. Ist es eine Pflanzenzelle? Begründe.',
   init() { this.reset(); },
   reset() { this.t = 0; this.q = shuffle(CARDS, 2 + Math.floor(Math.random() * 50)); this.placed = []; this.err = 0; this.msg = null; this.fly = null; },
   onChange(id) { this.reset(); },
   step(dt) { this.t += dt; if (this.fly) { this.fly.u += dt * 2.5; if (this.fly.u >= 1) { this.placed.push(this.fly.k); this.fly = null; } } if (this.v.m === 'auto' && !this.fly && this.q.length && this.t > 0.8) { this.t = 0; this.fly = { k: this.q.shift(), u: 0 }; } },
-  slot(k, list) { const c = ORG[k][2], i = list.filter(x => ORG[x][2] === c).indexOf(k); return [COLX[c], 112 + i * 33]; },
+  slot(k, list) { const c = colOf(k), i = list.filter(x => colOf(x) === c).indexOf(k); return [COLX[c], 112 + i * 33]; },
   card(k, x, y, s, col) { g.save(); g.translate(x, y); g.scale(s, s); g.fillStyle = '#fff'; rr(-92, -14, 184, 28, 8); g.fill(); g.strokeStyle = col || '#d6dccd'; g.lineWidth = 1.4; g.stroke(); iconOrg(k, -74, 0); text(ORG[k][0].split(' (')[0].replace('Endoplasmatisches Retikulum', 'ER (Retikulum)'), -56, 4, { size: 10.5, weight: 800 }); g.restore(); },
   draw() {
     ['P', 'B', 'T'].forEach(c => { const x = COLX[c]; g.fillStyle = COLC[c] + '12'; rr(x - 100, 44, 200, 300, 12); g.fill(); g.strokeStyle = COLC[c] + '55'; g.lineWidth = 1.5; g.stroke();
       g.fillStyle = COLC[c]; rr(x - 100, 44, 200, 40, 12); g.fill(); text(COLN[c], x, 69, { size: 12, weight: 900, align: 'center', color: '#fff' });
       if (this.v.m === 'selbst' && this.q.length && !this.fly) hit(x - 100, 44, 200, 300, () => this.drop(c)); });
     const all = this.placed.concat(this.fly ? [this.fly.k] : []);
-    this.placed.forEach(k => { const [x, y] = this.slot(k, all); this.card(k, x, y, 1, COLC[ORG[k][2]]); });
+    this.placed.forEach(k => { const [x, y] = this.slot(k, all); this.card(k, x, y, 1, COLC[colOf(k)]); });
     if (this.fly) { const [x1, y1] = this.slot(this.fly.k, all), e = ease(Math.min(1, this.fly.u)); this.card(this.fly.k, lerp(320, x1, e), lerp(385, y1, e) - Math.sin(e * Math.PI) * 30, lerp(1.25, 1, e)); }
     panel(14, 354, 612, 76, null);
     if (this.q.length && !this.fly) {
@@ -567,12 +582,53 @@ const vergl = {
       else text('Sortiere …', 320, 396, { size: 11, align: 'center', color: COL.muted });
     } else if (!this.q.length && !this.fly) {
       text(this.v.m === 'selbst' ? (this.err === 0 ? '✓ Fehlerfrei sortiert!' : `Fertig – mit ${this.err} Fehler${this.err > 1 ? 'n' : ''}.`) : 'Alle Bestandteile sind sortiert.', 320, 384, { size: 13, weight: 900, align: 'center', color: this.err ? '#b45309' : GOOD });
-      text('Nur drei Bestandteile unterscheiden die Pflanzenzelle von der Tierzelle.', 320, 406, { size: 10, align: 'center', color: COL.muted });
+      text('Pflanzenzellen haben zusätzlich Chloroplasten, eine Zellwand mit Tüpfeln und eine große Vakuole.', 320, 406, { size: 10, align: 'center', color: COL.muted });
     }
     if (this.msg && this.msg[1] > T) { const ok = this.msg[2]; g.fillStyle = ok ? '#ecf8ef' : '#fdeeee'; rr(360, 360, 260, 64, 10); g.fill(); wrap(this.msg[0], 372, 380, 238, { size: 9.5, weight: 700, color: ok ? GOOD : BAD }); }
   },
-  drop(c) { const k = this.q[0], right = ORG[k][2]; if (c === right) { this.q.shift(); this.fly = { k, u: 0 }; this.msg = null; } else { this.err++; this.msg = [`${ORG[k][0].split(' (')[0]}: ${VORK[right]}.`, T + 2.5, false]; } },
+  drop(c) { const k = this.q[0], right = colOf(k); if (c === right) { this.q.shift(); this.fly = { k, u: 0 }; this.msg = null; } else { this.err++; this.msg = [`${ORG[k][0].split(' (')[0]}: ${VORK[ORG[k][2]]}.`, T + 2.5, false]; } },
   out() { return `<div class="orow t"><span>Sortiert</span><b>${this.placed.length} von ${CARDS.length}</b></div>` + (this.v.m === 'selbst' ? `<div class="orow t"><span>Fehler</span><b>${this.err}</b></div>` : ''); }
+};
+
+/* ================= Station: Tabelle ================= */
+const KURZ = {
+  wand: 'gibt der Zelle Form und Stabilität', tuepfel: 'verbinden benachbarte Zellen (Stoffaustausch)', mittel: 'verbindet die Zellwände benachbarter Zellen',
+  membran: 'grenzt ab; lässt nur bestimmte Stoffe hindurch', plasma: 'Grundsubstanz; ständig in Bewegung, transportiert Stoffe', kern: 'enthält die Erbinformation, steuert die Lebensvorgänge',
+  vakuole: 'speichert Wasser und Stoffe (Zellsaft), gibt Stabilität', chloro: 'Fotosynthese: stellen mit Licht energiereiche Stoffe her', mito: 'bauen energiereiche Stoffe ab, liefern Energie',
+  er: 'Kanalnetz: Stoffe herstellen und transportieren', golgi: 'Stoffe verarbeiten, verpacken, verschicken', ribo: 'stellen Eiweiße her'
+};
+const TROWS = ['wand', 'tuepfel', 'mittel', 'membran', 'plasma', 'kern', 'vakuole', 'chloro', 'mito', 'er', 'golgi', 'ribo'];
+const tabelle = {
+  nav: 'Tabelle', bg: '#f6f8f1',
+  title: 'Zellbestandteile und ihre Aufgaben',
+  lead: 'Überlege zuerst selbst, welche Aufgabe ein Bestandteil hat. Tippe dann auf die Zeile, um die Lösung aufzudecken.',
+  controls: [{ t: 'toggles', items: [['alle', 'Alle Aufgaben aufdecken', false], ['fein', 'Feinbau einbeziehen', true]] }, { t: 'buttons', items: [['zu', 'Alle verdecken']] }],
+  was: 'Eine Tabelle hilft, die vielen Zellbestandteile zu ordnen: Name, Aufgabe und ob sie in Pflanzen- oder Tierzellen vorkommen. Die letzten drei Zeilen (ER, Dictyosomen, Ribosomen) sieht man erst im Elektronenmikroskop.',
+  merke: 'Pflanzenzellen besitzen im Vergleich zu Tierzellen zusätzlich Chloroplasten, eine Zellwand mit Tüpfeln und eine Vakuole.',
+  frage: 'Nenne die Bestandteile einer Pflanzenzelle mit ihren Aufgaben. Lege dazu im Heft eine Tabelle an.',
+  init() { this.open = new Set(); },
+  onChange(id) { if (id === 'zu') { this.open = new Set(); this.v.alle = false; buildControls(); } },
+  step() {},
+  draw() {
+    const rows = TROWS.filter(k => this.v.fein || !ORG[k][3]), n = rows.length, rh = Math.min(30, 360 / n), y0 = 74;
+    panel(14, 40, 612, 390, null);
+    const XA = 186, XP = 520, XT = 580;
+    text('Bestandteil', 50, 62, { size: 10, weight: 900, color: '#475569' }); text('Aufgabe', XA, 62, { size: 10, weight: 900, color: '#475569' });
+    text('Pflanze', XP, 62, { size: 10, weight: 900, align: 'center', color: '#15803d' }); text('Tier', XT, 62, { size: 10, weight: 900, align: 'center', color: '#be123c' });
+    rows.forEach((k, i) => {
+      const y = y0 + i * rh, on = this.v.alle || this.open.has(k), c = ORG[k][2];
+      if (i % 2 === 0) { g.fillStyle = '#f5f7f0'; g.fillRect(20, y, 600, rh); }
+      iconOrg(k, 34, y + rh / 2); text(k === 'er' ? 'ER (Retikulum)' : ORG[k][0].split(' (')[0], 50, y + rh / 2 + 4, { size: 10.5, weight: 800, color: OCOL[k] });
+      if (on) text(KURZ[k], XA, y + rh / 2 + 4, { size: 10, color: '#1f2937' });
+      else { g.fillStyle = '#e6ead9'; rr(XA, y + 5, 300, rh - 10, 6); g.fill(); text('antippen zum Aufdecken', XA + 150, y + rh / 2 + 3.5, { size: 8.5, align: 'center', color: '#8a9478' }); }
+      text('✓', XP, y + rh / 2 + 5, { size: 13, weight: 900, align: 'center', color: '#15803d' });
+      text(c === 'B' ? '✓' : '–', XT, y + rh / 2 + 5, { size: 13, weight: 900, align: 'center', color: c === 'B' ? '#be123c' : '#94a3b8' });
+      hit(20, y, 600, rh, () => { this.open.has(k) ? this.open.delete(k) : this.open.add(k); });
+    });
+    const yb = y0 + n * rh + 14;
+    if (yb < 424) text('Tierzellen haben keine Zellwand und keine große Vakuole. Nicht jede Pflanzenzelle hat Chloroplasten (z. B. Wurzel, Zwiebel).', 320, yb, { size: 9, align: 'center', color: COL.muted });
+  },
+  out() { return `<div class="orow t"><span>Aufgedeckt</span><b>${this.v.alle ? 'alle' : this.open.size}</b></div>`; }
 };
 
 /* ================= Station 3: Mikroskop ================= */
@@ -589,7 +645,7 @@ function mkMikro() {
 const PRAEP = {
   zwiebel: ['Zwiebelhaut', 'Iod-Kaliumiodid-Lösung', 'Langgestreckte Zellen mit deutlichen Zellwänden und einem Zellkern. Keine Chloroplasten: Die Zwiebel wächst im Dunkeln und betreibt keine Fotosynthese.', 'Von der Innenseite einer Zwiebelschuppe ein dünnes Häutchen abziehen, in einen Wassertropfen legen und das Deckgläschen schräg auflegen.'],
   mund: ['Mundschleimhaut', 'Methylenblau', 'Flache, unregelmäßig geformte Zellen mit Zellkern. Keine Zellwand, keine Vakuole, keine Chloroplasten – typisch für Tierzellen.', 'Mit einem sauberen Holzspatel innen über die eigene Wange streichen, in einem Wassertropfen ausstreichen, anfärben, abdecken.'],
-  pest: ['Wasserpest-Blatt', null, 'Längliche Zellen voller Chloroplasten. Bei 400-facher Vergrößerung sieht man, wie die Chloroplasten mit dem Plasma kreisen (Plasmaströmung).', 'Ein junges Blättchen abzupfen und in einem Wassertropfen abdecken. Das Blatt ist nur zwei Zellschichten dick – es muss nicht gefärbt werden.']
+  pest: ['Wasserpest-Blatt', null, 'Längliche Zellen voller kugeliger Chloroplasten, manchmal auch ein blasser Zellkern. Die große Vakuole ist kaum zu erkennen, weil man durch sie hindurchsieht. Bei 400-facher Vergrößerung kreisen die Chloroplasten mit dem Plasma (Plasmaströmung).', 'Ein junges Blättchen abzupfen und in einem Wassertropfen abdecken. Das Blatt ist nur zwei Zellschichten dick – es muss nicht gefärbt werden.']
 };
 const mikro = {
   nav: 'Mikroskop', bg: '#f6f8f1',
@@ -628,6 +684,7 @@ const mikro = {
       MZ.wp.forEach(c => { if (c.x > lim || c.x + c.w < -lim || c.y > lim || c.y + c.h < -lim) return; const x = X(c.x), y = Y(c.y), w = c.w * s, h = c.h * s;
         g.fillStyle = '#d9efc4'; g.fillRect(x, y, w, h); g.strokeStyle = '#5f8f3a'; g.lineWidth = Math.max(0.4, Math.min(2, 2.5 * s)); g.strokeRect(x, y, w, h);
         if (s < 0.45) { g.fillStyle = 'rgba(60,150,50,.55)'; g.fillRect(x + w * 0.1, y + h * 0.15, w * 0.8, h * 0.7); return; }
+        if (s > 0.6) { g.fillStyle = 'rgba(200,210,190,.55)'; g.beginPath(); g.ellipse(x + w * (0.3 + c.ph * 0.4), y + h * 0.5, 7 * s, 5 * s, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(120,140,110,.6)'; g.lineWidth = 1; g.stroke(); }
         const n = 26, ins = 4, W = c.w - 2 * ins, H = c.h - 2 * ins, P = 2 * (W + H);
         for (let i = 0; i < n; i++) { let p = ((i / n) * P + (T * 6 + c.ph * P)) % P, px, py; if (p < W) { px = ins + p; py = ins; } else if (p < W + H) { px = c.w - ins; py = ins + p - W; } else if (p < 2 * W + H) { px = c.w - ins - (p - W - H); py = c.h - ins; } else { px = ins; py = c.h - ins - (p - 2 * W - H); }
           ball(x + px * s, y + py * s, 3.3 * s, '#3f9b3a'); } });
@@ -657,14 +714,15 @@ const QZE = [
   ['Was grenzt die Tierzelle nach außen ab?', 't', 'membran'], ['Wo wird bei der Zellatmung Energie bereitgestellt?', 't', 'mito'],
   ['Tippe auf das Zellplasma der Tierzelle.', 't', 'plasma'], ['Wo ist die Erbinformation der Tierzelle gespeichert?', 't', 'kern'],
   ['Tippe auf die Zellmembran der Pflanzenzelle.', 'p', 'membran'], ['Tippe auf ein Mitochondrium der Pflanzenzelle.', 'p', 'mito'],
-  ['Wo wird der Zellsaft gespeichert?', 'p', 'vakuole'], ['Tippe auf das Zellplasma der Pflanzenzelle.', 'p', 'plasma']
+  ['Wo wird der Zellsaft gespeichert?', 'p', 'vakuole'], ['Tippe auf das Zellplasma der Pflanzenzelle.', 'p', 'plasma'],
+  ['Tippe auf einen Tüpfel.', 'p', 'tuepfel'], ['Über welche Öffnungen sind benachbarte Pflanzenzellen verbunden?', 'p', 'tuepfel'], ['Tippe auf die Mittellamelle zwischen zwei Zellen.', 'p', 'mittel']
 ];
 const zquiz = {
   nav: 'Quiz', bg: '#f6f8f1',
   title: 'Zellquiz',
   lead: 'Lies die Aufgabe und tippe auf den passenden Bestandteil.',
   controls: [{ t: 'buttons', items: [['next', 'Nächste Frage ▶'], ['neu', '↺ Neu starten']] }],
-  was: 'Die Beschriftungen sind hier ausgeblendet. Erinnere dich an Form und Lage der Bestandteile: Die Zellwand liegt ganz außen, direkt darunter die Zellmembran. Die Vakuole füllt fast die ganze Pflanzenzelle.',
+  was: 'Die Beschriftungen sind hier ausgeblendet. Erinnere dich an Form und Lage der Bestandteile: Die Zellwand liegt ganz außen, direkt darunter die Zellmembran. Zwischen zwei Zellwänden liegt die Mittellamelle. Die Vakuole füllt fast die ganze Pflanzenzelle.',
   merke: 'Zellkern = Steuerzentrale · Mitochondrien = Kraftwerke · Chloroplasten = Fotosynthese · Vakuole = Zellsaftspeicher · Zellwand = Festigkeit · Zellmembran = Grenze.',
   frage: 'Erkläre deinem Nachbarn mit eigenen Worten die Aufgaben von drei Zellbestandteilen.',
   init() { this.o = shuffle(QZE.map((_, i) => i), 5); this.i = 0; this.a = null; this.score = 0; this.n = 0; },
@@ -673,9 +731,9 @@ const zquiz = {
   draw() {
     const Q = QZE[this.o[this.i]], isP = Q[1] === 'p', cx = 215, cy = 236, sc = isP ? 1.12 : 1.18;
     const sel = this.a ? Q[2] : null;
-    if (isP) drawPlant(cx, cy, sc, { sel }); else drawAnimal(cx, cy, sc, { sel });
+    if (isP) { g.save(); g.beginPath(); g.rect(14, 40, 406, 390); g.clip(); drawPlant(cx, cy, sc, { sel, nb: true }); g.restore(); } else drawAnimal(cx, cy, sc, { sel });
     if (this.a && this.a !== Q[2]) text(`Du hast getippt: ${ORG[this.a][0]}`, cx, 418, { size: 10, weight: 800, align: 'center', color: BAD });
-    hit(cx - 175 * sc, cy - 130 * sc, 350 * sc, 260 * sc, () => { if (this.a) return; const u = (LP[0] - cx) / sc, v = (LP[1] - cy) / sc, k = isP ? classPlant(u, v, false) : classAnimal(u, v, false); if (!k) return; this.a = k; this.n++; if (k === Q[2]) this.score++; });
+    hit(cx - 186 * sc, cy - 136 * sc, 372 * sc, 272 * sc, () => { if (this.a) return; const u = (LP[0] - cx) / sc, v = (LP[1] - cy) / sc, k = isP ? classPlant(u, v, false) : classAnimal(u, v, false); if (!k) return; this.a = k; this.n++; if (k === Q[2]) this.score++; });
     panel(430, 40, 196, 390, null);
     text(`Frage ${this.i + 1} von ${QZE.length}`, 442, 62, { size: 9.5, weight: 800, color: COL.muted }); text(`Punkte: ${this.score}`, 614, 62, { size: 9.5, weight: 800, align: 'right', color: ACC });
     text(isP ? 'Pflanzenzelle' : 'Tierzelle', 442, 86, { size: 10, weight: 900, color: isP ? '#15803d' : '#be123c' });
@@ -687,8 +745,8 @@ const zquiz = {
 };
 
 /* ================= Steuerung ================= */
-const STATIONS = { bau, vergl, mikro, zquiz };
-const ORDER = ['bau',  'vergl',  'mikro',  'zquiz'];
+const STATIONS = { bau, vergl, tabelle, mikro, zquiz };
+const ORDER = ['bau',  'vergl',  'tabelle',  'mikro',  'zquiz'];
 let cur = 'bau';
 function setDefaults(st) { st.v = {}; st.controls.forEach(c => { if (c.t === 'range' || c.t === 'seg') st.v[c.id] = c.v; if (c.t === 'toggles') c.items.forEach(([id, , on]) => st.v[id] = on); }); }
 ORDER.forEach(k => { setDefaults(STATIONS[k]); STATIONS[k].init(); });
