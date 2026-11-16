@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Zelle">
+<title>Pflanzenzelle und Tierzelle</title>
+<style>
+:root{
+  --bg:#f6f1f0;--panel:#ffffff;--panel2:#f3f7f6;--text:#1b2a27;--muted:#5a6b67;--line:#d2dedb;
+  --accent:#4d7c0f;--accent2:#3f6212;--accentSoft:#eef6dd;
+  --water:#2f7fe0;--ion:#e3a21a;--adh:#e0742a;--ok:#2f8a3e;--okSoft:#e2f2e3;--warn:#b8650f;--warnSoft:#fdf0df;--bad:#c0392b;--badSoft:#fbe5e2;
+  --shadow:0 6px 20px rgba(20,50,50,.08);
+}
+*{box-sizing:border-box}
+html{font-size:calc(15px * var(--fs,1));background:var(--bg)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:1rem/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%;touch-action:manipulation}
+button,select{font:inherit;color:inherit}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px 6px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:24px;height:24px}
+h1{font-size:1.3rem;margin:0;line-height:1.15}
+.sub{margin:0;color:var(--muted);font-size:.85rem}
+.head-actions{display:flex;gap:8px;align-items:center}
+.btn{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow)}
+.btn:hover{border-color:var(--accent)}
+.btn.icon{min-width:44px;padding:0}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{min-height:38px;border:0;background:transparent;border-radius:9px;padding:0 12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.15);color:var(--accent2);font-weight:700}
+.seg button:disabled{opacity:.45}
+#fontUp{font-size:1.15em;font-weight:700}#fontDown{font-size:.92em;font-weight:700}
+.seg button small{font-size:.8em;margin-left:1px}
+/* Stationen */
+.stations{display:flex;gap:6px;padding:4px 14px 10px;overflow-x:auto;scrollbar-width:none}
+.stations::-webkit-scrollbar{display:none}
+.stations button{flex:1 0 auto;min-height:46px;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:14px;border:2px solid var(--line);background:var(--panel);cursor:pointer;font-weight:600;white-space:nowrap}
+.stations button .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);font-size:.85rem;font-weight:800;flex:none}
+.stations button[aria-pressed="true"]{border-color:var(--accent);background:var(--accentSoft);color:var(--accent2)}
+.stations button[aria-pressed="true"] .n{background:var(--accent);border-color:var(--accent);color:#fff}
+/* Layout (Handy zuerst) */
+main{display:flex;flex-direction:column;gap:10px;padding:0 10px 12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.stage{position:sticky;top:0;z-index:5;overflow:hidden;padding:0}
+.stage canvas{display:block;width:100%;aspect-ratio:640/440}
+.hud{position:absolute;top:8px;left:8px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:99px;padding:0 12px;min-height:32px;font-size:.85rem;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.pill input{width:18px;height:18px;accent-color:var(--accent)}
+.side{display:flex;flex-direction:column;padding:0}
+.sideScroll{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.side h2{font-size:1.1rem;margin:0;line-height:1.25}
+.lead{margin:-4px 0 0;color:var(--muted);font-size:.9rem}
+#ctrls{display:flex;flex-direction:column;gap:8px}
+.ctrl{display:flex;flex-direction:column}
+.ctrl .lab{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctrl .lab b{font-weight:600}
+.ctrl output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent2);text-align:right;white-space:nowrap}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:38px;background:transparent;margin:0;cursor:pointer}
+input[type=range]:focus{outline:none}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--line) var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid var(--accent);margin-top:-10px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:8px;border-radius:99px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--accent)}
+.tgls{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tgl{min-height:44px;display:flex;align-items:center;gap:8px;padding:0 10px;border-radius:12px;border:2px solid var(--line);background:var(--panel);cursor:pointer;text-align:left;font-weight:600;font-size:.9rem}
+.tgl .sw{width:34px;height:20px;border-radius:99px;background:var(--line);position:relative;flex:none;transition:background .2s}
+.tgl .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.tgl[aria-pressed="true"]{border-color:var(--accent)}
+.tgl[aria-pressed="true"] .sw{background:var(--accent)}
+.tgl[aria-pressed="true"] .sw::after{left:16px}
+.tgl:disabled{opacity:.45;cursor:not-allowed}
+.btnRow{display:flex;gap:6px;flex-wrap:wrap}
+.btnRow .btn{flex:1 1 auto;box-shadow:none;font-weight:600}
+.out{background:var(--panel2);border-radius:12px;padding:8px 12px;display:grid;gap:5px;font-size:.9rem}
+.out:empty{display:none}
+.orow{display:grid;grid-template-columns:8.5em 1fr auto;align-items:center;gap:8px}
+.obar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.obar i{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .25s}
+.orow b{font-variant-numeric:tabular-nums;text-align:right}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.info{border-radius:12px;background:var(--accentSoft);padding:6px 12px 10px;font-size:.92rem}
+.info[data-i="merke"]{background:var(--okSoft)}.info[data-i="frage"]{background:var(--warnSoft)}
+.info p{margin:6px 0 0}
+.infoTabs{display:flex;gap:4px;border-bottom:1px solid rgba(0,0,0,.08)}
+.infoTabs button{border:0;background:transparent;padding:6px 8px;min-height:36px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer}
+.infoTabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.orow.t{grid-template-columns:1fr auto}
+.orow.b{grid-template-columns:minmax(0,1fr) auto;row-gap:3px}.orow.b .obar{grid-column:1/-1}.orow span{min-width:0}
+.box{border-radius:12px;padding:9px 12px;font-size:.92rem}
+.box p{margin:4px 0 0}
+.box.was{background:var(--accentSoft)}
+.box.merke{background:var(--okSoft);border-left:4px solid var(--ok)}
+.box.frage{background:var(--warnSoft)}
+.box.frage summary{cursor:pointer;font-weight:700}
+#toast{position:fixed;left:50%;bottom:24px;max-width:calc(100% - 32px);text-align:center;transform:translate(-50%,30px);opacity:0;pointer-events:none;background:var(--text);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;transition:.3s;z-index:20}
+#toast.show{transform:translate(-50%,0);opacity:1}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);max-width:660px;width:calc(100% - 32px);padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{font-size:1.2rem;margin-top:0}
+dialog h3{font-size:1rem;margin:14px 0 4px}
+dialog p,dialog li{font-size:.93rem}
+dialog ul{padding-left:20px;margin:4px 0}
+/* App-Layout: alles auf einem Bildschirm */
+@media (min-width:760px), (orientation:landscape) and (min-width:640px){
+  html,body{height:100%}
+  body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+  header,.stations{flex:none}
+  main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(310px,34vw,430px);gap:12px;padding:0 14px 14px}
+  .lead{display:none}
+  .sideScroll{gap:8px}
+  input[type=range]{height:34px}
+  .info{font-size:.87rem}
+  .out{font-size:.86rem;gap:3px;padding:6px 12px}
+  .tgl,.btnRow .btn{min-height:40px}
+  .stage{position:relative;top:auto;min-height:0}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto}
+  .side{min-height:0}
+  .sideScroll{flex:1;min-height:0;overflow:auto}
+}
+@media (max-width:1100px){.stations button .t2{display:none}}
+@media (orientation:landscape) and (max-height:520px){
+  header{padding:4px 10px}.sub{display:none}.logo{width:30px;height:30px}h1{font-size:1rem}
+  .btn{min-height:36px}.btn.icon{min-width:38px}
+  .stations{padding:2px 10px 6px}.stations button{min-height:36px;padding:0 10px}
+  main{gap:8px;padding:0 8px 8px}
+  .sideScroll{padding:8px 10px;gap:7px}
+}
+@media (max-width:620px){
+  header{padding:8px 10px 4px}.sub{display:none}h1{font-size:1.1rem}.logo{width:34px;height:34px}
+  .head-actions{gap:4px}.btn.icon{min-width:40px;width:40px}
+  .stations{padding:2px 10px 8px}.stations button{padding:0 10px}
+  .pill{font-size:.75rem;min-height:28px;padding:0 9px}
+  .orow{grid-template-columns:7em 1fr auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="15.5" cy="11" r="2.6" fill="#fff"/><ellipse cx="8" cy="9" rx="2" ry="1.1" fill="#fff"/><ellipse cx="9" cy="15" rx="2" ry="1.1" fill="#fff"/></svg></div>
+    <div><h1>Pflanzenzelle und Tierzelle</h1><p class="sub">Bau, Vergleich und Blick durchs Mikroskop</p></div>
+  </div>
+  <div class="head-actions">
+    <div class="seg" role="group" aria-label="Schriftgröße">
+      <button id="fontDown" title="Schrift kleiner" aria-label="Schrift kleiner">A<small>−</small></button>
+      <button id="fontUp" title="Schrift größer" aria-label="Schrift größer">A<small>+</small></button>
+    </div>
+    <button class="btn icon" id="fsBtn" title="Vollbild" aria-label="Vollbild">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g id="fsIn"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></g><g id="fsOut" style="display:none"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></g></svg>
+    </button>
+    <button class="btn icon" id="resetBtn" title="Station zurücksetzen" aria-label="Station zurücksetzen">↺</button>
+    <button class="btn icon" id="infoBtn" title="Hinweise" aria-label="Hinweise">ⓘ</button>
+  </div>
+</header>
+<nav class="stations" id="stations" aria-label="Stationen"></nav>
+
+<main>
+  <section class="card stage" aria-label="Animation">
+    <canvas id="stage" role="img" aria-label="Interaktive Übung: Pflanzenzelle und Tierzelle"></canvas>
+    <div class="hud">
+      <label class="pill"><input type="checkbox" id="labelsChk" checked> Beschriftung</label>
+      <button class="pill" id="pauseBtn" aria-label="Animation anhalten">⏸ Pause</button>
+    </div>
+  </section>
+  <aside class="card side" aria-label="Steuerung und Erklärung">
+    <div class="sideScroll">
+      <h2 id="stTitle"></h2>
+      <p class="lead" id="stLead"></p>
+      <div id="ctrls"></div>
+      <div class="out" id="out" aria-live="polite"></div>
+      <div class="info" id="info">
+        <div class="infoTabs" role="tablist">
+          <button role="tab" data-i="was" aria-selected="true">Was passiert?</button>
+          <button role="tab" data-i="merke">Merke</button>
+          <button role="tab" data-i="frage">Denkfrage</button>
+        </div>
+        <p id="infoText"></p>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div id="toast" role="status"></div>
+
+<dialog id="infoDlg">
+  <h2>Hinweise zum Zelle-Labor</h2>
+  <ul>
+    <li><b>Bau der Zellen:</b> Pflanzen- und Tierzelle einzeln oder im Vergleich; Bestandteile antippen; Feinbau zuschaltbar; Plasmaströmung der Chloroplasten.</li>
+    <li><b>Vergleichen:</b> Bestandteile selbst den Spalten „nur Pflanzenzelle / beide / nur Tierzelle“ zuordnen oder zuschauen.</li>
+    <li><b>Mikroskop:</b> Zwiebelhaut, Mundschleimhaut und Wasserpest bei 40×, 100× und 400×, mit und ohne Färbung, mit Maßstab.</li>
+    <li><b>Quiz:</b> zwölf Aufgaben – den richtigen Bestandteil in der Zelle antippen.</li>
+  </ul>
+  <p>Die Zellen sind schematisch und nicht maßstabsgetreu gezeichnet. Im Mikroskop entsprechen die Größen ungefähr der Wirklichkeit.</p>
+  <p style="text-align:right;margin:16px 0 0"><button class="btn" id="closeInfo">Schließen</button></p>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const fmt1 = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
+
+/* ================= Zeichnen: Grundlagen ================= */
+const cv = $('#stage'), g = cv.getContext('2d');
+const SW = 640, SH = 440;
+let K = 1, VX0 = 0, VX1 = SW, VY0 = 0, VY1 = SH, labels = true, paused = false, T = 0;
+const FS_STEPS = [0.85, 0.925, 1, 1.1, 1.2, 1.32, 1.45];
+let fsIdx = 2;
+const COL = { water: '#2f7fe0', waterSoft: 'rgba(80,150,235,.35)', ion: '#e3a21a', adh: '#e0742a', text: '#1b2a27', muted: '#5a6b67', leaf: '#5aa646', leafD: '#3f8a35', wood: '#8b6b3e', soil: '#7a5a3c' };
+function fit(bg) {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  const sc = Math.min(w / SW, h / SH), ox = (w - SW * sc) / 2, oy = (h - SH * sc) / 2;
+  g.setTransform(sc, 0, 0, sc, ox, oy);
+  VX0 = -ox / sc; VX1 = SW + ox / sc; VY0 = -oy / sc; VY1 = SH + oy / sc;
+  K = clamp(Math.max(1, 10 / Math.max(12 * sc / dpr, 1)) * FS_STEPS[fsIdx], 0.85, 1.9);
+}
+const font = (s, w) => `${w || 600} ${s * K}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif`;
+function text(t, x, y, o = {}) {
+  g.font = font(o.size || 12, o.weight); g.fillStyle = o.color || COL.text; g.textAlign = o.align || 'left'; g.textBaseline = o.base || 'alphabetic';
+  if (o.bg) { const m = g.measureText(t), w = m.width + 10, hh = (o.size || 12) * K + 8; let bx = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w + 5 : x - 5;
+    g.fillStyle = o.bg; rr(bx, y - hh + 5, w, hh, 6); g.fill(); g.fillStyle = o.color || COL.text; }
+  g.fillText(t, x, y); g.textBaseline = 'alphabetic';
+}
+function lbl(t, x1, y1, x2, y2, o = {}) {
+  if (!labels) return;
+  g.strokeStyle = o.line || 'rgba(40,50,50,.55)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2 - 4); g.stroke();
+  g.fillStyle = o.line || 'rgba(40,50,50,.7)'; g.beginPath(); g.arc(x1, y1, 2, 0, 7); g.fill();
+  text(t, x2 + (o.align === 'right' ? -2 : o.align === 'center' ? 0 : 2), y2, { align: o.align || 'left', size: o.size || 12, bg: 'rgba(255,255,255,.82)', color: o.color });
+}
+function rr(x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+function ball(x, y, r, c, stroke) { g.fillStyle = c; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = 1; g.stroke(); } }
+function arrow(x1, y1, x2, y2, c, w = 3) {
+  const a = Math.atan2(y2 - y1, x2 - x1), hl = 8 + w * 2;
+  g.strokeStyle = c; g.fillStyle = c; g.lineWidth = w; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - Math.cos(a) * hl * 0.6, y2 - Math.sin(a) * hl * 0.6); g.stroke();
+  g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - hl * Math.cos(a - 0.45), y2 - hl * Math.sin(a - 0.45)); g.lineTo(x2 - hl * Math.cos(a + 0.45), y2 - hl * Math.sin(a + 0.45)); g.closePath(); g.fill();
+}
+function seeded(n) { let s = n; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; }
+const bar = (label, v, txt, color) => `<div class="orow b"><span>${label}</span><b>${txt}</b><div class="obar"><i style="width:${clamp(v, 0, 1) * 100}%;${color ? 'background:' + color : ''}"></i></div></div>`;
+
+/* ================= Hilfen ================= */
+const RED = [214, 38, 61], BLUE = [86, 74, 170];
+const mixRGB = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * clamp(t, 0, 1))).join(',')})`;
+const bloodCol = o => mixRGB(BLUE, RED, o);
+function mkPath(pts) { const L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, L, len: L[L.length - 1] }; }
+function ptAt(P, d, loop) {
+  if (loop) d = ((d % P.len) + P.len) % P.len; else d = clamp(d, 0, P.len);
+  let i = 1; while (i < P.L.length - 1 && P.L[i] < d) i++;
+  const a = P.pts[i - 1], b = P.pts[i], t = (d - P.L[i - 1]) / Math.max(1e-6, P.L[i] - P.L[i - 1]);
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, i - 1, t];
+}
+function strokePath(pts, col, w) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); }
+function rbc(x, y, o, s = 1) { g.fillStyle = bloodCol(o); g.beginPath(); g.ellipse(x, y, 6.5 * s, 4.2 * s, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.2; g.stroke(); g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(x, y, 2.6 * s, 1.5 * s, 0, 0, 7); g.fill(); }
+const pulseOf = v => v;
+
+/* ================= Gemeinsam ================= */
+const ease = t => t * t * (3 - 2 * t), segU = (u, a, b) => clamp((u - a) / (b - a), 0, 1);
+const lerp = (a, b, t) => a + (b - a) * t, lerpP = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
+function panel(x, y, w, h, title, o = {}) { g.fillStyle = o.fill || '#fff'; rr(x, y, w, h, 12); g.fill(); g.strokeStyle = o.stroke || '#dde5df'; g.lineWidth = o.lw || 1; g.stroke(); if (title) text(title, x + 10, y + 18, { size: 10.5, weight: 800, color: o.tcol }); }
+function wrap(t, x, y, maxW, o = {}) {
+  const size = o.size || 10; g.font = font(size, o.weight); const words = String(t).split(' '), lines = []; let line = '';
+  words.forEach(w => { const test = line ? line + ' ' + w : w; if (g.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test; });
+  if (line) lines.push(line);
+  const lh = size * K * 1.32; lines.forEach((l, i) => text(l, x, y + i * lh, Object.assign({}, o, { size })));
+  return lines.length * lh;
+}
+const emo = (e, x, y, s = 16, alpha = 1) => { g.save(); g.globalAlpha *= alpha; g.font = `${s * K}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(e, x, y); g.restore(); };
+const mixC = (a, b, t) => mixRGB(a, b, t);
+function leafShape(x1, y1, x2, y2, w, fill, stroke, bend = 0) {
+  const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, mx = (x1 + x2) / 2 + nx * bend, my = (y1 + y2) / 2 + ny * bend;
+  g.beginPath(); g.moveTo(x1, y1); g.quadraticCurveTo(mx + nx * w, my + ny * w, x2, y2); g.quadraticCurveTo(mx - nx * w, my - ny * w, x1, y1); g.closePath();
+  g.fillStyle = fill; g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = 1.2; g.stroke(); }
+}
+function phaseBar(PH, i, u) {
+  const x0 = 14, w = (626 - x0) / PH.length, y = 406;
+  PH.forEach((p, j) => { const x = x0 + j * w, t = p.s || p.n; g.fillStyle = j === i ? ACC : ACC_SOFT; rr(x + 2, y, w - 4, 26, 7); g.fill(); let sz = 9.5; g.font = font(sz, 800); while (g.measureText(t).width > w - 8 && sz > 4) { sz -= 0.5; g.font = font(sz, 800); } text(t, x + w / 2, y + 17, { size: sz, weight: 800, align: 'center', color: j === i ? '#fff' : '#4d5a52' }); });
+  g.fillStyle = 'rgba(255,255,255,.75)'; rr(x0 + i * w + 6, y + 21, (w - 12) * clamp(u, 0, 1), 3, 1.5); g.fill();
+}
+function stepPhase(st, PH, id) { if (id === 'prev' || id === 'next') { st.i = (st.i + (id === 'next' ? 1 : PH.length - 1)) % PH.length; st.u = 0; if (st.v.auto) { st.v.auto = false; buildControls(); } } }
+function advance(st, PH, dt) { st.u += dt * (st.v.speed || 1) / PH[st.i].d; if (st.u >= 1) { if (st.v.auto) { st.u = 0; st.i = (st.i + 1) % PH.length; } else st.u = 1; } }
+const phaseControls = extra => [
+  { t: 'buttons', items: [['prev', '◀ zurück'], ['next', 'weiter ▶']] },
+  { t: 'toggles', items: [['auto', 'Automatisch ablaufen', true]].concat(extra || []) }
+];
+function crPts(P, closed, n = 8) {
+  const N = P.length, get = i => closed ? P[(i + N) % N] : P[Math.max(0, Math.min(N - 1, i))], out = [];
+  for (let i = 0; i < (closed ? N : N - 1); i++) {
+    const p0 = get(i - 1), p1 = get(i), p2 = get(i + 1), p3 = get(i + 2);
+    for (let k = 0; k < n; k++) { const t = k / n, t2 = t * t, t3 = t2 * t; const f = j => 0.5 * (2 * p1[j] + (-p0[j] + p2[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t2 + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * t3); out.push([f(0), f(1)]); }
+  }
+  if (!closed) out.push(P[N - 1]);
+  return out;
+}
+function seg2(a, b, col, w) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
+function arrowTo(x1, y1, x2, y2, col, w = 2, dash) { const a = Math.atan2(y2 - y1, x2 - x1), hl = 7 + w * 1.5; g.strokeStyle = col; g.fillStyle = col; g.lineWidth = w; if (dash) g.setLineDash(dash); g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - Math.cos(a) * hl * 0.7, y2 - Math.sin(a) * hl * 0.7); g.stroke(); g.setLineDash([]); g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - hl * Math.cos(a - 0.4), y2 - hl * Math.sin(a - 0.4)); g.lineTo(x2 - hl * Math.cos(a + 0.4), y2 - hl * Math.sin(a + 0.4)); g.closePath(); g.fill(); }
+/* Antippen auf der Zeichenfläche */
+let HITS = [];
+function hit(x, y, w, h, fn) { HITS.push([x, y, w, h, fn]); }
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect(), x = VX0 + (e.clientX - r.left) / r.width * (VX1 - VX0), y = VY0 + (e.clientY - r.top) / r.height * (VY1 - VY0);
+  for (let i = HITS.length - 1; i >= 0; i--) { const [hx, hy, hw, hh, fn] = HITS[i]; if (x >= hx && x <= hx + hw && y >= hy && y <= hy + hh) { fn(); try { $('#out').innerHTML = STATIONS[cur].out(); } catch (err) {} break; } }
+});
+function tw(t, size, weight) { g.font = font(size, weight); return g.measureText(t).width; }
+function btn(x, y, w, h, label, on, fn, o = {}) {
+  g.fillStyle = o.fill || (on ? ACC : '#fff'); rr(x, y, w, h, o.r || 8); g.fill(); g.strokeStyle = o.stroke || (on ? ACC : '#cfd8d4'); g.lineWidth = 1.5; g.stroke();
+  text(label, x + w / 2, y + h / 2 + (o.size || 11) * K * 0.36, { size: o.size || 11, weight: 800, align: 'center', color: o.color || (on ? '#fff' : '#1b2a27') });
+  if (fn) hit(x, y, w, h, fn);
+}
+function blurText(t, x, y, o, blur) { const n = blur < 0.6 ? 1 : 10; g.save(); for (let i = 0; i < n; i++) { const a = i / n * 2 * Math.PI; g.globalAlpha = n === 1 ? 1 : 0.16; text(t, x + Math.cos(a) * blur, y + Math.sin(a) * blur, o); } g.restore(); }
+/* ================= Deutsch-Hilfen ================= */
+const GOOD = '#2f8a3e', BAD = '#c0392b';
+// Zeile "Der Mond ist auf|ge|gan|gen" -> Silben mit Wortgrenzen
+function sylls(line) { const out = []; line.split(' ').forEach((w, wi) => w.split('|').forEach((s, si, arr) => out.push({ s, wi, first: si === 0, last: si === arr.length - 1 }))); return out; }
+// Silben nebeneinander setzen; gibt Positionen zurück (zentriert um cx)
+function layoutSyl(S, cx, size, weight, gapIn, gapW, maxW) {
+  let x = 0; const P = S.map((o, i) => { const w = tw(o.s, size, weight); if (i) x += o.first ? gapW : gapIn; const p = { x, w }; x += w; return p; });
+  let sc = 1; if (maxW && x > maxW) sc = maxW / x;
+  const x0 = cx - x * sc / 2; P.forEach(p => { p.x = x0 + p.x * sc; p.w *= sc; }); return { P, W: x * sc, sc };
+}
+// Metrik-Zeichen: x bzw. x mit Akzent
+function metX(x, y, on, size, col) { text('x', x, y, { size, weight: on ? 900 : 600, align: 'center', color: col || (on ? ACC : '#8a958f') }); if (on) { g.strokeStyle = col || ACC; g.lineWidth = Math.max(1.6, size * 0.12); g.beginPath(); g.moveTo(x - size * 0.05, y - size * K * 0.78); g.lineTo(x + size * 0.28, y - size * K * 1.12); g.stroke(); } }
+// Wortfolge mit Zeilenumbruch, liefert Positionen
+function flowWords(words, x, y, maxW, size, weight, gap, lh) {
+  let cx = x, cy = y; return words.map(w => { const ww = tw(w, size, weight); if (cx > x && cx + ww > x + maxW) { cx = x; cy += lh; } const p = { t: w, x: cx, y: cy, w: ww }; cx += ww + gap; return p; });
+}
+// kleine Rückmeldungsbox
+function feedback(ok, msg, x, y, w) { panel(x, y, w, 46, null, { fill: ok ? '#ecf8ef' : '#fdeeee', stroke: ok ? GOOD : BAD }); wrap((ok ? '✓ ' : '✗ ') + msg, x + 10, y + 19, w - 20, { size: 10.5, weight: 700, color: ok ? GOOD : BAD }); }
+// Ton (optional)
+let AC = null;
+function beep(f, d, v) { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); const o = AC.createOscillator(), gn = AC.createGain(); o.frequency.value = f; o.type = 'triangle'; gn.gain.setValueAtTime(v || 0.15, AC.currentTime); gn.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + (d || 0.12)); o.connect(gn); gn.connect(AC.destination); o.start(); o.stop(AC.currentTime + (d || 0.12)); } catch (e) {} }
+function shuffle(a, seed) { const R = seeded(seed || 7), b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+
+const ACC = '#4d7c0f', ACC_SOFT = '#eef6dd';
+/* ================= Zellbestandteile ================= */
+const ORG = {
+  wand: ['Zellwand', 'Feste Hülle aus Cellulose. Sie gibt der Pflanzenzelle Form und Festigkeit.', 'P'],
+  membran: ['Zellmembran', 'Dünnes Häutchen um das Zellplasma. Sie regelt, welche Stoffe in die Zelle hinein- und hinausgelangen.', 'B'],
+  plasma: ['Zellplasma', 'Zähflüssige Grundsubstanz der Zelle. Darin liegen die Zellbestandteile, und hier laufen viele Stoffwechselvorgänge ab.', 'B'],
+  kern: ['Zellkern', 'Enthält die Erbinformation (DNA) und steuert die Vorgänge in der Zelle. Das dunkle Kernkörperchen darin heißt Nucleolus.', 'B'],
+  vakuole: ['Vakuole', 'Großer, mit Zellsaft gefüllter Raum. Sie speichert Wasser und Stoffe und hält die Zelle durch Innendruck prall.', 'P'],
+  chloro: ['Chloroplasten', 'Enthalten den grünen Farbstoff Chlorophyll. Hier findet die Fotosynthese statt: Aus Licht, Wasser und Kohlenstoffdioxid entstehen Traubenzucker und Sauerstoff.', 'P'],
+  mito: ['Mitochondrien', '„Kraftwerke“ der Zelle: Bei der Zellatmung wird aus Traubenzucker und Sauerstoff Energie für die Zelle bereitgestellt.', 'B'],
+  er: ['Endoplasmatisches Retikulum (ER)', 'Netz aus Membranen. Hier werden Stoffe hergestellt und durch die Zelle transportiert.', 'B', 1],
+  golgi: ['Golgi-Apparat', 'Stapel aus Membranen. Er verpackt Stoffe in kleine Bläschen und verschickt sie.', 'B', 1],
+  ribo: ['Ribosomen', 'Winzige Körnchen, frei im Plasma oder am ER. Hier werden Eiweiße (Proteine) hergestellt.', 'B', 1],
+  zentri: ['Zentriolen', 'Kleine Röhrchenpaare. Sie helfen bei der Zellteilung, die Chromosomen zu verteilen.', 'T', 1]
+};
+const VORK = { P: 'nur in Pflanzenzellen', B: 'in Pflanzen- und Tierzellen', T: 'nur in Tierzellen' };
+const OCOL = { wand: '#7a9a3a', membran: '#c2410c', plasma: '#a3a36b', kern: '#7c3aed', vakuole: '#3b82f6', chloro: '#15803d', mito: '#ea580c', er: '#db2777', golgi: '#0891b2', ribo: '#57534e', zentri: '#b45309' };
+const PKEYS = ['wand', 'membran', 'plasma', 'kern', 'vakuole', 'chloro', 'mito', 'er', 'golgi', 'ribo'];
+const TKEYS = ['membran', 'plasma', 'kern', 'mito', 'er', 'golgi', 'ribo', 'zentri'];
+// Zeigerposition merken (für Klicks auf Zellbestandteile)
+let LP = [0, 0];
+window.addEventListener('pointerdown', e => { const r = cv.getBoundingClientRect(); LP = [VX0 + (e.clientX - r.left) / r.width * (VX1 - VX0), VY0 + (e.clientY - r.top) / r.height * (VY1 - VY0)]; }, true);
+function glow(fn, sc) { const a = 0.55 + 0.45 * Math.sin(T * 5); g.save(); g.strokeStyle = `rgba(250,204,21,${a})`; g.lineWidth = 5 / sc; g.shadowColor = '#facc15'; g.shadowBlur = 10; fn(); g.stroke(); g.restore(); }
+function mitoShape(x, y, rot, s) { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = '#fdba74'; g.strokeStyle = '#c2410c'; g.lineWidth = 1.4; g.beginPath(); g.ellipse(0, 0, 15 * s, 7 * s, 0, 0, 7); g.fill(); g.stroke(); g.lineWidth = 1; g.beginPath(); for (let i = 0; i <= 8; i++) { const xx = -11 * s + i * 2.75 * s; g.lineTo(xx, (i % 2 ? 4 : -4) * s); } g.stroke(); g.restore(); }
+function chloroShape(x, y, rot) { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = '#4ade80'; g.strokeStyle = '#15803d'; g.lineWidth = 1.2; g.beginPath(); g.ellipse(0, 0, 8, 4.2, 0, 0, 7); g.fill(); g.stroke(); g.strokeStyle = '#166534'; g.lineWidth = 1.3; [-4, 0, 4].forEach(dx => { g.beginPath(); g.moveTo(dx, -2); g.lineTo(dx, 2); g.stroke(); }); g.restore(); }
+function golgiShape(x, y, s) { g.save(); g.translate(x, y); g.strokeStyle = '#0891b2'; g.lineCap = 'round'; [0, 1, 2, 3].forEach(i => { g.lineWidth = 3; g.beginPath(); g.arc(0, 20 - i * 5, 18 - i * 1.5, 1.15 * Math.PI, 1.85 * Math.PI); g.stroke(); }); [[-17, -2], [18, 0], [-14, -10]].forEach(([a, b]) => ball(a, b, 2.2, '#a5f3fc', '#0891b2')); g.restore(); }
+/* ---------- Pflanzenzelle (lokal 340×240) ---------- */
+const PN = [114, -14, 26];
+const PMITO = [[96, -74, 0.5], [104, 58, -0.3], [-60, -97, 0], [-110, 97, 0.05]];
+const PGOL = [134, 82];
+function chloroPos(i, n) {
+  const x0 = -147, x1 = 148, y0 = -97, y1 = 97, W = x1 - x0, H = y1 - y0, P = 2 * (W + H), s = ((i / n) * P + T * 14) % P;
+  if (s < W) return [x0 + s, y0, 0]; if (s < W + H) return [x1, y0 + s - W, Math.PI / 2]; if (s < 2 * W + H) return [x1 - (s - W - H), y1, Math.PI]; return [x0, y1 - (s - 2 * W - H), -Math.PI / 2];
+}
+function drawPlant(cx, cy, sc, o) {
+  const sel = o.sel, det = o.detail, R = seeded(4);
+  g.save(); g.translate(cx, cy); g.scale(sc, sc);
+  g.fillStyle = '#c9df9a'; rr(-170, -120, 340, 240, 22); g.fill(); g.strokeStyle = '#6f8f30'; g.lineWidth = 2.5; g.stroke();
+  g.strokeStyle = 'rgba(111,143,48,.35)'; g.lineWidth = 1; for (let i = 0; i < 26; i++) { const a = -165 + i * 13; g.beginPath(); g.moveTo(a, -118); g.lineTo(a + 6, -111); g.stroke(); g.beginPath(); g.moveTo(a, 118); g.lineTo(a + 6, 111); g.stroke(); }
+  g.fillStyle = '#f5f8e6'; rr(-158, -108, 316, 216, 14); g.fill(); g.strokeStyle = '#c2410c'; g.lineWidth = 1.8; g.stroke();
+  for (let i = 0; i < 70; i++) { const x = -150 + R() * 300, y = -100 + R() * 200; ball(x, y, 0.9, 'rgba(160,160,110,.35)'); }
+  g.fillStyle = 'rgba(191,219,254,.75)'; rr(-138, -86, 208, 172, 30); g.fill(); g.strokeStyle = '#60a5fa'; g.lineWidth = 1.5; g.stroke();
+  g.fillStyle = 'rgba(59,130,246,.10)'; rr(-128, -76, 188, 152, 24); g.fill();
+  if (det) {
+    g.strokeStyle = '#db2777'; g.lineWidth = 1.6; [34, 40, 46].forEach((r, k) => { g.beginPath(); for (let a = 0.18; a <= 0.95; a += 0.04) { const rr2 = r + Math.sin(a * 40 + k) * 1.5; g.lineTo(PN[0] + Math.cos(a * Math.PI) * rr2, PN[1] + Math.sin(a * Math.PI) * rr2); } g.stroke(); });
+    for (let i = 0; i < 26; i++) { const a = (0.18 + R() * 0.77) * Math.PI, r = 34 + Math.floor(R() * 3) * 6 + 2; ball(PN[0] + Math.cos(a) * r, PN[1] + Math.sin(a) * r, 1.3, '#57534e'); }
+    for (let i = 0; i < 30; i++) { const x = 76 + R() * 76, y = -100 + R() * 200; if (Math.hypot(x - PN[0], y - PN[1]) > 52) ball(x, y, 1.2, '#57534e'); }
+    golgiShape(PGOL[0], PGOL[1]);
+  }
+  g.fillStyle = '#ddd6fe'; g.strokeStyle = '#7c3aed'; g.lineWidth = 2; g.beginPath(); g.arc(PN[0], PN[1], PN[2], 0, 7); g.fill(); g.stroke();
+  for (let i = 0; i < 14; i++) { const a = R() * 7, r = R() * 18; ball(PN[0] + Math.cos(a) * r, PN[1] + Math.sin(a) * r, 1.4, 'rgba(124,58,237,.45)'); }
+  ball(PN[0] + 6, PN[1] - 5, 8, '#7c3aed');
+  PMITO.forEach(([x, y, r]) => mitoShape(x, y, r, 1));
+  const n = 16; for (let i = 0; i < n; i++) { const [x, y, a] = chloroPos(i, n); chloroShape(x, y, a); }
+  // Hervorhebung
+  if (sel === 'wand') glow(() => { g.beginPath(); g.rect(-170, -120, 340, 240); }, sc);
+  if (sel === 'membran') glow(() => rr(-158, -108, 316, 216, 14), sc);
+  if (sel === 'vakuole') glow(() => rr(-138, -86, 208, 172, 30), sc);
+  if (sel === 'kern') glow(() => { g.beginPath(); g.arc(PN[0], PN[1], PN[2] + 2, 0, 7); }, sc);
+  if (sel === 'mito') PMITO.forEach(([x, y, r]) => glow(() => { g.beginPath(); g.ellipse(x, y, 17, 9, r, 0, 7); }, sc));
+  if (sel === 'chloro') for (let i = 0; i < n; i++) { const [x, y, a] = chloroPos(i, n); glow(() => { g.beginPath(); g.ellipse(x, y, 10, 6, a, 0, 7); }, sc); }
+  if (sel === 'plasma') glow(() => { g.beginPath(); g.moveTo(70, -100); g.lineTo(150, -100); g.lineTo(150, 100); g.lineTo(70, 100); g.closePath(); }, sc);
+  if (sel === 'golgi' && det) glow(() => { g.beginPath(); g.arc(PGOL[0], PGOL[1] + 5, 22, 0, 7); }, sc);
+  if (sel === 'er' && det) glow(() => { g.beginPath(); g.arc(PN[0], PN[1], 48, 0.15 * Math.PI, 0.98 * Math.PI); g.arc(PN[0], PN[1], 32, 0.98 * Math.PI, 0.15 * Math.PI, true); g.closePath(); }, sc);
+  if (sel === 'ribo' && det) glow(() => { g.beginPath(); g.rect(76, -100, 76, 200); }, sc);
+  g.restore();
+}
+function classPlant(u, v, det) {
+  if (Math.abs(u) > 170 || Math.abs(v) > 120) return null;
+  const d = Math.min(170 - Math.abs(u), 120 - Math.abs(v));
+  if (d < 9) return 'wand'; if (d < 19) return 'membran';
+  const n = 16; for (let i = 0; i < n; i++) { const [x, y] = chloroPos(i, n); if (Math.hypot(u - x, v - y) < 11) return 'chloro'; }
+  if (PMITO.some(([x, y]) => Math.hypot(u - x, v - y) < 16)) return 'mito';
+  if (Math.hypot(u - PN[0], v - PN[1]) < PN[2] + 3) return 'kern';
+  if (det && Math.hypot(u - PGOL[0], v - PGOL[1] - 5) < 22) return 'golgi';
+  if (det) { const r = Math.hypot(u - PN[0], v - PN[1]), a = Math.atan2(v - PN[1], u - PN[0]) / Math.PI; if (r > 30 && r < 50 && a > 0.15 && a < 0.98) return 'er'; }
+  if (u > -138 && u < 70 && v > -86 && v < 86) return 'vakuole';
+  return 'plasma';
+}
+/* ---------- Tierzelle (lokal rx 150, ry 112) ---------- */
+const AN = [-12, -4, 38];
+const AMITO = [[88, -46, 0.4], [100, 40, -0.5], [-95, 52, 0.8], [-82, -58, -0.6], [10, 84, 0.1], [30, -86, 1.2]];
+const AGOL = [62, 58], AZEN = [64, -18];
+const aR = th => 1 + 0.03 * Math.sin(3 * th + T * 0.8) + 0.02 * Math.sin(5 * th - T * 0.6);
+function blobPath(k) { g.beginPath(); for (let i = 0; i <= 72; i++) { const th = i / 72 * 2 * Math.PI, r = aR(th) * k; g.lineTo(Math.cos(th) * 150 * r, Math.sin(th) * 112 * r); } g.closePath(); }
+function drawAnimal(cx, cy, sc, o) {
+  const sel = o.sel, det = o.detail, R = seeded(9);
+  g.save(); g.translate(cx, cy); g.scale(sc, sc);
+  blobPath(1); g.fillStyle = '#fdeef0'; g.fill(); g.strokeStyle = '#c2410c'; g.lineWidth = 2.4; g.stroke();
+  for (let i = 0; i < 60; i++) { const a = R() * 7, r = R() * 0.9; ball(Math.cos(a) * 140 * r, Math.sin(a) * 100 * r, 0.9, 'rgba(170,120,120,.35)'); }
+  if (det) {
+    g.strokeStyle = '#db2777'; g.lineWidth = 1.6; [48, 54, 60].forEach((r, k) => { g.beginPath(); for (let a = -0.3; a <= 0.42; a += 0.03) { const rr2 = r + Math.sin(a * 50 + k) * 1.5; g.lineTo(AN[0] + Math.cos(a * Math.PI) * rr2, AN[1] + Math.sin(a * Math.PI) * rr2); } g.stroke(); });
+    for (let i = 0; i < 24; i++) { const a = (-0.3 + R() * 0.72) * Math.PI, r = 48 + Math.floor(R() * 3) * 6 + 2; ball(AN[0] + Math.cos(a) * r, AN[1] + Math.sin(a) * r, 1.3, '#57534e'); }
+    for (let i = 0; i < 40; i++) { const a = R() * 7, r = 0.45 + R() * 0.45, x = Math.cos(a) * 140 * r, y = Math.sin(a) * 100 * r; if (Math.hypot(x - AN[0], y - AN[1]) > 64) ball(x, y, 1.2, '#57534e'); }
+    golgiShape(AGOL[0], AGOL[1]);
+    g.save(); g.translate(AZEN[0], AZEN[1]); g.fillStyle = '#fcd34d'; g.strokeStyle = '#b45309'; g.lineWidth = 1.2; rr(-8, -3, 16, 6, 2); g.fill(); g.stroke(); rr(4, -2, 6, 14, 2); g.fill(); g.stroke(); g.restore();
+  }
+  g.fillStyle = '#ddd6fe'; g.strokeStyle = '#7c3aed'; g.lineWidth = 2; g.beginPath(); g.arc(AN[0], AN[1], AN[2], 0, 7); g.fill(); g.stroke();
+  for (let i = 0; i < 20; i++) { const a = R() * 7, r = R() * 28; ball(AN[0] + Math.cos(a) * r, AN[1] + Math.sin(a) * r, 1.5, 'rgba(124,58,237,.45)'); }
+  ball(AN[0] + 7, AN[1] - 6, 11, '#7c3aed');
+  AMITO.forEach(([x, y, r]) => mitoShape(x, y, r, 1));
+  if (sel === 'membran') glow(() => blobPath(1), sc);
+  if (sel === 'kern') glow(() => { g.beginPath(); g.arc(AN[0], AN[1], AN[2] + 2, 0, 7); }, sc);
+  if (sel === 'mito') AMITO.forEach(([x, y, r]) => glow(() => { g.beginPath(); g.ellipse(x, y, 17, 9, r, 0, 7); }, sc));
+  if (sel === 'plasma') glow(() => blobPath(0.88), sc);
+  if (sel === 'golgi' && det) glow(() => { g.beginPath(); g.arc(AGOL[0], AGOL[1] + 5, 22, 0, 7); }, sc);
+  if (sel === 'zentri' && det) glow(() => { g.beginPath(); g.arc(AZEN[0] + 1, AZEN[1] + 3, 14, 0, 7); }, sc);
+  if (sel === 'er' && det) glow(() => { g.beginPath(); g.arc(AN[0], AN[1], 63, -0.32 * Math.PI, 0.44 * Math.PI); g.arc(AN[0], AN[1], 45, 0.44 * Math.PI, -0.32 * Math.PI, true); g.closePath(); }, sc);
+  if (sel === 'ribo' && det) glow(() => blobPath(0.92), sc);
+  g.restore();
+}
+function classAnimal(u, v, det) {
+  const th = Math.atan2(v / 112, u / 150), r = Math.hypot(u / 150, v / 112), Rt = aR(th);
+  if (r > Rt * 1.07) return null; if (r > Rt * 0.92) return 'membran';
+  if (AMITO.some(([x, y]) => Math.hypot(u - x, v - y) < 16)) return 'mito';
+  if (Math.hypot(u - AN[0], v - AN[1]) < AN[2] + 3) return 'kern';
+  if (det && Math.hypot(u - AGOL[0], v - AGOL[1] - 5) < 22) return 'golgi';
+  if (det && Math.hypot(u - AZEN[0], v - AZEN[1] - 3) < 14) return 'zentri';
+  if (det) { const rr2 = Math.hypot(u - AN[0], v - AN[1]), a = Math.atan2(v - AN[1], u - AN[0]) / Math.PI; if (rr2 > 44 && rr2 < 64 && a > -0.32 && a < 0.44) return 'er'; }
+  return 'plasma';
+}
+// Beschriftungs-Anker (lokal) für die Einzelansicht
+const PLBL = { wand: [-168, -40, 30, 70], membran: [-157, 40, 30, 410], vakuole: [-40, -40, 105, 70], plasma: [130, 96, 170, 410], kern: [114, -40, 265, 70], mito: [104, 58, 330, 410], er: [90, 22, 110, 410], golgi: [134, 80, 250, 410], ribo: [140, -60, 330, 70] };
+const ALBL = { membran: [-148, 30, 30, 410], plasma: [-60, 60, 120, 410], kern: [-12, -42, 120, 70], mito: [88, -46, 230, 70], er: [40, -20, 220, 410], golgi: [62, 60, 300, 410], zentri: [66, -20, 320, 70], ribo: [-100, 20, 30, 70] };
+function drawLabels(lb, cx, cy, sc, det, sel) {
+  if (!labels) return; const chl = chloroPos(2, 16);
+  Object.entries(lb).forEach(([k, [u, v, x, y]]) => { if (ORG[k][3] && !det) return; if (k === 'chloro') return; lbl(k === 'er' ? 'ER' : ORG[k][0].split(' (')[0], cx + u * sc, cy + v * sc, x, y, { size: 9.5, color: k === sel ? OCOL[k] : undefined, weight: k === sel ? 900 : 700 }); });
+  if (lb === PLBL) lbl('Chloroplasten', cx + chl[0] * sc, cy + chl[1] * sc, 175, 70, { size: 9.5, color: sel === 'chloro' ? OCOL.chloro : undefined, weight: sel === 'chloro' ? 900 : 700 });
+}
+function infoPanel(k, x, y, w, h) {
+  const O = ORG[k]; panel(x, y, w, h, null);
+  g.fillStyle = OCOL[k]; rr(x + 10, y + 12, 6, 34, 3); g.fill();
+  let fs = 13; while (tw(O[0], fs, 900) > w - 34 && fs > 9) fs -= 0.5; text(O[0], x + 24, y + 28, { size: fs, weight: 900, color: OCOL[k] });
+  text(VORK[O[2]], x + 24, y + 44, { size: 9, weight: 800, color: O[2] === 'P' ? '#15803d' : O[2] === 'T' ? '#be123c' : '#6d28d9' });
+  return wrap(O[1], x + 14, y + 66, w - 28, { size: 10.2 });
+}
+/* ================= Station 1: Bau ================= */
+const bau = {
+  nav: 'Bau der Zellen', bg: '#f6f8f1',
+  title: 'Pflanzenzelle und Tierzelle',
+  lead: 'Tippe auf einen Zellbestandteil, um mehr darüber zu erfahren.',
+  controls: [
+    { t: 'seg', id: 'z', label: 'Ansicht', opts: [['pflanze', 'Pflanzenzelle'], ['tier', 'Tierzelle'], ['beide', 'Vergleich']], v: 'pflanze' },
+    { t: 'toggles', items: [['detail', 'Feinbau (Elektronenmikroskop)', false]] }
+  ],
+  was: 'Alle Lebewesen bestehen aus Zellen. Pflanzen- und Tierzellen haben vieles gemeinsam: Zellmembran, Zellplasma, Zellkern und Mitochondrien. Pflanzenzellen besitzen zusätzlich eine feste Zellwand, eine große Vakuole und – in grünen Teilen – Chloroplasten. In der Pflanzenzelle kreisen die Chloroplasten mit dem Zellplasma (Plasmaströmung).',
+  merke: 'Gemeinsam: Zellmembran, Zellplasma, Zellkern, Mitochondrien. Nur Pflanzenzelle: Zellwand, große Vakuole, Chloroplasten. Mit dem Lichtmikroskop sieht man vor allem Zellwand, Zellkern, Vakuole und Chloroplasten; den Feinbau zeigt erst das Elektronenmikroskop.',
+  frage: 'Warum braucht eine Pflanzenzelle eine Zellwand, eine Tierzelle aber nicht? Denke an das Skelett der Tiere.',
+  init() { this.sel = 'kern'; },
+  onChange(id) { if (id === 'z') { const ok = this.v.z === 'tier' ? TKEYS : this.v.z === 'pflanze' ? PKEYS : PKEYS.concat(TKEYS); if (!ok.includes(this.sel)) this.sel = 'kern'; } if (id === 'detail' && !this.v.detail && ORG[this.sel][3]) this.sel = 'kern'; },
+  step() {},
+  draw() {
+    const z = this.v.z, det = this.v.detail, sel = this.sel;
+    const tapCell = (kind, cx, cy, sc, w, h) => hit(cx - w * sc / 2, cy - h * sc / 2, w * sc, h * sc, () => { const u = (LP[0] - cx) / sc, v = (LP[1] - cy) / sc, k = kind === 'p' ? classPlant(u, v, det) : classAnimal(u, v, det); if (k) this.sel = k; });
+    if (z !== 'beide') {
+      const cx = 215, cy = 240, isP = z === 'pflanze', sc = isP ? 1.12 : 1.18;
+      if (isP) drawPlant(cx, cy, sc, { sel, detail: det }); else drawAnimal(cx, cy, sc, { sel, detail: det });
+      tapCell(isP ? 'p' : 't', cx, cy, sc, isP ? 350 : 340, isP ? 250 : 260);
+      drawLabels(isP ? PLBL : ALBL, cx, cy, sc, det, sel);
+      const keys = (isP ? PKEYS : TKEYS).filter(k => det || !ORG[k][3]);
+      const hh = infoPanel(sel, 430, 40, 196, 200);
+      panel(430, 250, 196, 180, 'Bestandteile');
+      keys.forEach((k, i) => { const x = 440 + (i % 2) * 90, y = 290 + Math.floor(i / 2) * 28, on = k === sel; g.fillStyle = on ? OCOL[k] : '#fff'; rr(x, y - 14, 84, 24, 7); g.fill(); g.strokeStyle = OCOL[k]; g.lineWidth = 1.3; g.stroke();
+        let nm = ORG[k][0].split(' (')[0]; if (nm.length > 13) nm = { 'Endoplasmatisches Retikulum': 'ER' }[nm] || nm; text(nm, x + 42, y + 2, { size: 8.8, weight: 800, align: 'center', color: on ? '#fff' : OCOL[k] }); hit(x, y - 14, 84, 24, () => { this.sel = k; }); });
+    } else {
+      drawPlant(165, 182, 0.84, { sel, detail: det }); drawAnimal(477, 182, 0.88, { sel, detail: det });
+      tapCell('p', 165, 182, 0.84, 350, 250); tapCell('t', 477, 182, 0.88, 340, 260);
+      text('Pflanzenzelle', 165, 300, { size: 12, weight: 900, align: 'center', color: '#15803d' }); text('Tierzelle', 477, 300, { size: 12, weight: 900, align: 'center', color: '#be123c' });
+      const O = ORG[sel]; panel(14, 314, 612, 116, null);
+      g.fillStyle = OCOL[sel]; rr(24, 326, 6, 34, 3); g.fill(); text(O[0], 38, 342, { size: 13, weight: 900, color: OCOL[sel] });
+      text(VORK[O[2]], 612, 342, { size: 10, weight: 800, align: 'right', color: O[2] === 'P' ? '#15803d' : O[2] === 'T' ? '#be123c' : '#6d28d9' });
+      wrap(O[1], 38, 368, 570, { size: 10.5 });
+    }
+  },
+  out() { const O = ORG[this.sel]; return `<div class="orow t"><span>Ausgewählt</span><b>${O[0]}</b></div><div class="orow t"><span>Vorkommen</span><b>${VORK[O[2]]}</b></div>`; }
+};
+
+/* ================= Station 2: Vergleichen ================= */
+function iconOrg(k, x, y) {
+  g.save(); g.translate(x, y);
+  if (k === 'wand') { g.strokeStyle = '#6f8f30'; g.lineWidth = 3.5; rr(-9, -8, 18, 16, 3); g.stroke(); }
+  else if (k === 'membran') { g.strokeStyle = '#c2410c'; g.lineWidth = 1.6; g.beginPath(); g.ellipse(0, 0, 10, 8, 0, 0, 7); g.stroke(); }
+  else if (k === 'plasma') { g.fillStyle = '#f5e9c8'; g.beginPath(); g.ellipse(0, 0, 10, 8, 0, 0, 7); g.fill(); [[-4, -2], [3, 2], [1, -4], [-2, 4]].forEach(([a, b]) => ball(a, b, 1, '#a3a36b')); }
+  else if (k === 'kern') { ball(0, 0, 8, '#ddd6fe', '#7c3aed'); ball(2, -1, 3, '#7c3aed'); }
+  else if (k === 'vakuole') { g.fillStyle = 'rgba(147,197,253,.9)'; rr(-10, -7, 20, 14, 5); g.fill(); g.strokeStyle = '#3b82f6'; g.lineWidth = 1.2; g.stroke(); }
+  else if (k === 'chloro') chloroShape(0, 0, 0);
+  else if (k === 'mito') mitoShape(0, 0, 0, 0.7);
+  else if (k === 'ribo') [[-5, -3], [0, 2], [5, -2], [-3, 4], [4, 4]].forEach(([a, b]) => ball(a, b, 1.6, '#57534e'));
+  else if (k === 'er') { g.strokeStyle = '#db2777'; g.lineWidth = 1.5; [-4, 0, 4].forEach(dy => { g.beginPath(); for (let i = -10; i <= 10; i += 2) g.lineTo(i, dy + Math.sin(i) * 1.2); g.stroke(); }); }
+  else if (k === 'golgi') { g.scale(0.5, 0.5); golgiShape(0, -6); }
+  else if (k === 'zentri') { g.fillStyle = '#fcd34d'; g.strokeStyle = '#b45309'; g.lineWidth = 1; rr(-8, -3, 12, 5, 2); g.fill(); g.stroke(); rr(2, -2, 5, 11, 2); g.fill(); g.stroke(); }
+  g.restore();
+}
+const CARDS = ['wand', 'chloro', 'vakuole', 'membran', 'plasma', 'kern', 'mito', 'ribo', 'er', 'golgi', 'zentri'];
+const COLX = { P: 114, B: 320, T: 526 }, COLN = { P: 'nur Pflanzenzelle', B: 'beide', T: 'nur Tierzelle' }, COLC = { P: '#15803d', B: '#6d28d9', T: '#be123c' };
+const vergl = {
+  nav: 'Vergleichen', bg: '#f6f8f1',
+  title: 'Was haben beide Zellen gemeinsam?',
+  lead: 'Ordne die Zellbestandteile zu – oder schau zu, wie sie sortiert werden.',
+  controls: [{ t: 'seg', id: 'm', label: 'Modus', opts: [['auto', 'Zuschauen'], ['selbst', 'Selbst sortieren']], v: 'selbst' }, { t: 'buttons', items: [['neu', '↺ Neu']] }],
+  was: 'Die Grundausstattung ist bei Pflanzen- und Tierzellen gleich: Membran, Plasma, Zellkern, Mitochondrien sowie (im Elektronenmikroskop sichtbar) ER, Golgi-Apparat und Ribosomen. Zellwand, große Vakuole und Chloroplasten hängen mit der Lebensweise der Pflanzen zusammen: Festigkeit ohne Skelett, Wasserspeicherung und Fotosynthese.',
+  merke: 'Nur Pflanzenzelle: Zellwand, große Vakuole, Chloroplasten. Nur Tierzelle: Zentriolen. Alles andere haben beide.',
+  frage: 'Eine Zelle aus einer Zwiebel hat eine Zellwand und eine Vakuole, aber keine Chloroplasten. Ist es eine Pflanzenzelle? Begründe.',
+  init() { this.reset(); },
+  reset() { this.t = 0; this.q = shuffle(CARDS, 2 + Math.floor(Math.random() * 50)); this.placed = []; this.err = 0; this.msg = null; this.fly = null; },
+  onChange(id) { this.reset(); },
+  step(dt) { this.t += dt; if (this.fly) { this.fly.u += dt * 2.5; if (this.fly.u >= 1) { this.placed.push(this.fly.k); this.fly = null; } } if (this.v.m === 'auto' && !this.fly && this.q.length && this.t > 0.8) { this.t = 0; this.fly = { k: this.q.shift(), u: 0 }; } },
+  slot(k, list) { const c = ORG[k][2], i = list.filter(x => ORG[x][2] === c).indexOf(k); return [COLX[c], 112 + i * 33]; },
+  card(k, x, y, s, col) { g.save(); g.translate(x, y); g.scale(s, s); g.fillStyle = '#fff'; rr(-92, -14, 184, 28, 8); g.fill(); g.strokeStyle = col || '#d6dccd'; g.lineWidth = 1.4; g.stroke(); iconOrg(k, -74, 0); text(ORG[k][0].split(' (')[0].replace('Endoplasmatisches Retikulum', 'ER (Retikulum)'), -56, 4, { size: 10.5, weight: 800 }); g.restore(); },
+  draw() {
+    ['P', 'B', 'T'].forEach(c => { const x = COLX[c]; g.fillStyle = COLC[c] + '12'; rr(x - 100, 44, 200, 300, 12); g.fill(); g.strokeStyle = COLC[c] + '55'; g.lineWidth = 1.5; g.stroke();
+      g.fillStyle = COLC[c]; rr(x - 100, 44, 200, 40, 12); g.fill(); text(COLN[c], x, 69, { size: 12, weight: 900, align: 'center', color: '#fff' });
+      if (this.v.m === 'selbst' && this.q.length && !this.fly) hit(x - 100, 44, 200, 300, () => this.drop(c)); });
+    const all = this.placed.concat(this.fly ? [this.fly.k] : []);
+    this.placed.forEach(k => { const [x, y] = this.slot(k, all); this.card(k, x, y, 1, COLC[ORG[k][2]]); });
+    if (this.fly) { const [x1, y1] = this.slot(this.fly.k, all), e = ease(Math.min(1, this.fly.u)); this.card(this.fly.k, lerp(320, x1, e), lerp(385, y1, e) - Math.sin(e * Math.PI) * 30, lerp(1.25, 1, e)); }
+    panel(14, 354, 612, 76, null);
+    if (this.q.length && !this.fly) {
+      const k = this.q[0];
+      if (this.v.m === 'selbst') { this.card(k, 200, 385, 1.2, ACC); text('Tippe auf die passende Spalte.', 330, 382, { size: 10.5, weight: 800, color: ACC }); text(`Noch ${this.q.length} · Fehler: ${this.err}`, 330, 400, { size: 9.5, color: COL.muted }); }
+      else text('Sortiere …', 320, 396, { size: 11, align: 'center', color: COL.muted });
+    } else if (!this.q.length && !this.fly) {
+      text(this.v.m === 'selbst' ? (this.err === 0 ? '✓ Fehlerfrei sortiert!' : `Fertig – mit ${this.err} Fehler${this.err > 1 ? 'n' : ''}.`) : 'Alle Bestandteile sind sortiert.', 320, 384, { size: 13, weight: 900, align: 'center', color: this.err ? '#b45309' : GOOD });
+      text('Nur drei Bestandteile unterscheiden die Pflanzenzelle von der Tierzelle.', 320, 406, { size: 10, align: 'center', color: COL.muted });
+    }
+    if (this.msg && this.msg[1] > T) { const ok = this.msg[2]; g.fillStyle = ok ? '#ecf8ef' : '#fdeeee'; rr(360, 360, 260, 64, 10); g.fill(); wrap(this.msg[0], 372, 380, 238, { size: 9.5, weight: 700, color: ok ? GOOD : BAD }); }
+  },
+  drop(c) { const k = this.q[0], right = ORG[k][2]; if (c === right) { this.q.shift(); this.fly = { k, u: 0 }; this.msg = null; } else { this.err++; this.msg = [`${ORG[k][0].split(' (')[0]}: ${VORK[right]}.`, T + 2.5, false]; } },
+  out() { return `<div class="orow t"><span>Sortiert</span><b>${this.placed.length} von ${CARDS.length}</b></div>` + (this.v.m === 'selbst' ? `<div class="orow t"><span>Fehler</span><b>${this.err}</b></div>` : ''); }
+};
+
+/* ================= Station 3: Mikroskop ================= */
+const FOV = { 40: 4500, 100: 1800, 400: 450 };
+const MIK = { cx: 214, cy: 240, r: 186 };
+let MZ = null;
+function mkMikro() {
+  const R = seeded(31), zw = [], mu = [], wp = [];
+  for (let y = -2500; y < 2500;) { const h = 46 + R() * 16; let x = -2600 - R() * 300; while (x < 2600) { const w = 190 + R() * 140; zw.push({ x, y, w, h, nx: 0.25 + R() * 0.5, ny: 0.3 + R() * 0.4 }); x += w; } y += h; }
+  for (let c = 0; c < 6; c++) { const ccx = c ? (R() - 0.5) * 900 : 10, ccy = c ? (R() - 0.5) * 700 : -20, n = 5 + Math.floor(R() * 6); for (let i = 0; i < n; i++) { const x = ccx + (R() - 0.5) * 160, y = ccy + (R() - 0.5) * 160, r = 26 + R() * 12, pts = []; for (let j = 0; j < 7; j++) { const a = j / 7 * 2 * Math.PI + R() * 0.5; pts.push([Math.cos(a) * r * (0.8 + R() * 0.35), Math.sin(a) * r * (0.8 + R() * 0.35)]); } mu.push({ x, y, pts, nx: (R() - 0.5) * r * 0.5, ny: (R() - 0.5) * r * 0.5, fold: R() < 0.5 }); } }
+  for (let y = -2500; y < 2500;) { const h = 24 + R() * 7; let x = -1150 - R() * 80; while (x < 1150) { const w = 70 + R() * 45; wp.push({ x, y, w, h, ph: R() }); x += w; } y += h; }
+  return { zw, mu, wp };
+}
+const PRAEP = {
+  zwiebel: ['Zwiebelhaut', 'Iod-Kaliumiodid-Lösung', 'Langgestreckte Zellen mit deutlichen Zellwänden und einem Zellkern. Keine Chloroplasten: Die Zwiebel wächst im Dunkeln und betreibt keine Fotosynthese.', 'Von der Innenseite einer Zwiebelschuppe ein dünnes Häutchen abziehen, in einen Wassertropfen legen und das Deckgläschen schräg auflegen.'],
+  mund: ['Mundschleimhaut', 'Methylenblau', 'Flache, unregelmäßig geformte Zellen mit Zellkern. Keine Zellwand, keine Vakuole, keine Chloroplasten – typisch für Tierzellen.', 'Mit einem sauberen Holzspatel innen über die eigene Wange streichen, in einem Wassertropfen ausstreichen, anfärben, abdecken.'],
+  pest: ['Wasserpest-Blatt', null, 'Längliche Zellen voller Chloroplasten. Bei 400-facher Vergrößerung sieht man, wie die Chloroplasten mit dem Plasma kreisen (Plasmaströmung).', 'Ein junges Blättchen abzupfen und in einem Wassertropfen abdecken. Das Blatt ist nur zwei Zellschichten dick – es muss nicht gefärbt werden.']
+};
+const mikro = {
+  nav: 'Mikroskop', bg: '#f6f8f1',
+  title: 'Zellen unter dem Mikroskop',
+  lead: 'Wähle ein Präparat und die Vergrößerung. Färben macht manche Bestandteile erst sichtbar.',
+  controls: [
+    { t: 'seg', id: 'obj', label: 'Präparat', opts: [['zwiebel', 'Zwiebelhaut'], ['mund', 'Mundschleimhaut'], ['pest', 'Wasserpest']], v: 'zwiebel' },
+    { t: 'seg', id: 'vg', label: 'Vergrößerung', opts: [['40', '40×'], ['100', '100×'], ['400', '400×']], v: '100' },
+    { t: 'toggles', items: [['farbe', 'Präparat färben', false]] }
+  ],
+  was: 'Zellen sind so klein, dass man sie nur mit dem Mikroskop sieht. Die Gesamtvergrößerung ist Okular mal Objektiv (z. B. 10 × 40 = 400-fach). Je stärker die Vergrößerung, desto kleiner ist der sichtbare Ausschnitt. Farbstoffe wie Methylenblau oder Iod-Kaliumiodid-Lösung machen durchsichtige Zellbestandteile sichtbar.',
+  merke: 'Zwiebelhaut: Pflanzenzelle mit Zellwand und Zellkern, aber ohne Chloroplasten. Mundschleimhaut: Tierzelle ohne Zellwand. Wasserpest: Pflanzenzelle mit Chloroplasten und Plasmaströmung.',
+  frage: 'Woran erkennst du im Mikroskop sofort, ob du eine Pflanzenzelle oder eine Tierzelle vor dir hast?',
+  init() { this.s = MIK.r * 2 / FOV[100]; },
+  step(dt) { const tg = MIK.r * 2 / FOV[this.v.vg]; this.s = Math.exp(Math.log(this.s) + (Math.log(tg) - Math.log(this.s)) * Math.min(1, dt * 5)); },
+  draw() {
+    if (!MZ) MZ = mkMikro();
+    const s = this.s, { cx, cy, r } = MIK, ob = this.v.obj, col = this.v.farbe && ob !== 'pest', X = x => cx + x * s, Y = y => cy + y * s, lim = r / s + 400;
+    g.fillStyle = '#1c2024'; rr(14, 40, 400, 390, 14); g.fill();
+    g.save(); g.beginPath(); g.arc(cx, cy, r, 0, 7); g.clip();
+    g.fillStyle = '#f7f4e8'; g.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+    if (ob === 'zwiebel') {
+      g.fillStyle = col ? '#f1dfa6' : '#f3efe0'; g.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+      MZ.zw.forEach(c => { if (c.x > lim || c.x + c.w < -lim || c.y > lim || c.y + c.h < -lim) return; const x = X(c.x), y = Y(c.y), w = c.w * s, h = c.h * s;
+        g.strokeStyle = col ? '#a07a2e' : '#a9a189'; g.lineWidth = Math.max(0.5, Math.min(2.4, 3 * s)); g.strokeRect(x, y, w, h);
+        if (w > 6) { const nr = 10 * s; g.fillStyle = col ? 'rgba(120,70,15,.75)' : 'rgba(150,140,115,.35)'; g.beginPath(); g.ellipse(x + w * c.nx, y + h * c.ny, Math.max(0.8, nr), Math.max(0.6, nr * 0.75), 0, 0, 7); g.fill(); if (s > 0.5) ball(x + w * c.nx + nr * 0.25, y + h * c.ny - nr * 0.1, nr * 0.3, col ? '#5a3208' : 'rgba(120,110,90,.5)'); } });
+    } else if (ob === 'mund') {
+      MZ.mu.forEach(c => { if (Math.abs(c.x) > lim || Math.abs(c.y) > lim) return; g.beginPath(); c.pts.forEach(([a, b], i) => i ? g.lineTo(X(c.x + a), Y(c.y + b)) : g.moveTo(X(c.x + a), Y(c.y + b))); g.closePath();
+        g.fillStyle = col ? 'rgba(120,160,225,.38)' : 'rgba(215,210,195,.28)'; g.fill(); g.strokeStyle = col ? 'rgba(60,95,170,.8)' : 'rgba(150,145,130,.45)'; g.lineWidth = Math.max(0.5, 1.6 * Math.min(1, s)); g.stroke();
+        if (c.fold && s > 0.3) { g.beginPath(); g.moveTo(X(c.x + c.pts[0][0] * 0.6), Y(c.y + c.pts[0][1] * 0.6)); g.quadraticCurveTo(X(c.x), Y(c.y + 8), X(c.x + c.pts[3][0] * 0.6), Y(c.y + c.pts[3][1] * 0.6)); g.stroke(); }
+        ball(X(c.x + c.nx), Y(c.y + c.ny), Math.max(0.7, 5 * s), col ? 'rgba(30,58,138,.9)' : 'rgba(150,145,130,.35)'); });
+      if (!col && s > 0.5) text('ungefärbt kaum sichtbar', cx, cy + r - 40, { size: 10, align: 'center', color: '#8a8573' });
+    } else {
+      g.fillStyle = '#cfe6f3'; g.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+      g.save(); g.beginPath(); for (let y = -2600; y <= 2600; y += 60) { const tooth = (Math.floor(y / 60) % 4 === 0) ? 18 : 0; g.lineTo(X(-1150 - tooth), Y(y)); } for (let y = 2600; y >= -2600; y -= 60) { const tooth = (Math.floor(y / 60) % 4 === 2) ? 18 : 0; g.lineTo(X(1150 + tooth), Y(y)); } g.closePath(); g.fillStyle = '#7fbf5a'; g.fill(); g.clip();
+      MZ.wp.forEach(c => { if (c.x > lim || c.x + c.w < -lim || c.y > lim || c.y + c.h < -lim) return; const x = X(c.x), y = Y(c.y), w = c.w * s, h = c.h * s;
+        g.fillStyle = '#d9efc4'; g.fillRect(x, y, w, h); g.strokeStyle = '#5f8f3a'; g.lineWidth = Math.max(0.4, Math.min(2, 2.5 * s)); g.strokeRect(x, y, w, h);
+        if (s < 0.45) { g.fillStyle = 'rgba(60,150,50,.55)'; g.fillRect(x + w * 0.1, y + h * 0.15, w * 0.8, h * 0.7); return; }
+        const n = 26, ins = 4, W = c.w - 2 * ins, H = c.h - 2 * ins, P = 2 * (W + H);
+        for (let i = 0; i < n; i++) { let p = ((i / n) * P + (T * 6 + c.ph * P)) % P, px, py; if (p < W) { px = ins + p; py = ins; } else if (p < W + H) { px = c.w - ins; py = ins + p - W; } else if (p < 2 * W + H) { px = c.w - ins - (p - W - H); py = c.h - ins; } else { px = ins; py = c.h - ins - (p - 2 * W - H); }
+          ball(x + px * s, y + py * s, 3.3 * s, '#3f9b3a'); } });
+      g.restore();
+    }
+    g.restore();
+    const gr = g.createRadialGradient(cx, cy, r * 0.8, cx, cy, r); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.35)'); g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill();
+    // Maßstab
+    const L = [1000, 500, 200, 100, 50].find(l => l * s <= 130) || 50, bx = cx - L * s / 2, by = cy + r - 24;
+    g.fillStyle = 'rgba(255,255,255,.85)'; rr(bx - 8, by - 15, L * s + 16, 24, 6); g.fill(); g.fillStyle = '#111'; g.fillRect(bx, by, L * s, 3); text(`${L} µm`, cx, by - 3, { size: 9, weight: 800, align: 'center', color: '#111' });
+    text(`${this.v.vg}-fach`, 26, 62, { size: 11, weight: 900, color: '#e5e7eb' });
+    const Pr = PRAEP[ob];
+    panel(426, 40, 200, 390, Pr[0]);
+    text('Färbung: ' + (Pr[1] || 'nicht nötig'), 438, 82, { size: 9.5, weight: 800, color: Pr[1] ? (this.v.farbe ? (ob === 'mund' ? '#1d4ed8' : '#a16207') : COL.muted) : '#15803d' });
+    if (Pr[1] && !this.v.farbe) text('(ausgeschaltet)', 438, 96, { size: 8.5, color: COL.muted });
+    text('Das siehst du:', 438, 122, { size: 10, weight: 900, color: ACC }); let y = 138 + wrap(Pr[2], 438, 138, 176, { size: 9.8 });
+    text('So wird es gemacht:', 438, y + 18, { size: 10, weight: 900, color: ACC }); wrap(Pr[3], 438, y + 34, 176, { size: 9.4, color: '#374151' });
+    if (this.v.vg === '40') text('Tipp: Erst bei 100× oder 400× werden einzelne Zellen deutlich.', 220, 424, { size: 9, align: 'center', color: '#cbd5e1' });
+  },
+  out() { return `<div class="orow t"><span>${PRAEP[this.v.obj][0]}</span><b>${this.v.vg}-fach</b></div><div class="orow t"><span>Sichtfeld</span><b>ca. ${fmt1(FOV[this.v.vg] / 1000)} mm</b></div>`; }
+};
+
+/* ================= Station 4: Quiz ================= */
+const QZE = [
+  ['Tippe auf den Zellkern der Pflanzenzelle.', 'p', 'kern'], ['Wo findet die Fotosynthese statt?', 'p', 'chloro'],
+  ['Welcher Bestandteil gibt der Pflanzenzelle Festigkeit?', 'p', 'wand'], ['Tippe auf die Vakuole.', 'p', 'vakuole'],
+  ['Was grenzt die Tierzelle nach außen ab?', 't', 'membran'], ['Wo wird bei der Zellatmung Energie bereitgestellt?', 't', 'mito'],
+  ['Tippe auf das Zellplasma der Tierzelle.', 't', 'plasma'], ['Wo ist die Erbinformation der Tierzelle gespeichert?', 't', 'kern'],
+  ['Tippe auf die Zellmembran der Pflanzenzelle.', 'p', 'membran'], ['Tippe auf ein Mitochondrium der Pflanzenzelle.', 'p', 'mito'],
+  ['Wo wird der Zellsaft gespeichert?', 'p', 'vakuole'], ['Tippe auf das Zellplasma der Pflanzenzelle.', 'p', 'plasma']
+];
+const zquiz = {
+  nav: 'Quiz', bg: '#f6f8f1',
+  title: 'Zellquiz',
+  lead: 'Lies die Aufgabe und tippe auf den passenden Bestandteil.',
+  controls: [{ t: 'buttons', items: [['next', 'Nächste Frage ▶'], ['neu', '↺ Neu starten']] }],
+  was: 'Die Beschriftungen sind hier ausgeblendet. Erinnere dich an Form und Lage der Bestandteile: Die Zellwand liegt ganz außen, direkt darunter die Zellmembran. Die Vakuole füllt fast die ganze Pflanzenzelle.',
+  merke: 'Zellkern = Steuerzentrale · Mitochondrien = Kraftwerke · Chloroplasten = Fotosynthese · Vakuole = Zellsaftspeicher · Zellwand = Festigkeit · Zellmembran = Grenze.',
+  frage: 'Erkläre deinem Nachbarn mit eigenen Worten die Aufgaben von drei Zellbestandteilen.',
+  init() { this.o = shuffle(QZE.map((_, i) => i), 5); this.i = 0; this.a = null; this.score = 0; this.n = 0; },
+  onChange(id) { if (id === 'next') { this.i = (this.i + 1) % this.o.length; this.a = null; } if (id === 'neu') this.init(); },
+  step() {},
+  draw() {
+    const Q = QZE[this.o[this.i]], isP = Q[1] === 'p', cx = 215, cy = 236, sc = isP ? 1.12 : 1.18;
+    const sel = this.a ? Q[2] : null;
+    if (isP) drawPlant(cx, cy, sc, { sel }); else drawAnimal(cx, cy, sc, { sel });
+    if (this.a && this.a !== Q[2]) text(`Du hast getippt: ${ORG[this.a][0]}`, cx, 418, { size: 10, weight: 800, align: 'center', color: BAD });
+    hit(cx - 175 * sc, cy - 130 * sc, 350 * sc, 260 * sc, () => { if (this.a) return; const u = (LP[0] - cx) / sc, v = (LP[1] - cy) / sc, k = isP ? classPlant(u, v, false) : classAnimal(u, v, false); if (!k) return; this.a = k; this.n++; if (k === Q[2]) this.score++; });
+    panel(430, 40, 196, 390, null);
+    text(`Frage ${this.i + 1} von ${QZE.length}`, 442, 62, { size: 9.5, weight: 800, color: COL.muted }); text(`Punkte: ${this.score}`, 614, 62, { size: 9.5, weight: 800, align: 'right', color: ACC });
+    text(isP ? 'Pflanzenzelle' : 'Tierzelle', 442, 86, { size: 10, weight: 900, color: isP ? '#15803d' : '#be123c' });
+    const h = wrap(Q[0], 442, 110, 172, { size: 12.5, weight: 800 });
+    if (this.a) { const ok = this.a === Q[2], O = ORG[Q[2]]; text(ok ? '✓ Richtig!' : '✗ Leider nicht.', 442, 140 + h, { size: 12, weight: 900, color: ok ? GOOD : BAD }); text(O[0], 442, 164 + h, { size: 11, weight: 900, color: OCOL[Q[2]] }); wrap(O[1], 442, 182 + h, 172, { size: 9.6 }); text('Weiter mit „Nächste Frage ▶“', 528, 418, { size: 9, align: 'center', color: COL.muted }); }
+    else text('👆 Tippe in die Zelle.', 442, 140 + h, { size: 10, color: COL.muted });
+  },
+  out() { return `<div class="orow t"><span>Richtig</span><b>${this.score} von ${this.n}</b></div>`; }
+};
+
+/* ================= Steuerung ================= */
+const STATIONS = { bau, vergl, mikro, zquiz };
+const ORDER = ['bau',  'vergl',  'mikro',  'zquiz'];
+let cur = 'bau';
+function setDefaults(st) { st.v = {}; st.controls.forEach(c => { if (c.t === 'range' || c.t === 'seg') st.v[c.id] = c.v; if (c.t === 'toggles') c.items.forEach(([id, , on]) => st.v[id] = on); }); }
+ORDER.forEach(k => { setDefaults(STATIONS[k]); STATIONS[k].init(); });
+$('#stations').innerHTML = ORDER.map((k, i) => `<button data-st="${k}"><span class="n">${i + 1}</span>${STATIONS[k].nav}</button>`).join('');
+function updRange(el) { el.style.setProperty('--p', ((el.value - el.min) / (el.max - el.min) * 100) + '%'); }
+function buildControls() {
+  const st = STATIONS[cur], box = $('#ctrls'); let h = '';
+  st.controls.forEach(c => {
+    if (c.t === 'range') h += `<div class="ctrl"><div class="lab"><b>${c.label}</b><output id="o_${c.id}">${c.fmt(st.v[c.id])}</output></div><input type="range" data-r="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${st.v[c.id]}" aria-label="${c.label}"></div>`;
+    if (c.t === 'seg') h += `<div class="ctrl"><div class="lab"><b>${c.label}</b></div><div class="seg" style="display:grid;grid-template-columns:1fr 1fr">${c.opts.map(([v, l]) => `<button data-seg="${c.id}" data-val="${v}" aria-pressed="${st.v[c.id] === v}" style="white-space:normal;line-height:1.15;padding:4px 6px">${l}</button>`).join('')}</div></div>`;
+    if (c.t === 'toggles') h += `<div class="tgls">${c.items.map(([id, l]) => `<button class="tgl" data-tgl="${id}" aria-pressed="${!!st.v[id]}"><span class="sw"></span>${l}</button>`).join('')}</div>`;
+    if (c.t === 'buttons') h += `<div class="btnRow">${c.items.map(([id, l]) => `<button class="btn" data-act="${id}">${l}</button>`).join('')}</div>`;
+  });
+  box.innerHTML = h; $$('#ctrls input[type=range]').forEach(updRange);
+  if (st.sync) st.sync();
+}
+function renderStation() {
+  const st = STATIONS[cur];
+  $$('#stations button').forEach(b => b.setAttribute('aria-pressed', b.dataset.st === cur));
+  $('#stTitle').textContent = st.title; $('#stLead').textContent = st.lead;
+  setInfo('was');
+  buildControls(); $('#out').innerHTML = st.out();
+  try { localStorage.setItem('zelle-labor-st', cur); } catch (e) {}
+}
+function setInfo(k) {
+  const st = STATIONS[cur]; $('#info').dataset.i = k;
+  $$('.infoTabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.i === k));
+  $('#infoText').textContent = st[k];
+}
+$('.infoTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setInfo(b.dataset.i); });
+$('#stations').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cur = b.dataset.st; renderStation(); });
+$('#ctrls').addEventListener('input', e => {
+  const el = e.target.closest('input[type=range]'); if (!el) return;
+  const st = STATIONS[cur], id = el.dataset.r, c = st.controls.find(c => c.id === id);
+  st.v[id] = Number(el.value); updRange(el); $('#o_' + id).textContent = c.fmt(st.v[id]);
+  if (st.onChange) st.onChange(id); $('#out').innerHTML = st.out();
+});
+$('#ctrls').addEventListener('click', e => {
+  const st = STATIONS[cur], b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.seg) { st.v[b.dataset.seg] = b.dataset.val; $$(`[data-seg="${b.dataset.seg}"]`).forEach(x => x.setAttribute('aria-pressed', x === b)); if (st.onChange) st.onChange(b.dataset.seg); }
+  if (b.dataset.tgl) { st.v[b.dataset.tgl] = !st.v[b.dataset.tgl]; b.setAttribute('aria-pressed', st.v[b.dataset.tgl]); if (st.onChange) st.onChange(b.dataset.tgl); }
+  if (b.dataset.act && st.onChange) st.onChange(b.dataset.act);
+  $('#out').innerHTML = st.out();
+});
+$('#resetBtn').addEventListener('click', () => { const st = STATIONS[cur]; setDefaults(st); st.init(); renderStation(); toast('Station zurückgesetzt'); });
+$('#labelsChk').addEventListener('change', e => { labels = e.target.checked; });
+$('#pauseBtn').addEventListener('click', () => { paused = !paused; $('#pauseBtn').textContent = paused ? '▶ Weiter' : '⏸ Pause'; $('#pauseBtn').setAttribute('aria-label', paused ? 'Animation fortsetzen' : 'Animation anhalten'); });
+
+let tt;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2400); }
+
+/* Schrift */
+function applyFont() { document.documentElement.style.setProperty('--fs', FS_STEPS[fsIdx]); $('#fontDown').disabled = fsIdx === 0; $('#fontUp').disabled = fsIdx === FS_STEPS.length - 1; }
+function changeFont(d) { const n = clamp(fsIdx + d, 0, FS_STEPS.length - 1); if (n === fsIdx) return; fsIdx = n; try { localStorage.setItem('zelle-labor-fs', fsIdx); } catch (e) {} applyFont(); toast('Schriftgröße ' + Math.round(FS_STEPS[fsIdx] * 100) + ' %'); }
+$('#fontDown').addEventListener('click', () => changeFont(-1));
+$('#fontUp').addEventListener('click', () => changeFont(1));
+
+/* Vollbild */
+const root = document.documentElement;
+const fsReq = root.requestFullscreen || root.webkitRequestFullscreen, fsExit = document.exitFullscreen || document.webkitExitFullscreen;
+const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+function updFs() { const on = fsOn(); $('#fsIn').style.display = on ? 'none' : ''; $('#fsOut').style.display = on ? '' : 'none'; $('#fsBtn').title = on ? 'Vollbild beenden' : 'Vollbild'; $('#fsBtn').setAttribute('aria-label', $('#fsBtn').title); }
+$('#fsBtn').addEventListener('click', () => {
+  if (fsOn()) { try { fsExit && fsExit.call(document); } catch (e) {} return; }
+  if (standalone) { toast('Die App läuft bereits im Vollbild.'); return; }
+  if (!fsReq) { toast('Vollbild: Teilen → „Zum Home-Bildschirm“ und von dort öffnen.'); return; }
+  try { const r = fsReq.call(root); if (r && r.catch) r.catch(() => toast('Vollbild nicht möglich. Öffne die Seite in einem eigenen Tab.')); } catch (e) { toast('Vollbild nicht möglich.'); }
+});
+document.addEventListener('fullscreenchange', updFs); document.addEventListener('webkitfullscreenchange', updFs);
+
+const dlg = $('#infoDlg');
+$('#infoBtn').addEventListener('click', () => dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', ''));
+$('#closeInfo').addEventListener('click', () => dlg.close ? dlg.close() : dlg.removeAttribute('open'));
+
+/* Animation */
+let last = performance.now(), outT = 0;
+function frame(now) {
+  const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+  const st = STATIONS[cur];
+  if (!paused) { T += dt; st.step(dt); }
+  fit(st.bg); HITS = []; st.draw();
+  outT += dt; if (outT > 0.3) { outT = 0; $('#out').innerHTML = st.out(); }
+  requestAnimationFrame(frame);
+}
+try { const s = localStorage.getItem('zelle-labor-st'); if (STATIONS[s]) cur = s; const fr = localStorage.getItem('zelle-labor-fs'), f = Number(fr); if (fr !== null && Number.isInteger(f) && f >= 0 && f < FS_STEPS.length) fsIdx = f; } catch (e) {}
+applyFont(); updFs(); renderStation(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
